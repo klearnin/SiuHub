@@ -1,5 +1,11 @@
-# Vue 3 + Vite
+# SiuHub 项目
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## 📌 项目简介
+SiuHub 是一个基于 **Vue 3 + Vite + Node.js + MySQL** 的业余球队管理系统，包含 **用户管理、球队管理、比赛管理、战术设计、论坛互动** 等功能。
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+---
+
+## **🚀 1. 环境检查**
+### **🔍 检查是否安装 Node.js**
+```bash
+node -v
