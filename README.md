@@ -56,12 +56,11 @@ EXIT;
 
 ### **📌 4. 运行后端服务器**
 ```bash
-node src/server.js
+node app
 ```
 成功后，终端会输出：
 ```bash
-Server running on port 5000
-Database connected
+SiuHub 后端服务已启动，端口号为 5000
 ```
 
 ## **🌐 4. 运行前端**
