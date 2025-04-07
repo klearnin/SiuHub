@@ -5,13 +5,17 @@ USE siuhub;
 -- 创建 users 表
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL,
-    email VARCHAR(100),
-    role ENUM('coach', 'player', 'manager', 'medic', 'fan') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id VARCHAR(100) PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  phone VARCHAR(20) UNIQUE NOT NULL,
+  email VARCHAR(100),
+  password VARCHAR(100) NOT NULL,
+  type ENUM('fan', 'player', 'coach', 'manager', 'medic') NOT NULL,
+  team_id VARCHAR(100),
+  status ENUM('approved', 'pending') DEFAULT 'approved',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- 插入测试数据
 INSERT INTO users (username, password, email, role) VALUES

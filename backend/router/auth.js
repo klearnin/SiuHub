@@ -1,0 +1,17 @@
+const express = require("express");
+const router = express.Router();
+const authController = require("../controller/auth");
+const upload = require("../middleware/upload");
+const auth = require("../middleware/auth");
+
+router.post("/login", authController.login);
+router.post("/register/:type", upload.single("logo"), authController.register);
+router.post("/check-invite", authController.checkInvite);
+router.post("/check-invite", authController.checkInvite);
+router.post("/review-join", auth, authController.reviewJoinRequest);
+router.get("/pending-users", auth, authController.getPendingUsers);
+
+
+
+
+module.exports = router;
