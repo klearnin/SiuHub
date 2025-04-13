@@ -1,18 +1,20 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const path = require('path');
 const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
+const cors = require("cors");
 
-// ✅ 跨域中间件
-const allowCors = function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type,Access-Token,Appid,Secret,Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
-};
-app.use(allowCors);
+
+
+// 配置 CORS（允许前端域名、指定方法、允许 Content-Type 头）
+app.use(
+  cors({
+    origin: "http://localhost:5173", // 前端地址
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // 允许的 HTTP 方法
+    allowedHeaders: ["Content-Type"], // 允许的请求头
+  })
+);
 
 // ✅ JSON 解析中间件
 app.use(express.json());
@@ -31,3 +33,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`SiuHub 后端服务已启动，端口号为 ${PORT}`);
 });
+
+app.use((req, res) => {
+  res.status(404).send(`路径 ${req.originalUrl} 没有对应的接口`)
+})

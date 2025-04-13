@@ -23,6 +23,7 @@ export default {
     return {
       title: "",       // 存储标题输入
       content: "",     // 存储内容输入
+      type: "",  // 默认类型
       currentTime: new Date().toLocaleString()
     };
   },
@@ -38,45 +39,38 @@ export default {
 
   methods:{
      async send(){
-         // 1. 校验数据
-      if (!this.title.trim()) {
-        alert("标题不能为空！");
+        // 1. 校验必填字段
+        if (!this.title.trim() || !this.content.trim()) {
+        alert("标题和内容不能为空！");
         return;
       }
-      if (!this.content.trim()) {
-        alert("内容不能为空！");
-        return;
-      }
-      // 2. 构造请求数据
-      const postData = {
-        title: this.title,
-        content: this.content,
-        time: this.currentTime
-      };
-      try {
-        // 3. 发送 POST 请求（替换为你的实际 API 地址）
-        const response = await axios.post('https://your-api-endpoint.com/notices', postData, {
-          headers: {
-            'Content-Type': 'application/json' // 根据后端要求设置请求头
-          }
-        });
 
-        // 4. 处理成功响应
-        if (response.data.success) {
-          alert("通知发送成功！");
-          this.title = "";  // 清空输入
+       try {
+        // 2. 构造符合后端接口的数据（字段名需与后端一致）
+        const postData = {
+          title: this.title,
+          content: this.content,
+          publish_time: this.currentTime, // 字段名改为 publish_time
+          type: 'team'               // 新增类型字段
+        };
+
+        // 3. 发送 POST 请求到 /create
+        const response = await axios.post("http://localhost:5000/api/user/create", postData);
+
+        // 4. 根据后端返回的 code 判断结果
+        if (response.data.code === 0) {
+          alert("创建成功！");
+          this.title = "";
           this.content = "";
+          this.type = "通知"; // 重置类型
         } else {
-          alert(`发送失败：${response.data.message}`);
+          alert(`创建失败：${response.data.msg}`);
         }
       } catch (error) {
-        // 5. 处理错误
         console.error("请求失败:", error);
-        alert(`发送失败：${error.message || "网络错误"}`);
+        alert(`错误：${error.response?.data?.msg || error.message}`);
       }
     }
-     
-
   }
 };
 </script>
