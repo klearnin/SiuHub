@@ -7,7 +7,8 @@ import Pnotice from "../views/player/Pnotice.vue";
 
 //导入教练界面
 import Chome from "../views/coach/Chome.vue";
-import Cnotice from "../views/coach/Cnotice.vue";
+import Cnotice from "../views/coach/Notice/Cnotice.vue";
+import Cschedule from "../views/coach/Schedule/Cschedule.vue";
 
 
 const routes = [
@@ -16,7 +17,8 @@ const routes = [
     {path: "/phome", component: Phome},
     {path: "/pnotice", component: Pnotice},
     {path: "/chome", component: Chome},
-    {path: "/cnotice", component: Cnotice}
+    {path: "/cnotice", component: Cnotice},
+    ,{path: "/cschedule", component: Cschedule}
 ];
 
 const router = createRouter({

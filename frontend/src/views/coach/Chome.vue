@@ -4,8 +4,8 @@
       <div class="nav-buttons">
         <router-link to="/forum" class="nav-button">论坛</router-link>
         <router-link to="/team" class="nav-button">主队查看</router-link>
-        <router-link to="/schedule" class="nav-button">球队日程</router-link>
-        <router-link to="/Cnotice" class="nav-button">球队公告</router-link>
+        <router-link to="/Cschedule" class="nav-button">球队日程</router-link>
+        <router-link to="/Cnotice" class="nav-button">发布公告</router-link>
         <router-link to="/tactics" class="nav-button">球队战术</router-link>
       </div>
   
@@ -40,22 +40,32 @@
   }
   
   .nav-buttons {
-    display: flex;
-    gap: 15px;
-  }
-  
-  .nav-button {
-    padding: 10px 20px;
-    background-color: #3498db;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-  }
-  
-  .nav-button:hover {
-    background-color: #2980b9;
-  }
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  gap: 30px;                /* 间距 */
+  flex-wrap: wrap;          /* 自动换行，防止窗口变小时挤在一行 */
+  margin-top: 20px;
+}
+
+.nav-button {
+  display: inline-block;
+  min-width: 200px;         /* 最小宽度统一 */
+  height: 45px;  
+  text-align: center;
+  padding: 12px 24px;
+  background-color: #3498db;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.nav-button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px); /* 微微上浮，提升视觉反馈 */
+}
+
   
   .profile-section {
     display: flex;

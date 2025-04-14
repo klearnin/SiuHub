@@ -28,6 +28,7 @@ exports.getNotices = async (req, res) => {
   try{
     const sql = `SELECT * FROM notices ORDER BY publish_time DESC`
     const result = await startQuery(sql)
+    console.log(result);
     res.json({ code: 0, msg: '查询成功', data: result })
   }catch (err) {
     next(err); 

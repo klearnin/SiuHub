@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user");
 
-router.get("/list", userController.getAllUsers);
+//router.get("/list", userController.getAllUsers);
 
 // 创建公告
 router.post('/create', userController.createNotice)
