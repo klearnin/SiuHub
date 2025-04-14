@@ -55,7 +55,7 @@ export default {
         };
 
         // 3. 发送 POST 请求到 /create
-        const response = await axios.post("http://localhost:5000/api/user/create", postData);
+        const response = await axios.post("http://localhost:5000/api/notice/create", postData);
 
         // 4. 根据后端返回的 code 判断结果
         if (response.data.code === 0) {
