@@ -1,0 +1,83 @@
+// controllers/schedule.js
+const { startQuery, escape } = require('../database/index');
+
+exports.createTrainingSchedule = async (req, res) => {
+  try {
+    const { date,training_time, team_training, personal_training } = req.body;
+
+    // 插入主 schedule 表
+    const result = await startQuery(`INSERT INTO schedule (date, type) VALUES (${escape(date)}, 'training')`);
+    const scheduleId = result.insertId;
+
+    // 插入 training_schedule 表
+    await startQuery(`INSERT INTO training_schedule (schedule_id, training_time, team_training, personal_training)
+                      VALUES (${scheduleId}, ${escape(training_time)} ,${escape(team_training)}, ${escape(personal_training)})`);
+
+    res.json({ message: '训练日程创建成功', scheduleId });
+  } catch (err) {
+    res.status(500).json({ error: '创建训练日程失败' });
+  }
+};
+
+exports.createMatchSchedule = async (req, res) => {
+  try {
+    const { date, type, location, match_time, team1, team2, events } = req.body;
+
+    if (!['match', 'past_match'].includes(type)) {
+      return res.status(400).json({ error: '比赛类型不合法' });
+    }
+
+    // 插入 schedule 表
+    const result = await startQuery(`INSERT INTO schedule (date, type) VALUES (${escape(date)}, ${escape(type)})`);
+    const scheduleId = result.insertId;
+
+    // 插入 match_schedule 表
+    const matchRes = await startQuery(`INSERT INTO match_schedule (schedule_id, location, match_time, team1, team2)
+                                       VALUES (${scheduleId}, ${escape(location)}, ${escape(match_time)}, ${escape(team1)}, ${escape(team2)})`);
+    const matchScheduleId = matchRes.insertId;
+
+    // 如果是过去比赛，再插入 match_event 表
+    if (type === 'past_match' && Array.isArray(events)) {
+      for (const event of events) {
+        await startQuery(`INSERT INTO match_event (match_schedule_id, event_time, description)
+                          VALUES (${matchScheduleId}, ${escape(event.event_time)}, ${escape(event.description)})`);
+      }
+    }
+
+    res.json({ message: '比赛日程创建成功', scheduleId });
+  } catch (err) {
+    res.status(500).json({ error: '创建比赛日程失败' });
+  }
+};
+
+exports.getScheduleByDate = async (req, res) => {
+  try {
+    const { date, month } = req.query;
+
+    let sql = 'SELECT * FROM schedule';
+    if (date) {
+      sql += ` WHERE date = ${escape(date)}`;
+    } else if (month) {
+      sql += ` WHERE DATE_FORMAT(date, '%Y-%m') = ${escape(month)}`;
+    }
+
+    const result = await startQuery(sql);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: '获取日程失败' });
+  }
+};
+
+exports.getMatchEvents = async (req, res) => {
+  try {
+    const matchScheduleId = req.params.id;
+
+    const matchInfo = await startQuery(`SELECT * FROM match_schedule WHERE id = ${escape(matchScheduleId)}`);
+    const events = await startQuery(`SELECT * FROM match_event WHERE match_schedule_id = ${escape(matchScheduleId)}`);
+
+    res.json({ match: matchInfo[0], events });
+  } catch (err) {
+    res.status(500).json({ error: '获取比赛详情失败' });
+  }
+};
+

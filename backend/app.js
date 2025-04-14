@@ -32,8 +32,21 @@ app.use(errorHandler());
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`SiuHub 后端服务已启动，端口号为 ${PORT}`);
+  printRoutes(app);
 });
 
 app.use((req, res) => {
   res.status(404).send(`路径 ${req.originalUrl} 没有对应的接口`)
 })
+
+const listEndpoints = require('express-list-endpoints');
+
+function printRoutes(app) {
+  console.log('📋 已注册路由列表：');
+  const routes = listEndpoints(app);
+
+  routes.forEach((route) => {
+    const methods = route.methods.join(', ');
+    console.log(`[路由] ${methods} ${route.path}`);
+  });
+}
