@@ -13,12 +13,14 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+DROP TABLE IF EXISTS notices;
+
 CREATE TABLE notices (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   content TEXT NOT NULL,
   publish_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  type ENUM('fan','team') NOT NULL,
+  type ENUM('fan','team') NOT NULL
 );
 
 -- 插入测试数据
@@ -30,4 +32,4 @@ INSERT INTO users (username, password, email, role) VALUES
 
 INSERT INTO notices (title, content, publish_time, type) VALUES
 ('team1', '123456', '2025-04-13 15:30:00', 'team'),
-('fan1', '123456111', '2025-04-12 15:30:00', 'fan'),
+('fan1', '123456111', '2025-04-12 15:30:00', 'fan');
