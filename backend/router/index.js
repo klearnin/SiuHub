@@ -7,4 +7,7 @@ router.use("/user", userRouter);
 const noticeRouter=require("./notice");
 router.use("/notice",noticeRouter);
 
+const scheduleRouter = require('./schedule');
+router.use('/schedule', scheduleRouter);
+
 module.exports = router;
