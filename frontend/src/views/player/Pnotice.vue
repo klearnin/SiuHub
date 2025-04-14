@@ -36,7 +36,7 @@ export default {
   methods: {
     async fetchNotices() {
       try {
-        const res = await axios.get("http://localhost:5000/api/user/list");
+        const res = await axios.get("http://localhost:5000/api/notice/list");
         this.notices = res.data.data;
       } catch (error) {
         console.error('获取公告失败:', error);
@@ -46,18 +46,18 @@ export default {
       this.activeIndex = this.activeIndex === index ? null : index;
     },
     formatDate(datetime) {
-      if (!datetime || typeof datetime !== 'string') {
-        console.error('无效的日期:', datetime);
-        return 'Invalid date';
-      }
-      const formattedDate = datetime.endsWith('Z') ? datetime.slice(0, -1) : datetime;
-      const date = new Date(formattedDate);
-      if (isNaN(date)) {
-        console.error('无效的日期格式:', datetime);
-        return 'Invalid date';
-      }
-      return date.toLocaleString();
-    },
+  if (!datetime || typeof datetime !== 'string') {
+    console.error('无效的日期:', datetime);
+    return 'Invalid date';
+  }
+  const date = new Date(datetime); // 保留原始时间，带 Z
+  if (isNaN(date)) {
+    console.error('无效的日期格式:', datetime);
+    return 'Invalid date';
+  }
+  return date.toLocaleString(); // 按本地时间显示
+}
+
   },
 };
 </script>

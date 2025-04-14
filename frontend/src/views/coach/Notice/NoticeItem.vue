@@ -55,7 +55,7 @@
             type: this.type
           };
   
-          const response = await axios.post("http://localhost:5000/api/user/create", postData);
+          const response = await axios.post("http://localhost:5000/api/notice/create", postData);
           if (response.data.code === 0) {
             alert(`${this.type} 通知创建成功！`);
             this.title = "";
