@@ -9,6 +9,7 @@ import Pnotice from "../views/player/Pnotice.vue";
 import Chome from "../views/coach/Chome.vue";
 import Cnotice from "../views/coach/Notice/Cnotice.vue";
 import Cschedule from "../views/coach/Schedule/Cschedule.vue";
+import Cnotice_del from "../views/coach/Notice/Cnotice_del.vue";
 
 
 const routes = [
@@ -18,7 +19,8 @@ const routes = [
     {path: "/pnotice", component: Pnotice},
     {path: "/chome", component: Chome},
     {path: "/cnotice", component: Cnotice},
-    ,{path: "/cschedule", component: Cschedule}
+    {path: "/cschedule", component: Cschedule},
+    {path: "/cnotice_del", component: Cnotice_del},
 ];
 
 const router = createRouter({
