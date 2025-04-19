@@ -3,6 +3,16 @@ const app = express();
 const path = require('path');
 const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
+const cors = require('cors');
+
+// 允许跨域请求
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
+
 
 // ✅ 跨域中间件
 const allowCors = function (req, res, next) {
