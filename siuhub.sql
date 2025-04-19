@@ -15,6 +15,19 @@ CREATE TABLE users (
   status ENUM('pending', 'approved') DEFAULT 'approved' COMMENT '审核状态（球员、经理、队医默认为 pending）',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间'
 );
+-- 插入一个默认用户（用于测试登录）
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status
+) VALUES (
+  'default-user-001',         -- 用户 ID
+  '测试用户',                 -- 昵称
+  '12345678901',              -- 手机号
+  'test@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'fan',                      -- 用户类型，可换成 'coach' 或其他
+  NULL,                       -- 无需 team_id
+  'approved'                  -- 状态
+);
 
 
 CREATE TABLE teams (
