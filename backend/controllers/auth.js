@@ -192,38 +192,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-// 邀请码验证接口
-exports.checkInvite = async (req, res, next) => {
-  try {
-    const { inviteCode } = req.body;
 
-    if (!inviteCode) {
-      return res.status(400).json({ message: "邀请码不能为空" });
-    }
-
-    const sql = `
-      SELECT id, name, abbr, logo_path 
-      FROM teams 
-      WHERE invite_code = ${db.escape(inviteCode)}
-      LIMIT 1
-    `;
-
-    const result = await db.startQuery(sql);
-
-    if (result.length === 0) {
-      return res.status(404).json({ message: "邀请码无效或不存在" });
-    }
-
-    const team = result[0];
-    res.status(200).json({
-      message: "邀请码有效",
-      team
-    });
-
-  } catch (err) {
-    next(err);
-  }
-};
 
 // 教练审核加入请求接口
 exports.reviewJoinRequest = async (req, res, next) => {
@@ -317,6 +286,21 @@ exports.getPendingUsers = async (req, res, next) => {
     res.status(200).json({
       message: "获取成功",
       users: pendingUsers
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 获取所有球队列表接口
+exports.getAllTeams = async (req, res, next) => {
+  try {
+    const sql = `
+      SELECT id, name FROM teams;
+    `;
+    const teams = await db.startQuery(sql);
+    res.status(200).json({
+      teams
     });
   } catch (err) {
     next(err);

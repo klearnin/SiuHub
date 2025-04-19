@@ -28,7 +28,7 @@ app.use(allowCors);
 app.use(express.json());
 
 // ✅ 静态资源访问（如图片、PDF）
-app.use("/file", express.static(path.join(__dirname, "public")));
+app.use("/public", express.static(path.join(__dirname, "public")));
 
 // ✅ 路由挂载
 app.use("/api", router);

@@ -6,11 +6,9 @@ const auth = require("../middleware/auth");
 
 router.post("/login", authController.login);
 router.post("/register/:type", upload.single("logo"), authController.register);
-router.post("/check-invite", authController.checkInvite);
-router.post("/check-invite", authController.checkInvite);
 router.post("/review-join", auth, authController.reviewJoinRequest);
 router.get("/pending-users", auth, authController.getPendingUsers);
-
+router.get("/get-all-teams", authController.getAllTeams);
 
 
 
