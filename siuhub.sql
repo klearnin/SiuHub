@@ -58,7 +58,7 @@ INSERT INTO teams (
   'team_001',
   '测试队伍',
   'TEST',
-  '\SiuHub\picture\version.jpg',
+  '/public/team-logos/version.jpg',
   'invite001',
   'coach_001'
 );

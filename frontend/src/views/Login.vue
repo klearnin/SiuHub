@@ -94,7 +94,47 @@ const handleLogoUpload = (e) => {
   form.value.file = e.target.files[0];
 };
 
+const redirectAfterLogin = (type) => {
+  const routes = {
+    fan: "/fans",
+    coach: "/coach",
+    player: "/player",
+    manager: "/manager",
+    medic: "/medic",
+  };
+  const path = routes[type];
+  if (path) {
+    router.push(path);
+  } else {
+    alert("该用户类型暂未设置跳转路径");
+  }
+};
+
+const validateLoginForm = () => {
+  console.log(form.value);  // 打印表单内容
+  if (!form.value.phone) {
+    alert("请输入手机号");
+    return false;
+  }
+  if (!form.value.password) {
+    alert("请输入密码");
+    return false;
+  }
+  if (!form.value.userType) {
+    alert("请选择身份");
+    return false;
+  }
+  return true;
+};
+
 const login = async () => {
+  console.log("登录请求数据", {
+  phone: form.value.phone,
+  password: form.value.password,
+  type: form.value.userType,
+});
+
+  if (!validateLoginForm()) return;
   try {
     const res = await axios.post("http://localhost:5000/api/auth/login", {
       phone: form.value.phone,
@@ -104,21 +144,9 @@ const login = async () => {
     console.log("登录返回数据", res.data);
     localStorage.setItem("token", res.data.token);
     alert("登录成功");
-
-    if (res.data.user.type === "fan") {
-      router.push("/fans");
-    } else if (res.data.user.type === "coach") {
-      router.push("/coach");
-    } else if (res.data.user.type === "player") {
-      router.push("/player");
-    } else if (res.data.user.type === "manager") {
-      router.push("/manager");
-    } else if (res.data.user.type === "medic") {
-      router.push("/medic");
-    } else {
-      alert("该用户类型暂未设置跳转");
-    }
+    redirectAfterLogin(res.data.user.type);
   } catch (err) {
+    console.error("登录失败详细信息：", err.response?.data);
     alert(err.response?.data?.message || "登录失败");
   }
 };
@@ -145,7 +173,8 @@ const register = async () => {
       }
     );
     alert(res.data.message);
-    isRegister.value = false;
+    //localStorage.setItem("token", res.data.token);
+    redirectAfterLogin(res.data.user.type);
   } catch (err) {
     alert(err.response?.data?.message || "注册失败");
   }

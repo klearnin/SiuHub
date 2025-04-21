@@ -5,8 +5,12 @@ const path = require('path');
 const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
 
+// ✅ JSON 解析中间件
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));  // 解析 URL 编码的请求体
+
 app.use(cors()); // ✅ 放在所有 app.use 和 app.get/post 之前
-app.use(express.urlencoded({ extended: false }));
+//app.use(express.urlencoded({ extended: false }));
 const authRoutes = require("./router/auth");
 app.use("/api/auth", authRoutes);
 
@@ -28,9 +32,6 @@ const allowCors = function (req, res, next) {
   next();
 };
 app.use(allowCors);
-
-// ✅ JSON 解析中间件
-app.use(express.json());
 
 // ✅ 静态资源访问（如图片、PDF）
 app.use("/public", express.static(path.join(__dirname, "public")));
