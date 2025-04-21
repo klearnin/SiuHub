@@ -1,75 +1,79 @@
 <template>
-  <div class="auth-container">
-    <div class="form-box">
-      <h2>{{ isRegister ? "注册" : "登录" }}</h2>
+  <div class="login-container">
+    <h2>{{ isRegister ? '注册' : '登录' }}</h2>
 
-      <div v-if="isRegister">
-        <input v-model="form.name" placeholder="姓名" />
-        <input v-model="form.phone" placeholder="手机号" />
-        <input v-model="form.email" placeholder="邮箱" />
-        <input v-model="form.password" type="password" placeholder="密码" />
-        <div class="captcha-row">
-          <input v-model="form.captcha" placeholder="验证码" />
-          <button @click="sendCaptcha" :disabled="captchaCountdown > 0">
-            {{ captchaCountdown > 0 ? `${captchaCountdown}s` : "发送验证码" }}
-          </button>
-        </div>
+    <div class="form-group" v-if="isRegister">
+      <input v-model="form.name" type="text" placeholder="姓名" />
+    </div>
 
-        <select v-model="form.userType">
-          <option disabled value="">选择用户类型</option>
-          <option value="coach">教练</option>
-          <option value="fan">球迷</option>
-          <option value="player">球员</option>
-          <option value="manager">经理</option>
-          <option value="medic">队医</option>
-        </select>
+    <div class="form-group">
+      <input v-model="form.phone" type="text" placeholder="手机号" />
+    </div>
 
-        <!-- 教练专属 -->
-        <div v-if="form.userType === 'coach'">
-          <input v-model="form.teamName" placeholder="球队名称" />
-          <input v-model="form.teamAbbr" placeholder="球队简称" />
-          <input type="file" @change="handleLogoUpload" />
-        </div>
+    <div class="form-group">
+      <input v-model="form.password" type="password" placeholder="密码" />
+    </div>
 
-        <!-- 球迷专属 -->
-        <div v-if="form.userType === 'fan'">
-          <input v-model="form.teamId" placeholder="支持的主队ID" />
-        </div>
+    <div class="form-group" v-if="isRegister">
+      <input v-model="form.email" type="email" placeholder="邮箱" />
+    </div>
 
-        <!-- 其他身份（邀请码） -->
-        <div v-if="['player', 'manager', 'medic'].includes(form.userType)">
-          <input v-model="form.teamId" placeholder="邀请码" />
-        </div>
+    <div class="form-group">
+      <select v-model="form.userType" @change="handleUserTypeChange">
+        <option disabled value="">选择身份</option>
+        <option value="fan">球迷</option>
+        <option value="coach">教练</option>
+        <option value="player">球员</option>
+        <option value="manager">经理</option>
+        <option value="medic">队医</option>
+      </select>
+    </div>
+
+    <!-- 教练特有字段 -->
+    <div v-if="isRegister && showTeamNameFields">
+      <div class="form-group">
+        <input v-model="form.teamName" type="text" placeholder="球队名称" />
       </div>
-      <div v-else>
-        <input v-model="form.phone" placeholder="手机号" />
-        <input v-model="form.password" type="password" placeholder="密码" />
-        <select v-model="form.userType">
-          <option disabled value="">选择登录身份</option>
-          <option value="fan">球迷</option>
-          <option value="coach">教练</option>
-          <option value="player">球员</option>
-          <option value="manager">经理</option>
-          <option value="medic">队医</option>
-        </select>
+      <div class="form-group">
+        <input v-model="form.teamAbbr" type="text" placeholder="球队简称" />
       </div>
+      <div class="form-group">
+        <input type="file" @change="handleLogoUpload" />
+      </div>
+    </div>
 
+    <!-- 球迷选择球队 -->
+    <div v-if="isRegister && showSelectTeamField" class="form-group">
+      <select v-model="form.teamId">
+        <option disabled value="">请选择主队</option>
+        <option v-for="team in teams" :key="team._id" :value="team._id">
+          {{ team.name }}（{{ team.abbr }}）
+        </option>
+      </select>
+    </div>
+
+    <!-- 球员/经理/队医邀请码 -->
+    <div v-if="isRegister && showInviteCodeField" class="form-group">
+      <input v-model="form.teamId" type="text" placeholder="邀请码（球队 ID）" />
+    </div>
+
+    <div class="form-actions">
       <button @click="isRegister ? register() : login()">
-        {{ isRegister ? "注册" : "登录" }}
+        {{ isRegister ? '注册' : '登录' }}
       </button>
-      <p @click="isRegister = !isRegister" class="switch-mode">
-        {{ isRegister ? "已有账号？点我登录" : "没有账号？点我注册" }}
-      </p>
+      <button class="toggle" @click="isRegister = !isRegister">
+        {{ isRegister ? '已有账号？去登录' : '没有账号？去注册' }}
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router"; // 添加
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import axios from "axios";
 
-const router = useRouter(); // 添加
+const router = useRouter();
 
 const isRegister = ref(false);
 const form = ref({
@@ -77,16 +81,17 @@ const form = ref({
   phone: "",
   email: "",
   password: "",
-  captcha: "",
   userType: "",
   teamName: "",
   teamAbbr: "",
   teamId: "",
-  logoFile: null,
+  file: null,
 });
 
+const teams = ref([]);
+
 const handleLogoUpload = (e) => {
-  form.value.logoFile = e.target.files[0];
+  form.value.file = e.target.files[0];
 };
 
 const login = async () => {
@@ -94,17 +99,22 @@ const login = async () => {
     const res = await axios.post("http://localhost:5000/api/auth/login", {
       phone: form.value.phone,
       password: form.value.password,
-      type: form.value.userType, // 加入身份类型
+      type: form.value.userType,
     });
-    // 👇 添加在这里
     console.log("登录返回数据", res.data);
-    
     localStorage.setItem("token", res.data.token);
     alert("登录成功");
 
-    // 根据用户类型跳转（这里只处理 fan 示例）
     if (res.data.user.type === "fan") {
       router.push("/fans");
+    } else if (res.data.user.type === "coach") {
+      router.push("/coach");
+    } else if (res.data.user.type === "player") {
+      router.push("/player");
+    } else if (res.data.user.type === "manager") {
+      router.push("/manager");
+    } else if (res.data.user.type === "medic") {
+      router.push("/medic");
     } else {
       alert("该用户类型暂未设置跳转");
     }
@@ -120,12 +130,11 @@ const register = async () => {
     formData.append("phone", form.value.phone);
     formData.append("email", form.value.email);
     formData.append("password", form.value.password);
-    formData.append("captcha", form.value.captcha);
     formData.append("teamId", form.value.teamId);
     formData.append("teamName", form.value.teamName);
     formData.append("teamAbbr", form.value.teamAbbr);
-    if (form.value.logoFile) {
-      formData.append("file", form.value.logoFile);
+    if (form.value.file) {
+      formData.append("logo", form.value.file);
     }
 
     const res = await axios.post(
@@ -136,73 +145,78 @@ const register = async () => {
       }
     );
     alert(res.data.message);
+    isRegister.value = false;
   } catch (err) {
     alert(err.response?.data?.message || "注册失败");
   }
 };
 
-const captchaCountdown = ref(0);
-let countdownTimer = null;
+const showTeamNameFields = computed(() => form.value.userType === "coach");
+const showInviteCodeField = computed(() =>
+  ["player", "manager", "medic"].includes(form.value.userType)
+);
+const showSelectTeamField = computed(() => form.value.userType === "fan");
 
-const sendCaptcha = async () => {
-  try {
-    await axios.post("http://localhost:5000/api/auth/send-captcha", {
-      phone: form.value.phone,
-    });
-    alert("验证码已发送");
-    captchaCountdown.value = 60;
-    countdownTimer = setInterval(() => {
-      captchaCountdown.value--;
-      if (captchaCountdown.value <= 0) clearInterval(countdownTimer);
-    }, 1000);
-  } catch (err) {
-    alert(err.response?.data?.message || "验证码发送失败");
+// 拉取球队列表（只在选择 fan 时触发）
+const handleUserTypeChange = async () => {
+  if (form.value.userType === "fan") {
+    try {
+      const res = await axios.get("http://localhost:5000/api/auth/get-all-teams");
+      teams.value = res.data.teams || [];
+    } catch (err) {
+      console.error("获取球队失败", err);
+    }
   }
 };
 </script>
 
 <style scoped>
-.auth-container {
-  display: flex;
-  justify-content: center;
-  padding: 50px 20px;
-}
-.form-box {
-  width: 400px;
-  padding: 30px;
+.login-container {
+  width: 300px;
+  margin: 50px auto;
+  padding: 20px;
   border: 1px solid #ccc;
-  border-radius: 16px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  background: white;
+  border-radius: 8px;
+  background-color: #f9f9f9;
 }
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
 input,
 select {
-  display: block;
   width: 100%;
   padding: 8px;
-  margin: 10px 0;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
+
 button {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
+  background-color: #409eff;
+  color: white;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
 }
-.switch-mode {
-  text-align: center;
-  color: #007bff;
+
+.form-actions {
+  margin-top: 20px;
+}
+
+button.toggle {
+  background-color: transparent;
+  color: #409eff;
+  text-decoration: underline;
   margin-top: 10px;
-  cursor: pointer;
-}
-.captcha-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.captcha-row input {
-  flex: 1;
-}
-.captcha-row button {
-  width: 120px;
 }
 </style>

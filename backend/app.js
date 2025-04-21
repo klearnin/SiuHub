@@ -1,17 +1,22 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const path = require('path');
 const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
-const cors = require('cors');
+
+app.use(cors()); // ✅ 放在所有 app.use 和 app.get/post 之前
+app.use(express.urlencoded({ extended: false }));
+const authRoutes = require("./router/auth");
+app.use("/api/auth", authRoutes);
 
 // 允许跨域请求
-app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-}));
+// app.use(cors({
+//   origin: 'http://localhost:5173',
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true,
+// }));
 
 
 // ✅ 跨域中间件

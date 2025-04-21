@@ -28,6 +28,18 @@ INSERT INTO users (
   NULL,                       -- 无需 team_id
   'approved'                  -- 状态
 );
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status
+) VALUES (
+  'coach_001',         -- 用户 ID
+  '测试教练',                 -- 昵称
+  '11122233345',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'coach',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved'                  -- 状态
+);
 
 
 CREATE TABLE teams (
@@ -40,3 +52,13 @@ CREATE TABLE teams (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
 );
 
+INSERT INTO teams (
+  id, name, abbr, logo_path, invite_code, creator_id
+) VALUES (
+  'team_001',
+  '测试队伍',
+  'TEST',
+  '\SiuHub\picture\version.jpg',
+  'invite001',
+  'coach_001'
+);
