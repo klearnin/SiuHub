@@ -179,9 +179,9 @@ const register = async () => {
       message += `\n你的球队邀请码是：${res.data.inviteCode}`;
     }
     alert(message);
-    redirectAfterLogin(form.value.userType);
+    isRegister.value = 0;
     //localStorage.setItem("token", res.data.token);
-    //redirectAfterLogin(res.data.user.type);
+    //redirectAfterLogin(form.value.userType);
   } catch (err) {
     console.error("注册失败详细信息：", err);
     alert(err.response?.data?.message || "注册失败");
