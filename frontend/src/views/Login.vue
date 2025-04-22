@@ -173,9 +173,11 @@ const register = async () => {
       }
     );
     alert(res.data.message);
+    redirectAfterLogin(form.value.userType);
     //localStorage.setItem("token", res.data.token);
-    redirectAfterLogin(res.data.user.type);
+    //redirectAfterLogin(res.data.user.type);
   } catch (err) {
+    console.error("注册失败详细信息：", err);
     alert(err.response?.data?.message || "注册失败");
   }
 };
