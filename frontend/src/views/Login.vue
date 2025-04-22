@@ -46,7 +46,7 @@
     <div v-if="isRegister && showSelectTeamField" class="form-group">
       <select v-model="form.teamId">
         <option disabled value="">请选择主队</option>
-        <option v-for="team in teams" :key="team._id" :value="team._id">
+        <option v-for="team in teams" :key="team.id" :value="team.id">
           {{ team.name }}（{{ team.abbr }}）
         </option>
       </select>
@@ -54,7 +54,7 @@
 
     <!-- 球员/经理/队医邀请码 -->
     <div v-if="isRegister && showInviteCodeField" class="form-group">
-      <input v-model="form.teamId" type="text" placeholder="邀请码（球队 ID）" />
+      <input v-model="form.teamId" type="text" placeholder="邀请码" />
     </div>
 
     <div class="form-actions">
@@ -172,7 +172,13 @@ const register = async () => {
         headers: { "Content-Type": "multipart/form-data" },
       }
     );
-    alert(res.data.message);
+    //alert(res.data.message);
+    // 弹窗显示返回信息
+    let message = res.data.message || "注册成功";
+    if (form.value.userType === "coach" && res.data.inviteCode) {
+      message += `\n你的球队邀请码是：${res.data.inviteCode}`;
+    }
+    alert(message);
     redirectAfterLogin(form.value.userType);
     //localStorage.setItem("token", res.data.token);
     //redirectAfterLogin(res.data.user.type);
