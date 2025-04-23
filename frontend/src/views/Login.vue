@@ -88,6 +88,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { ElMessage } from "element-plus";  // ✅ 新增 Element Plus 消息组件
 
 const router = useRouter();
 
@@ -129,22 +130,22 @@ const redirectAfterLogin = (type) => {
   if (path) {
     router.push(path);
   } else {
-    alert("该用户类型暂未设置跳转路径");
+    ElMessage.error("该用户类型暂未设置跳转路径");  // ✅ 替换 alert
   }
 };
 
 const validateLoginForm = () => {
   console.log(form.value);  // 打印表单内容
   if (!form.value.phone) {
-    alert("请输入手机号");
+    ElMessage.error("请输入手机号");  // ✅ 替换 alert
     return false;
   }
   if (!form.value.password) {
-    alert("请输入密码");
+    ElMessage.error("请输入密码");  // ✅ 替换 alert
     return false;
   }
   if (!form.value.userType) {
-    alert("请选择身份");
+    ElMessage.error("请选择身份");  // ✅ 替换 alert
     return false;
   }
   return true;
@@ -152,10 +153,10 @@ const validateLoginForm = () => {
 
 const login = async () => {
   console.log("登录请求数据", {
-  phone: form.value.phone,
-  password: form.value.password,
-  type: form.value.userType,
-});
+    phone: form.value.phone,
+    password: form.value.password,
+    type: form.value.userType,
+  });
 
   if (!validateLoginForm()) return;
   try {
@@ -166,11 +167,11 @@ const login = async () => {
     });
     console.log("登录返回数据", res.data);
     localStorage.setItem("token", res.data.token);
-    alert("登录成功");
+    ElMessage.success("登录成功");  // ✅ 替换 alert
     redirectAfterLogin(res.data.user.type);
   } catch (err) {
     console.error("登录失败详细信息：", err.response?.data);
-    alert(err.response?.data?.message || "登录失败");
+    ElMessage.error(err.response?.data?.message || "登录失败");  // ✅ 替换 alert
   }
 };
 
@@ -180,17 +181,17 @@ const register = async () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!phoneRegex.test(form.value.phone)) {
-    alert("请输入合法的手机号");
+    ElMessage.error("请输入合法的手机号");  // ✅ 替换 alert
     return;
   }
 
   if (!emailRegex.test(form.value.email)) {
-    alert("请输入合法的邮箱地址");
+    ElMessage.error("请输入合法的邮箱地址");  // ✅ 替换 alert
     return;
   }
 
   if (!form.value.password || form.value.password.length < 6 || form.value.password.length > 18) {
-    alert("密码长度需为 6~18 位");
+    ElMessage.error("密码长度需为 6~18 位");  // ✅ 替换 alert
     return;
   }
 
@@ -209,14 +210,14 @@ const register = async () => {
     formData.append("teamAbbr", form.value.teamAbbr);
     // ✅ 教练上传队徽
     if (form.value.userType === "coach" && form.value.file) {
-        formData.append("logo", form.value.file);
-      }
+      formData.append("logo", form.value.file);
+    }
 
     // ✅ 所有身份上传头像（教练头像 = 队徽）
     if (form.value.avatarFile) {
       formData.append("avatar", form.value.avatarFile);
     }
-    
+
     const res = await axios.post(
       `http://localhost:5000/api/auth/register/${form.value.userType}`,
       formData,
@@ -228,16 +229,16 @@ const register = async () => {
     // 注册成功提示
     let message = res.data.message || "注册成功";
     if (form.value.userType === "coach" && res.data.inviteCode) {
-      message += `\n你的球队邀请码是：${res.data.inviteCode}`;
+      message += `，你的球队邀请码是：${res.data.inviteCode}`;
     }
-    alert(message);
+    ElMessage.success(message);  // ✅ 替换 alert
 
     // 注册成功后切换到登录界面
     isRegister.value = 0;
 
   } catch (err) {
     console.error("注册失败详细信息：", err);
-    alert(err.response?.data?.message || "注册失败");
+    ElMessage.error(err.response?.data?.message || "注册失败");  // ✅ 替换 alert
   }
 };
 

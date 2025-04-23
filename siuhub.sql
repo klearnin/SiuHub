@@ -32,7 +32,7 @@ INSERT INTO users (
   '/public/avatars/version.jpg'
 );
 INSERT INTO users (
-  id, name, phone, email, password, type, team_id, status
+  id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'coach_001',         -- 用户 ID
   '测试教练',                 -- 昵称
@@ -41,7 +41,8 @@ INSERT INTO users (
   MD5('123456'),              -- 密码（加密后）
   'coach',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
-  'approved'                  -- 状态
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
 );
 
 
