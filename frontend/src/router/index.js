@@ -6,6 +6,7 @@ import Coach from '../views/coach/coach.vue';
 import Player from '../views/player/player.vue';
 import Manager from '../views/manager/manager.vue';
 import Medic from '../views/medic/medic.vue';
+import Review from '../views/coach/Review.vue'
 
 const routes = [
   { path: "/", component: Home },
@@ -15,6 +16,7 @@ const routes = [
   { path: '/player', component: Player },
   { path: '/manager', component: Manager },
   { path: '/medic', component: Medic },
+  { path: '/coach/review', component: Review },
 ];
 
 const router = createRouter({
