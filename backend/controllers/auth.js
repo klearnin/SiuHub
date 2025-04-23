@@ -206,7 +206,7 @@ exports.register = async (req, res, next) => {
 // 教练审核加入请求接口
 exports.reviewJoinRequest = async (req, res, next) => {
   try {
-    const coachId = req.user.userId; // 从 token 解出当前登录用户
+    const coachId = req.user.id; // 从 token 解出当前登录用户
     const { userId, approve } = req.body;
 
     if (!userId || typeof approve === 'undefined') {
@@ -265,7 +265,7 @@ exports.reviewJoinRequest = async (req, res, next) => {
 // 获取待审核用户列表接口
 exports.getPendingUsers = async (req, res, next) => {
   try {
-    const coachId = req.user.userId;
+    const coachId = req.user.id;
 
     // 查询教练信息确认身份
     const coachSql = `
