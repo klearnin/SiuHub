@@ -87,7 +87,7 @@ exports.register = async (req, res, next) => {
     // 头像路径
     let avatarPath = req.files?.avatar?.[0]
     ? `/public/avatars/${req.files.avatar[0].filename}`
-    : null;
+    : null;    
 
     // 教练注册时：创建球队 + 生成邀请码
     if (userType === "coach") {
@@ -101,6 +101,32 @@ exports.register = async (req, res, next) => {
 
     // 教练头像路径等于队徽路径
     avatarPath = logoPath;
+
+    // 检查球队名称是否重复
+    const checkTeamName = await db.startQuery(
+      `SELECT * FROM teams WHERE name = ${db.escape(teamName)}`
+    );
+    if (checkTeamName.length > 0) {
+      return res.status(400).json({ message: "球队名称已存在，请更换" });
+    }
+
+    // 格式校验：必须是2~4位大写字母
+    const abbrRegex = /^[A-Z]{2,4}$/;
+    if (!abbrRegex.test(teamAbbr)) {
+      return res.status(400).json({ message: "球队简称需为2~4位大写英文字母" });
+    }
+
+    // 是否重复
+    const checkTeamAbbr = await db.startQuery(
+      `SELECT * FROM teams WHERE abbr = ${db.escape(teamAbbr)}`
+    );
+    if (checkTeamAbbr.length > 0) {
+      return res.status(400).json({ message: "球队简称已被占用，请更换" });
+    }
+
+    if (!avatarPath) {
+      return res.status(400).json({ message: "请上传头像" });
+    }
 
     // 插入球队
     const teamId = nanoid();
@@ -145,6 +171,9 @@ exports.register = async (req, res, next) => {
     if (!teamId) {
       return res.status(400).json({ message: "请选择支持的主队" });
     }
+    if (!avatarPath) {
+      return res.status(400).json({ message: "请上传头像" });
+    }
     const sql = `
       INSERT INTO users (id, name, phone, email, password, type, team_id, status, avatar)
       VALUES (
@@ -167,6 +196,9 @@ exports.register = async (req, res, next) => {
     if (["player", "manager", "medic"].includes(userType)) {
     if (!teamId) {
       return res.status(400).json({ message: "请输入球队邀请码" });
+    }
+    if (!avatarPath) {
+      return res.status(400).json({ message: "请上传头像" });
     }
 
     // 查询邀请码对应的 teamId
@@ -305,7 +337,7 @@ exports.getPendingUsers = async (req, res, next) => {
 exports.getAllTeams = async (req, res, next) => {
   try {
     const sql = `
-      SELECT id, name FROM teams;
+      SELECT id, name, abbr FROM teams;
     `;
     const teams = await db.startQuery(sql);
     res.status(200).json({

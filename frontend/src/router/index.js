@@ -24,17 +24,17 @@ const router = createRouter({
     routes
 });
 
-// //路由守卫：登录后才能访问角色页面,检查是否有 token，没有就跳转登录页：
-// router.beforeEach((to, from, next) => {
-//     const publicPages = ['/', '/login'];
-//     const authRequired = !publicPages.includes(to.path);
-//     const token = localStorage.getItem('token');
-  
-//     if (authRequired && !token) {
-//       return next('/');
-//     }
-  
-//     next();
-//   });
+router.beforeEach((to, from, next) => {
+  const publicPages = ['/', '/login'];
+  const authRequired = !publicPages.includes(to.path);
+  const token = localStorage.getItem('token');
+
+  if (authRequired && !token) {
+    return next('/login');
+  }
+
+  next();
+});
+
   
 export default router;

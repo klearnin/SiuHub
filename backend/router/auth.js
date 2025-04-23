@@ -9,7 +9,6 @@ router.post("/register/:type", upload.fields([{ name: "logo", maxCount: 1 },{ na
 router.post("/review-join", auth, authController.reviewJoinRequest);
 router.get("/pending-users", auth, authController.getPendingUsers);
 router.get("/get-all-teams", authController.getAllTeams);
-// router.get("/teams", authController.getAllTeams);
 
 
 
