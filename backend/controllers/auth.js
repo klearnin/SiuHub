@@ -196,7 +196,7 @@ exports.register = async (req, res, next) => {
       }
 
       const teamQuery = await db.startQuery(
-        `SELECT id FROM teams WHERE invite_code = ${db.escape(teamId)}`
+        `SELECT id FROM teams WHERE BINARY invite_code = ${db.escape(teamId)}`
       );
       if (teamQuery.length === 0) {
         return res.status(400).json({ message: "邀请码无效" });
