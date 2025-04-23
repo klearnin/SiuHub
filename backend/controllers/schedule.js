@@ -156,3 +156,40 @@ exports.getScheduleById = async (req, res) => {
     res.status(500).json({ error: '获取日程详情失败' });
   }
 };
+
+exports.updateSchedule = async (req, res) => {
+  try {
+    const { id } = req.params; // schedule.id
+    const { date, type } = req.body;
+
+    // 更新 schedule 表中的日期
+    await startQuery(`UPDATE schedule SET date = ${escape(date)} WHERE id = ${escape(id)}`);
+
+    if (type === 'training') {
+      const { training_time, team_training, personal_training } = req.body;
+
+      await startQuery(`UPDATE training_schedule
+                        SET training_time = ${escape(training_time)},
+                            team_training = ${escape(team_training)},
+                            personal_training = ${escape(personal_training)}
+                        WHERE schedule_id = ${escape(id)}`);
+
+      res.json({ message: '训练日程更新成功' });
+    } else if (type === 'match' || type === 'past_match') {
+      const { location, match_time, team1, team2 } = req.body;
+
+      await startQuery(`UPDATE match_schedule
+                        SET location = ${escape(location)},
+                            match_time = ${escape(match_time)},
+                            team1 = ${escape(team1)},
+                            team2 = ${escape(team2)}
+                        WHERE schedule_id = ${escape(id)}`);
+
+      res.json({ message: '比赛日程更新成功' });
+    } else {
+      res.status(400).json({ error: '未知的日程类型' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: '更新日程失败' });
+  }
+};

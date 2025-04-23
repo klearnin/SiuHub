@@ -7,7 +7,8 @@ router.post('/match', scheduleController.createMatchSchedule);
 router.get('/list', scheduleController.getScheduleByDate);
 router.get('/past/:id', scheduleController.getMatchEvents);
 router.delete('/:id', scheduleController.deleteSchedule);
-router.get('/training/:id', scheduleController.getScheduleById)
+router.get('/schedule/:id', scheduleController.getScheduleById)
+router.put('/schedule/:id', scheduleController.updateSchedule);
 
 
 module.exports = router;
