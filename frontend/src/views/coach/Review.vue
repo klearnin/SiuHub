@@ -38,7 +38,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus' // ✅ 加入 ElMessageBox
 
 const users = ref([])
 const router = useRouter()
@@ -54,8 +54,20 @@ const fetchPendingUsers = async () => {
   }
 }
 
+// ✅ 添加确认弹窗逻辑
 const handleReview = async (userId, approve) => {
   try {
+    const action = approve ? '通过' : '拒绝'
+    await ElMessageBox.confirm(
+      `确认要${action}该用户吗？`,
+      '操作确认',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: approve ? 'success' : 'warning'
+      }
+    )
+    // 用户点击“确认”后执行以下逻辑
     await axios.post('http://localhost:5000/api/auth/review-join', {
       userId,
       approve
@@ -65,12 +77,15 @@ const handleReview = async (userId, approve) => {
     ElMessage.success(approve ? '审核通过成功' : '已拒绝该用户')
     fetchPendingUsers()
   } catch (err) {
-    ElMessage.error('操作失败：' + (err.response?.data?.message || err.message))
+    if (err !== 'cancel') {
+      ElMessage.error('操作失败：' + (err.response?.data?.message || err.message))
+    }
+    // 用户取消操作时什么也不做
   }
 }
 
 const goBack = () => {
-  router.push('/coach') // 你可以根据具体路径修改
+  router.push('/coach') // 可根据路由调整
 }
 
 onMounted(fetchPendingUsers)

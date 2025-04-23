@@ -66,7 +66,7 @@
     <!-- 球员/经理/队医邀请码 -->
     <div v-if="isRegister && showInviteCodeField" class="form-group">
       <div class="form-group">
-        <input v-model="form.teamId" type="text" placeholder="邀请码" />
+        <input v-model="form.inviteCode" type="text" placeholder="邀请码" />
       </div>
       <div v-if="isRegister" class="form-group">
         <label>上传头像：</label>
@@ -100,7 +100,8 @@ const form = ref({
   userType: "",
   teamName: "",
   teamAbbr: "",
-  teamId: "",
+  teamId: "",       // 球迷选择的主队 ID
+  inviteCode: "",   // 球员/经理/队医的邀请码
   file: null,
   avatarFile: null,     // 用户头像
 });
@@ -199,7 +200,11 @@ const register = async () => {
     formData.append("phone", form.value.phone);
     formData.append("email", form.value.email);
     formData.append("password", form.value.password);
-    formData.append("teamId", form.value.teamId);
+    if (form.value.userType === "fan") {                // 设置 teamId: fan 用 teamId，其他用 inviteCode
+      formData.append("teamId", form.value.teamId);
+    } else {
+      formData.append("teamId", form.value.inviteCode);  // 作为邀请码处理
+    }
     formData.append("teamName", form.value.teamName);
     formData.append("teamAbbr", form.value.teamAbbr);
     // ✅ 教练上传队徽

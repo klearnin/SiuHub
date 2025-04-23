@@ -19,7 +19,7 @@ CREATE TABLE users (
 );
 -- 插入一个默认用户（用于测试登录）
 INSERT INTO users (
-  id, name, phone, email, password, type, team_id, status
+  id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'default-user-001',         -- 用户 ID
   '测试用户',                 -- 昵称
@@ -28,7 +28,8 @@ INSERT INTO users (
   MD5('123456'),              -- 密码（加密后）
   'fan',                      -- 用户类型，可换成 'coach' 或其他
   NULL,                       -- 无需 team_id
-  'approved'                  -- 状态
+  'approved',                 -- 状态
+  '/public/avatars/version.jpg'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status
