@@ -152,6 +152,25 @@ const login = async () => {
 };
 
 const register = async () => {
+  // 正则表达式验证
+  const phoneRegex = /^1[3-9]\d{9}$/; // 简单验证国内手机号
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!phoneRegex.test(form.value.phone)) {
+    alert("请输入合法的手机号");
+    return;
+  }
+
+  if (!emailRegex.test(form.value.email)) {
+    alert("请输入合法的邮箱地址");
+    return;
+  }
+
+  if (!form.value.password || form.value.password.length < 6 || form.value.password.length > 18) {
+    alert("密码长度需为 6~18 位");
+    return;
+  }
+
   try {
     const formData = new FormData();
     formData.append("name", form.value.name);
@@ -172,16 +191,17 @@ const register = async () => {
         headers: { "Content-Type": "multipart/form-data" },
       }
     );
-    //alert(res.data.message);
-    // 弹窗显示返回信息
+
+    // 注册成功提示
     let message = res.data.message || "注册成功";
     if (form.value.userType === "coach" && res.data.inviteCode) {
       message += `\n你的球队邀请码是：${res.data.inviteCode}`;
     }
     alert(message);
+
+    // 注册成功后切换到登录界面
     isRegister.value = 0;
-    //localStorage.setItem("token", res.data.token);
-    //redirectAfterLogin(form.value.userType);
+
   } catch (err) {
     console.error("注册失败详细信息：", err);
     alert(err.response?.data?.message || "注册失败");

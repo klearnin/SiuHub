@@ -76,14 +76,13 @@ exports.register = async (req, res, next) => {
     // 生成用户 ID
     const userId = nanoid();
 
-    // 检查手机号是否重复
-    const checkPhone = await db.startQuery(
-      `SELECT * FROM users WHERE phone = ${db.escape(phone)}`
+    // 检查手机号 + 身份是否重复
+    const checkPhoneAndType = await db.startQuery(
+      `SELECT * FROM users WHERE phone = ${db.escape(phone)} AND type = ${db.escape(userType)}`
     );
-    if (checkPhone.length > 0) {
-      return res.status(400).json({ message: "该手机号已注册" });
+    if (checkPhoneAndType.length > 0) {
+      return res.status(400).json({ message: "该手机号在该身份下已注册" });
     }
-
     // 教练注册时：创建球队 + 生成邀请码
     if (userType === "coach") {
       if (!teamName || !teamAbbr || !req.file) {
