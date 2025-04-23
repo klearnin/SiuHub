@@ -3,7 +3,11 @@
     <h2>{{ isRegister ? '注册' : '登录' }}</h2>
 
     <div class="form-group" v-if="isRegister">
-      <input v-model="form.name" type="text" placeholder="用户名" />
+      <input
+        v-model="form.name"
+        type="text"
+        :placeholder="form.userType === 'fan' ? '用户名' : '姓名'"
+      />
     </div>
 
     <div class="form-group">
@@ -45,13 +49,14 @@
 
     <!-- 球迷选择球队 -->
     <div v-if="isRegister && showSelectTeamField" class="form-group">
-      <select v-model="form.teamId">
-        <option disabled value="">请选择主队</option>
-        <option v-for="team in teams" :key="team.id" :value="team.id">
-          {{ team.name }}（{{ team.abbr }}）
-        </option>
-      </select>
-          <!-- 注册头像上传（所有人必须上传） -->
+      <div class="form-group">
+        <select v-model="form.teamId">
+          <option disabled value="">请选择主队</option>
+          <option v-for="team in teams" :key="team.id" :value="team.id">
+            {{ team.name }}（{{ team.abbr }}）
+          </option>
+        </select>
+      </div>
       <div v-if="isRegister" class="form-group">
         <label>上传头像：</label>
         <input type="file" @change="handleAvatarUpload" />
@@ -60,8 +65,9 @@
 
     <!-- 球员/经理/队医邀请码 -->
     <div v-if="isRegister && showInviteCodeField" class="form-group">
-      <input v-model="form.teamId" type="text" placeholder="邀请码" />
-      <!-- 注册头像上传（所有人必须上传） -->
+      <div class="form-group">
+        <input v-model="form.teamId" type="text" placeholder="邀请码" />
+      </div>
       <div v-if="isRegister" class="form-group">
         <label>上传头像：</label>
         <input type="file" @change="handleAvatarUpload" />
