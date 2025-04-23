@@ -19,7 +19,7 @@ const teamLogo = ref(null)
 onMounted(async () => {
   try {
     const token = localStorage.getItem("token")
-    const res = await axios.get("http://localhost:5000/api/team/my-logo", {
+    const res = await axios.get("http://localhost:5000/api/user/my-logo", {
       headers: {
         Authorization: `Bearer ${token}`
       }
