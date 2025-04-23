@@ -38,6 +38,7 @@
         <input v-model="form.teamAbbr" type="text" placeholder="球队简称" />
       </div>
       <div class="form-group">
+        <label>上传队徽：</label>
         <input type="file" @change="handleLogoUpload" />
       </div>
     </div>
@@ -50,13 +51,22 @@
           {{ team.name }}（{{ team.abbr }}）
         </option>
       </select>
+          <!-- 注册头像上传（所有人必须上传） -->
+      <div v-if="isRegister" class="form-group">
+        <label>上传头像：</label>
+        <input type="file" @change="handleAvatarUpload" />
+      </div>
     </div>
 
     <!-- 球员/经理/队医邀请码 -->
     <div v-if="isRegister && showInviteCodeField" class="form-group">
       <input v-model="form.teamId" type="text" placeholder="邀请码" />
+      <!-- 注册头像上传（所有人必须上传） -->
+      <div v-if="isRegister" class="form-group">
+        <label>上传头像：</label>
+        <input type="file" @change="handleAvatarUpload" />
+      </div>
     </div>
-
     <div class="form-actions">
       <button @click="isRegister ? register() : login()">
         {{ isRegister ? '注册' : '登录' }}
@@ -86,12 +96,18 @@ const form = ref({
   teamAbbr: "",
   teamId: "",
   file: null,
+  avatarFile: null,     // 用户头像
 });
 
 const teams = ref([]);
 
 const handleLogoUpload = (e) => {
   form.value.file = e.target.files[0];
+};
+
+// ✅ 新增：处理头像上传
+const handleAvatarUpload = (e) => {
+  form.value.avatarFile = e.target.files[0];
 };
 
 const redirectAfterLogin = (type) => {
@@ -180,10 +196,16 @@ const register = async () => {
     formData.append("teamId", form.value.teamId);
     formData.append("teamName", form.value.teamName);
     formData.append("teamAbbr", form.value.teamAbbr);
-    if (form.value.file) {
-      formData.append("logo", form.value.file);
-    }
+    // ✅ 教练上传队徽
+    if (form.value.userType === "coach" && form.value.file) {
+        formData.append("logo", form.value.file);
+      }
 
+    // ✅ 所有身份上传头像（教练头像 = 队徽）
+    if (form.value.avatarFile) {
+      formData.append("avatar", form.value.avatarFile);
+    }
+    
     const res = await axios.post(
       `http://localhost:5000/api/auth/register/${form.value.userType}`,
       formData,

@@ -83,106 +83,118 @@ exports.register = async (req, res, next) => {
     if (checkPhoneAndType.length > 0) {
       return res.status(400).json({ message: "该手机号在该身份下已注册" });
     }
+
+    // 头像路径
+    let avatarPath = req.files?.avatar?.[0]
+    ? `/public/avatars/${req.files.avatar[0].filename}`
+    : null;
+
     // 教练注册时：创建球队 + 生成邀请码
     if (userType === "coach") {
-      if (!teamName || !teamAbbr || !req.file) {
-        return res.status(400).json({ message: "请上传完整的球队信息和队徽" });
-      }
+    if (!teamName || !teamAbbr || !req.files?.logo?.[0]) {
+      return res.status(400).json({ message: "请上传完整的球队信息和队徽" });
+    }
 
-      // 队徽路径（存储到 public/team-logos 目录）
-      const logoPath = `/public/team-logos/${req.file.filename}`;
-      const inviteCode = nanoid(8);
+    // 队徽路径（存储到 public/team-logos 目录）
+    const logoPath = `/public/team-logos/${req.files.logo[0].filename}`;
+    const inviteCode = nanoid(8);
 
-      // 插入球队
-      const teamId = nanoid();
-      const insertTeamSQL = `
-        INSERT INTO teams (id, name, abbr, logo_path, invite_code, creator_id)
-        VALUES (
-          ${db.escape(teamId)},
-          ${db.escape(teamName)},
-          ${db.escape(teamAbbr)},
-          ${db.escape(logoPath)},
-          ${db.escape(inviteCode)},
-          ${db.escape(userId)}
-        )
-      `;
-      await db.startQuery(insertTeamSQL);
+    // 教练头像路径等于队徽路径
+    avatarPath = logoPath;
 
-      // 插入用户信息
-      const insertUserSQL = `
-        INSERT INTO users (id, name, phone, email, password, type, team_id, status)
-        VALUES (
-          ${db.escape(userId)},
-          ${db.escape(name)},
-          ${db.escape(phone)},
-          ${db.escape(email)},
-          MD5(${db.escape(password)}),
-          'coach',
-          ${db.escape(teamId)},
-          'approved'
-        )
-      `;
-      await db.startQuery(insertUserSQL);
+    // 插入球队
+    const teamId = nanoid();
+    const insertTeamSQL = `
+      INSERT INTO teams (id, name, abbr, logo_path, invite_code, creator_id)
+      VALUES (
+        ${db.escape(teamId)},
+        ${db.escape(teamName)},
+        ${db.escape(teamAbbr)},
+        ${db.escape(logoPath)},
+        ${db.escape(inviteCode)},
+        ${db.escape(userId)}
+      )
+    `;
+    await db.startQuery(insertTeamSQL);
 
-      return res.status(200).json({
-        message: "注册成功，球队已创建",
-        inviteCode: inviteCode
-      });
+    // 插入用户信息
+    const insertUserSQL = `
+      INSERT INTO users (id, name, phone, email, password, type, team_id, status, avatar)
+      VALUES (
+        ${db.escape(userId)},
+        ${db.escape(name)},
+        ${db.escape(phone)},
+        ${db.escape(email)},
+        MD5(${db.escape(password)}),
+        'coach',
+        ${db.escape(teamId)},
+        'approved',
+        ${db.escape(avatarPath)}
+      )
+    `;
+    await db.startQuery(insertUserSQL);
+
+    return res.status(200).json({
+      message: "注册成功，球队已创建",
+      inviteCode: inviteCode,
+    });
     }
 
     // 球迷注册：选择主队，无需审核
     if (userType === "fan") {
-      if (!teamId) {
-        return res.status(400).json({ message: "请选择支持的主队" });
-      }
-      const sql = `
-        INSERT INTO users (id, name, phone, email, password, type, team_id, status)
-        VALUES (
-          ${db.escape(userId)},
-          ${db.escape(name)},
-          ${db.escape(phone)},
-          ${db.escape(email)},
-          MD5(${db.escape(password)}),
-          'fan',
-          ${db.escape(teamId)},
-          'approved'
-        )
-      `;
-      await db.startQuery(sql);
-      return res.status(200).json({ message: "注册成功" });
+    if (!teamId) {
+      return res.status(400).json({ message: "请选择支持的主队" });
+    }
+    const sql = `
+      INSERT INTO users (id, name, phone, email, password, type, team_id, status, avatar)
+      VALUES (
+        ${db.escape(userId)},
+        ${db.escape(name)},
+        ${db.escape(phone)},
+        ${db.escape(email)},
+        MD5(${db.escape(password)}),
+        'fan',
+        ${db.escape(teamId)},
+        'approved',
+        ${db.escape(avatarPath)}
+      )
+    `;
+    await db.startQuery(sql);
+    return res.status(200).json({ message: "注册成功" });
     }
 
     // 球员、经理、队医：需填写邀请码，审核后激活
     if (["player", "manager", "medic"].includes(userType)) {
-      if (!teamId) {
-        return res.status(400).json({ message: "请输入球队邀请码" });
-      }
+    if (!teamId) {
+      return res.status(400).json({ message: "请输入球队邀请码" });
+    }
 
-      // 查询邀请码对应的 teamId
-      const teamQuery = await db.startQuery(
-        `SELECT id FROM teams WHERE invite_code = ${db.escape(teamId)}`
-      );
-      if (teamQuery.length === 0) {
-        return res.status(400).json({ message: "邀请码无效" });
-      }
+    // 查询邀请码对应的 teamId
+    const teamQuery = await db.startQuery(
+      `SELECT id FROM teams WHERE invite_code = ${db.escape(teamId)}`
+    );
+    if (teamQuery.length === 0) {
+      return res.status(400).json({ message: "邀请码无效" });
+    }
 
-      const realTeamId = teamQuery[0].id;
+    const realTeamId = teamQuery[0].id;
 
-      const sql = `
-        INSERT INTO users (id, name, phone, email, password, type, team_id, status)
-        VALUES (
-          ${db.escape(userId)},
-          ${db.escape(name)},
-          ${db.escape(phone)},
-          ${db.escape(email)},
-          MD5(${db.escape(password)}),
-          ${db.escape(userType)},
-          ${db.escape(realTeamId)},
-          'pending'
-        )
-      `;
-      await db.startQuery(sql);
-      return res.status(200).json({ message: "注册成功，等待教练审核" });
+    const sql = `
+      INSERT INTO users (id, name, phone, email, password, type, team_id, status, avatar)
+      VALUES (
+        ${db.escape(userId)},
+        ${db.escape(name)},
+        ${db.escape(phone)},
+        ${db.escape(email)},
+        MD5(${db.escape(password)}),
+        ${db.escape(userType)},
+        ${db.escape(realTeamId)},
+        'pending',
+        ${db.escape(avatarPath)}
+      )
+    `;
+    await db.startQuery(sql);
+    return res.status(200).json({ message: "注册成功，等待教练审核" });
     }
 
     return res.status(400).json({ message: "不支持的用户类型" });
@@ -190,8 +202,6 @@ exports.register = async (req, res, next) => {
     next(err);
   }
 };
-
-
 
 // 教练审核加入请求接口
 exports.reviewJoinRequest = async (req, res, next) => {
