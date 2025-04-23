@@ -3,7 +3,7 @@
     <h2>{{ isRegister ? '注册' : '登录' }}</h2>
 
     <div class="form-group" v-if="isRegister">
-      <input v-model="form.name" type="text" placeholder="姓名" />
+      <input v-model="form.name" type="text" placeholder="用户名" />
     </div>
 
     <div class="form-group">

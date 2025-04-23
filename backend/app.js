@@ -4,6 +4,16 @@ const app = express();
 const path = require('path');
 const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
+const fs = require("fs");
+
+const folders = ["public/avatars", "public/team-logos"];
+
+folders.forEach((folder) => {
+  if (!fs.existsSync(folder)) {
+    fs.mkdirSync(folder, { recursive: true });
+  }
+});
+
 
 // ✅ JSON 解析中间件
 app.use(express.json());
