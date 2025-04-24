@@ -1,32 +1,39 @@
 <template>
-    <div class="notice-board">
-      <h2 class="board-title">球队公告</h2>
-      <div class="notice-list">
-        <div
+  <div class="notice-board">
+    <h2 class="board-title">球队公告</h2>
+    <div class="notice-list">
+      <!-- 使用 template 包裹循环，结合 v-if 过滤 -->
+      <template v-for="(notice, index) in notices">
+        <!-- 只有 team 类型才会渲染外层容器 -->
+        <div 
+          v-if="notice.type === 'team'"
           class="notice-title"
-          v-for="(notice, index) in notices"
           :key="notice.id"
           @click="selectNotice(notice.id, index)"
           :class="{ 'selected': selectedNoticeId === notice.id }"
         >
-          {{ notice.title }}
+          <div class="title-wrapper">
+            <span>{{ notice.title }}</span>
+            <small>{{ formatDate(notice.publish_time) }}</small>
+          </div>
           <transition name="fade">
-            <div class="notice-content" v-if="activeIndex === index" @click.stop>
+            <div 
+              class="notice-content" 
+              v-if="activeIndex === index" 
+              @click.stop
+            >
               <p>{{ notice.content }}</p>
-              <small>{{ formatDate(notice.publish_time) }}</small>
             </div>
           </transition>
         </div>
-      </div>
-      <div class="buttons">
-        <button class="button" @click="back()">返回</button>
-        <button 
-          class="button" 
-          @click="del()"
-        >删除</button>
-      </div>
+      </template>
     </div>
-  </template>
+    <div class="buttons">
+      <button class="button" @click="back">返回</button>
+      <button class="button_del" @click="del">删除</button>
+    </div>
+  </div>
+</template>
   
   <script>
   import axios from 'axios';
@@ -44,6 +51,16 @@
       this.fetchNotices();
     },
     methods: {
+      async fetchNotices() {
+        try {
+          const res = await axios.get("http://localhost:5000/api/notice/list");
+          this.notices = res.data.data;
+        } catch (error) {
+          console.error('获取公告失败:', error);
+          this.$message.error('获取公告失败');
+        }
+      },
+
       back() {
         this.$router.push('/chome');
       },
@@ -92,15 +109,7 @@
         this.toggleNotice(index);
       },
   
-      async fetchNotices() {
-        try {
-          const res = await axios.get("http://localhost:5000/api/notice/list");
-          this.notices = res.data.data;
-        } catch (error) {
-          console.error('获取公告失败:', error);
-          this.$message.error('获取公告失败');
-        }
-      },
+     
   
       toggleNotice(index) {
         this.activeIndex = this.activeIndex === index ? null : index;
@@ -150,6 +159,12 @@
     cursor: pointer;
     transition: all 0.3s;
   }
+  .title-wrapper{
+    display: flex;           /* 启用 Flex 布局 */
+    justify-content: space-between;  /* 标题靠左，时间靠右 */
+    align-items: center;     /* 垂直居中 */
+    width: 100%;            /* 撑满父容器 */
+  }
   
   .notice-title.selected {
     background: #d4edff;
@@ -197,9 +212,23 @@
     cursor: pointer;
     transition: background-color 0.3s;
   }
+  .button_del{
+    width: 150px;
+    height: 60px;
+    font-size: 18px;
+    background-color: #ccc;
+    color: #333;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
   
   .button:hover:not(:disabled) {
     background-color: #4ddbee;
+  }
+  .button_del:hover:not(:disabled) {
+    background-color: #e67e8d;
   }
   
   

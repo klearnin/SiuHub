@@ -1,5 +1,6 @@
 <template>
   <div class="calendar-container">
+
     <!-- 年月选择 -->
     <div class="header">
       <select v-model="selectedYear" @change="generateCalendar">
@@ -8,68 +9,186 @@
       <select v-model="selectedMonth" @change="generateCalendar">
         <option v-for="(month, idx) in months" :key="idx" :value="idx + 1">{{ month }}</option>
       </select>
+      <button @click=back()>返回</button>
     </div>
 
     <!-- 日历网格 -->
     <div class="calendar-grid">
+     
       <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
+      
       <div
         class="day-cell"
         v-for="day in calendarDays"
         :key="day.date"
         @click="openEventPrompt(day.date)"
       >
-        <div class="day-number">{{ day.day }}</div>
-        <ul class="events">
-          <li v-for="(event, index) in events[day.date]" :key="index" @click.stop="editEvent(day.date, index)">
-            {{ event }}
-            <button @click.stop="deleteEvent(day.date, index)" class="delete-event">X</button>
-          </li>
+        <div class="day-number" 
+       
+        >{{ day.day }}</div>
+        <ul class="events" v-for="(match, index) in matches" :key="index">
+          <li v-for="(match, index) in matches" :key="index" v-if="match.date === day.date">比赛</li>
         </ul>
       </div>
     </div>
 
     <!-- 弹窗 -->
     <div v-if="showPopup" class="popup-overlay">
-      <div class="popup">
-        <input v-model="newEvent" placeholder="输入事件内容" />
-        <button @click="saveEvent">保存</button>
-        <button @click="closePopup">取消</button>
+    <div class="popup">
+      <!-- 选项卡按钮 -->
+      <div class="tab-buttons">
+        <button 
+          class="tab-button" 
+          :class="{ active: activeTab === 'match' }"
+          @click="switchTab('match')"
+        >
+          比赛
+        </button>
+        <button 
+          class="tab-button" 
+          :class="{ active: activeTab === 'training' }"
+          @click="switchTab('training')"
+        >
+          训练
+        </button>
+        
       </div>
+
+      <!-- 选项卡内容 -->
+      <div class="tab-content-wrapper">
+        <!-- 比赛内容 -->
+        <div 
+          class="tab-content" 
+          :class="{ 
+            active: activeTab === 'match',
+            'slide-left': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'left',
+            'slide-right': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'right'
+          }"
+          
+        >
+          <p class="match-info">
+            <span class="team">{{ team1 || '未设定' }}</span>
+            <span class="vs">
+              {{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}
+            </span>
+            <span class="team">{{ team2 || '对手未设定' }}</span>
+          </p>
+           <button @click="edit('对手', 'team2')">设定对手</button>
+           <button @click="edit('比赛时间', 'matchTime')">设置时间</button>
+           <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
+
+          <MatchEditor 
+       :visible="showEditor" 
+       :title="editorTitle" 
+       @confirm="updateValue"
+       @cancel="showEditor = false"
+    />
+        </div>
+
+        <!-- 训练内容 -->
+        <div 
+          class="tab-content" 
+          :class="{ 
+             active: activeTab === 'training',
+             'slide-left': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'left',
+             'slide-right': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'right'
+          }"
+        >
+          <h3>训练计划</h3>
+          <p>这里是训练相关的内容...</p>
+          <button @click="gotoedit_training">编辑训练</button>
+        </div>
+       
+      </div>
+      
+      <!-- 底部按钮 -->
+     
+      <div class="either">
+         <button @click="closePopup">取消</button>
+        <button v-if="activeTab === 'match'" @click="saveMatchInfo">保存</button>
+       
+        
+      </div>
+      
     </div>
   </div>
-
-  <div>
-    <button @click="goBack">返回</button>
+    
   </div>
+
 </template>
 
 <script>
+
+import axios from 'axios';
+import MatchEditor from './MatchEditor.vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+
+
 export default {
+
+  components: {
+    MatchEditor,
+  },
+  
   data() {
     return {
       selectedYear: new Date().getFullYear(),
       selectedMonth: new Date().getMonth() + 1,
       calendarDays: [],
-      events: this.loadEvents(), // 从 localStorage 加载事件
       dayNames: ['日', '一', '二', '三', '四', '五', '六'],
       months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
       showPopup: false,
-      currentEventDate: null,
-      currentEventIndex: null,
-      newEvent: '',
+      selectedDate: null,
+      
+      //窗口滑动的相关数据
+      activeTab: 'match',
+      prevTab: null,
+      transitionDirection: 'left',
+       // 比赛设置相关数据
+      team1: '我的球队',
+      team2: '',
+      matchTime: '',
+      matchLocation: '',
+      showEditor: false,
+      editorTitle: '',
+      editKey: '',
+       
+      hour: '00',
+      minute: '00',
+      showTimeEditor: false,
+      matches: [], // 事件表
     };
   },
   computed: {
     years() {
       const y = new Date().getFullYear();
-      return Array.from({ length: 10 }, (_, i) => y - 5 + i);
+      return Array.from({ length: 30 }, (_, i) => y - 5 + i);
     },
+   
   },
   mounted() {
     this.generateCalendar();
   },
+  created() {
+      this.fetchMatches();
+    },
   methods: {
+    async fetchMatches() {
+        try {
+          const res = await axios.get("http://localhost:5000/api/shcedule/list");
+          this.matches = res.data.data;
+        } catch (error) {
+          console.error('获取公告失败:', error);
+          this.$message.error('获取公告失败');
+        }
+      },
+
+    back() {
+      this.$router.push('/chome');
+    },
+
+   
+
     // 生成日历
     generateCalendar() {
       const year = this.selectedYear;
@@ -95,59 +214,75 @@ export default {
     },
     
     // 打开事件输入框
-    openEventPrompt(date) {
+     openEventPrompt(date) {
       if (!date) return;
-      this.currentEventDate = date;
-      this.showPopup = true;
-      this.newEvent = '';
-    },
-    
-    // 保存事件
-    saveEvent() {
-      if (!this.newEvent) return;
-
-      if (!this.events[this.currentEventDate]) {
-        this.events[this.currentEventDate] = [];
+      this.selectedDate = date;
+      this.matchLocation ='';
+      this.team2 = '';
+      this.matchTime='';
+      for (const match of this.matches || []) {
+        if (match.date === selectedDate) {
+          this.matchTime = match.match_time;
+          this.matchLocation =match.location;
+          this.team2 = match.team2;
+          return  ; 
+        } 
       }
-      this.events[this.currentEventDate].push(this.newEvent);
-      this.saveEvents(); // 保存到 localStorage
-      this.closePopup();
+      this.showPopup = true;
     },
+
+    switchTab(tab) {
+    if (tab === this.activeTab) return;
+
+    const tabs = ['match', 'training'];
+    const currentIndex = tabs.indexOf(this.activeTab);
+    const targetIndex = tabs.indexOf(tab);
+    this.transitionDirection = targetIndex > currentIndex ? 'left' : 'right';
     
-    // 关闭弹窗
-    closePopup() {
+    this.prevTab = this.activeTab;
+    this.activeTab = tab;
+    
+    
+  },
+    edit(title, key) {
+      this.editorTitle = `请输入${title}`;
+      this.editKey = key;
+      this.showEditor = true;
+    },
+    updateValue(value) {
+      this[this.editKey] = value;
+      this.showEditor = false;
+    },
+
+     // 关闭弹窗
+     closePopup() {
       this.showPopup = false;
     },
+
+    async saveMatchInfo() {  // 👇发送给后端
+    const payload = {
+      date: this.selectedDate,
+      match_time: this.matchTime,
+      location: this.matchLocation,
+      team2: this.team2,
+    };
+    console.log('发送给后端的内容：', payload);
+     // 开启时使用
+     try {
+          const res = await  axios.post('http://localhost:5000/api/schedule/match', payload);
+          this.matches = res.data.data;
+        } catch (error) {
+          console.error('保存失败:', error);
+          this.$message.error('保存失败');
+        }
+      await this.fetchMatches();
+      this.showPopup = false;
+  },
 
     // 加载事件（从 localStorage）
     loadEvents() {
       const savedEvents = localStorage.getItem('events');
       return savedEvents ? JSON.parse(savedEvents) : {};
-    },
-
-    // 保存事件到 localStorage
-    saveEvents() {
-      localStorage.setItem('events', JSON.stringify(this.events));
-    },
-
-    // 编辑事件
-    editEvent(date, index) {
-      const newEvent = prompt('编辑事件', this.events[date][index]);
-      if (newEvent !== null) {
-        this.events[date][index] = newEvent;
-        this.saveEvents();
-      }
-    },
-
-    // 删除事件
-    deleteEvent(date, index) {
-      if (confirm('确定删除这个事件吗？')) {
-        this.events[date].splice(index, 1);
-        if (this.events[date].length === 0) {
-          delete this.events[date];
-        }
-        this.saveEvents();
-      }
     },
   },
 };
@@ -231,10 +366,16 @@ export default {
 }
 
 .popup {
+  width: 70%;    /* 视口宽度的80% */
+  height: 80%;   /* 视口高度的60% */
   background-color: white;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+.either{
+  display:flex;
+  justify-content:right;
 }
 
 .popup input {
@@ -246,8 +387,6 @@ export default {
 }
 
 .popup button {
-
-
   padding: 8px 16px;
   background-color: #3498db;
   color: white;
@@ -255,9 +394,142 @@ export default {
   border-radius: 45px;
   cursor: pointer;
   margin-right: 10px;
+  margin-bottom: 10px;
+  
 }
 
 .popup button:hover {
   background-color: #2980b9;
 }
+
+.header button {
+  width: 50px;
+  height: 30px;
+  font-size: 18px;
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.header button:hover:not(:disabled) {
+  background-color: #4ddbee;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.tab-button:hover {
+  background: #e0e0e0;
+}
+
+.tab-button.active {
+  background: #0e4aa3;
+  color: white;
+}
+
+/* 选项卡内容容器 */
+.tab-content-wrapper {
+  position: relative;
+  height: 82%;
+  overflow: hidden;
+  display:flex;
+}
+
+/* 选项卡内容通用样式 */
+.tab-content {
+  position: absolute;
+  height: 95%;
+  width: 100%;
+  top: 0;
+  padding: 15px;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+  border: solid 2px #62b9d1;
+
+  /* 新增的部分 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* 垂直居中 */
+  align-items: center;       /* 水平居中 */
+  gap: 10px;                 /* 元素之间留点间距，可选 */
+}
+
+.tab-content button {
+  width: 200px;
+  height: 100px;
+}
+
+
+/* 激活的选项卡 */
+.tab-content.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+/* 向左滑动 */
+.tab-content.slide-left {
+  transform: translateX(-100%);
+}
+
+/* 向右滑动 */
+.tab-content.slide-right {
+  transform: translateX(100%);
+}
+
+/* 当前激活的选项卡滑动效果 */
+.tab-content.active.slide-left {
+  transform: translateX(0);
+}
+
+.tab-content.active.slide-right {
+  transform: translateX(0);
+}
+
+
+
+/*比赛信息样式*/
+.match-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  border:solid #0e4aa3;
+
+}
+
+.match-info .team {
+  width: 45%;
+  text-align: center;
+}
+
+.match-info .vs {
+  width: 50%;
+  text-align: center;
+}
+
+
+
 </style>
