@@ -4,4 +4,10 @@ router.use('/auth', require('./auth'))
 router.use('/user', require('./user'))
 router.use('/coach', require('./coach'))
 
+const noticeRouter=require("./notice");
+router.use("/notice",noticeRouter);
+
+const scheduleRouter = require('./schedule');
+router.use('/schedule', scheduleRouter);
+
 module.exports = router

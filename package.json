@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@types/node": "^22.14.1"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "element-plus": "^2.9.7"
+  }
+}

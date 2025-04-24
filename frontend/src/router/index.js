@@ -7,7 +7,18 @@ import Player from '../views/player/player.vue';
 import Manager from '../views/manager/manager.vue';
 import Medic from '../views/medic/medic.vue';
 import Review from '../views/coach/Review.vue'
+//导入球员界面
+import Phome from "../views/player/Phome.vue";
+import Pnotice from "../views/player/Pnotice.vue";
 
+//导入教练界面
+import Chome from "../views/coach/Chome.vue";
+import Cnotice from "../views/coach/Notice/Cnotice.vue";
+import Cschedule from "../views/coach/Schedule/Cschedule.vue";
+import Cnotice_del from "../views/coach/Notice/Cnotice_del.vue";
+import Edit_training from "../views/coach/Schedule/Edit_training.vue";
+import Edit_match from "../views/coach/Schedule/Edit_match.vue";
+import { pa } from "element-plus/es/locales.mjs";
 const routes = [
   { path: "/", component: Home },
   { path: '/login', component: Login },
@@ -17,6 +28,14 @@ const routes = [
   { path: '/manager', component: Manager },
   { path: '/medic', component: Medic },
   { path: '/coach/review', component: Review },
+  { path: "/phome", component: Phome},
+  { path: "/pnotice", component: Pnotice},
+  { path: "/chome", component: Chome},
+  { path: "/cnotice", component: Cnotice},
+  { path: "/cschedule", component: Cschedule},
+  { path: "/cnotice_del", component: Cnotice_del},
+  { path: "/edit_training", component: Edit_training},
+  { path: "/edit_match", component: Edit_match}
 ];
 
 const router = createRouter({
