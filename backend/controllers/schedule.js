@@ -61,8 +61,32 @@ exports.getScheduleByDate = async (req, res) => {
       sql += ` WHERE DATE_FORMAT(date, '%Y-%m') = ${escape(month)}`;
     }
 
-    const result = await startQuery(sql);
-    res.json(result);
+    const scheduleList = await startQuery(sql);
+
+    const detailedList = [];
+
+    for (const schedule of scheduleList) {
+      let detail = { ...schedule };
+
+      if (schedule.type === 'training') {
+        const [training] = await startQuery(`SELECT * FROM training_schedule WHERE schedule_id = ${escape(schedule.id)}`);
+        if (training) Object.assign(detail, training);
+      } else if (schedule.type === 'match' || schedule.type === 'past_match') {
+        const [match] = await startQuery(`SELECT * FROM match_schedule WHERE schedule_id = ${escape(schedule.id)}`);
+        if (match) {
+          Object.assign(detail, match);
+
+          if (schedule.type === 'past_match') {
+            const events = await startQuery(`SELECT * FROM match_event WHERE match_schedule_id = ${escape(match.id)}`);
+            detail.events = events;
+          }
+        }
+      }
+
+      detailedList.push(detail);
+    }
+
+    res.json(detailedList);
   } catch (err) {
     res.status(500).json({ error: '获取日程失败' });
   }
@@ -81,3 +105,91 @@ exports.getMatchEvents = async (req, res) => {
   }
 };
 
+exports.deleteSchedule = async (req, res) => {
+  try {
+    const scheduleId = req.params.id;
+
+    // 删除 schedule 表的记录（外键自动删除子表）
+    await startQuery(`DELETE FROM schedule WHERE id = ${escape(scheduleId)}`);
+
+    res.json({ message: '日程删除成功' });
+  } catch (err) {
+    res.status(500).json({ error: '删除日程失败' });
+  }
+};
+
+
+exports.getScheduleById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 先查 schedule 表，判断类型
+    const scheduleRows = await startQuery(`SELECT * FROM schedule WHERE id = ${escape(id)}`);
+    if (scheduleRows.length === 0) {
+      return res.status(404).json({ error: '未找到对应日程' });
+    }
+
+    const schedule = scheduleRows[0];
+
+    let detail = { ...schedule };
+
+    if (schedule.type === 'training') {
+      const trainingRows = await startQuery(`SELECT * FROM training_schedule WHERE schedule_id = ${escape(id)}`);
+      if (trainingRows.length > 0) {
+        Object.assign(detail, trainingRows[0]);
+      }
+    } else if (schedule.type === 'match' || schedule.type === 'past_match') {
+      const matchRows = await startQuery(`SELECT * FROM match_schedule WHERE schedule_id = ${escape(id)}`);
+      if (matchRows.length > 0) {
+        const match = matchRows[0];
+        Object.assign(detail, match);
+
+        if (schedule.type === 'past_match') {
+          const events = await startQuery(`SELECT * FROM match_event WHERE match_schedule_id = ${escape(match.id)}`);
+          detail.events = events;
+        }
+      }
+    }
+
+    res.json(detail);
+  } catch (err) {
+    res.status(500).json({ error: '获取日程详情失败' });
+  }
+};
+
+exports.updateSchedule = async (req, res) => {
+  try {
+    const { id } = req.params; // schedule.id
+    const { date, type } = req.body;
+
+    // 更新 schedule 表中的日期
+    await startQuery(`UPDATE schedule SET date = ${escape(date)} WHERE id = ${escape(id)}`);
+
+    if (type === 'training') {
+      const { training_time, team_training, personal_training } = req.body;
+
+      await startQuery(`UPDATE training_schedule
+                        SET training_time = ${escape(training_time)},
+                            team_training = ${escape(team_training)},
+                            personal_training = ${escape(personal_training)}
+                        WHERE schedule_id = ${escape(id)}`);
+
+      res.json({ message: '训练日程更新成功' });
+    } else if (type === 'match' || type === 'past_match') {
+      const { location, match_time, team1, team2 } = req.body;
+
+      await startQuery(`UPDATE match_schedule
+                        SET location = ${escape(location)},
+                            match_time = ${escape(match_time)},
+                            team1 = ${escape(team1)},
+                            team2 = ${escape(team2)}
+                        WHERE schedule_id = ${escape(id)}`);
+
+      res.json({ message: '比赛日程更新成功' });
+    } else {
+      res.status(400).json({ error: '未知的日程类型' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: '更新日程失败' });
+  }
+};
