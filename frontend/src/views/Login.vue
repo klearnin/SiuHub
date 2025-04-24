@@ -1,88 +1,112 @@
 <template>
-  <div class="login-container">
-    <h2>{{ isRegister ? '注册' : '登录' }}</h2>
+  <div class="login-wrapper">
+    <el-card class="login-card" shadow="hover">
+      <h2>{{ isRegister ? '注册' : '登录' }}</h2>
 
-    <div class="form-group" v-if="isRegister">
-      <input
-        v-model="form.name"
-        type="text"
-        :placeholder="form.userType === 'fan' ? '用户名' : '姓名'"
-      />
-    </div>
-
-    <div class="form-group">
-      <input v-model="form.phone" type="text" placeholder="手机号" />
-    </div>
-
-    <div class="form-group">
-      <input v-model="form.password" type="password" placeholder="密码" />
-    </div>
-
-    <div class="form-group" v-if="isRegister">
-      <input v-model="form.email" type="email" placeholder="邮箱" />
-    </div>
-
-    <div class="form-group">
-      <select v-model="form.userType" @change="handleUserTypeChange">
-        <option disabled value="">选择身份</option>
-        <option value="fan">球迷</option>
-        <option value="coach">教练</option>
-        <option value="player">球员</option>
-        <option value="manager">经理</option>
-        <option value="medic">队医</option>
-      </select>
-    </div>
-
-    <!-- 教练特有字段 -->
-    <div v-if="isRegister && showTeamNameFields">
-      <div class="form-group">
-        <input v-model="form.teamName" type="text" placeholder="球队名称" />
+      <div class="form-group" v-if="isRegister">
+        <el-input
+          v-model="form.name"
+          :placeholder="form.userType === 'fan' ? '用户名' : '姓名'"
+          prefix-icon="User"
+          clearable
+        />
       </div>
-      <div class="form-group">
-        <input v-model="form.teamAbbr" type="text" placeholder="球队简称" />
-      </div>
-      <div class="form-group">
-        <label>上传队徽：</label>
-        <input type="file" @change="handleLogoUpload" />
-      </div>
-    </div>
 
-    <!-- 球迷选择球队 -->
-    <div v-if="isRegister && showSelectTeamField" class="form-group">
       <div class="form-group">
-        <select v-model="form.teamId">
-          <option disabled value="">请选择主队</option>
-          <option v-for="team in teams" :key="team.id" :value="team.id">
-            {{ team.name }}（{{ team.abbr }}）
-          </option>
-        </select>
+        <el-input
+          v-model="form.phone"
+          placeholder="手机号"
+          prefix-icon="Phone"
+          clearable
+        />
       </div>
+
+      <div class="form-group">
+        <el-input
+          v-model="form.password"
+          type="password"
+          placeholder="密码"
+          prefix-icon="Lock"
+          show-password
+        />
+      </div>
+
+      <div class="form-group" v-if="isRegister">
+        <el-input
+          v-model="form.email"
+          placeholder="邮箱"
+          prefix-icon="Message"
+          clearable
+        />
+      </div>
+
+      <div class="form-group">
+        <el-select v-model="form.userType" placeholder="选择身份" @change="handleUserTypeChange">
+          <el-option label="球迷" value="fan" />
+          <el-option label="教练" value="coach" />
+          <el-option label="球员" value="player" />
+          <el-option label="经理" value="manager" />
+          <el-option label="队医" value="medic" />
+        </el-select>
+      </div>
+
+      <!-- 教练信息 -->
+      <div v-if="isRegister && showTeamNameFields">
+        <el-input v-model="form.teamName" placeholder="球队名称" class="form-group" />
+        <el-input v-model="form.teamAbbr" placeholder="球队简称" class="form-group" />
+        <div class="form-group">
+          <el-upload
+            :show-file-list="false"
+            :auto-upload="false"
+            accept="image/*"
+            :on-change="handleLogoUpload"
+          >
+            <el-button type="primary" plain>上传队徽</el-button>
+          </el-upload>
+        </div>
+      </div>
+
+      <!-- 球迷选择主队 -->
+      <div v-if="isRegister && showSelectTeamField" class="form-group">
+        <el-select v-model="form.teamId" placeholder="请选择主队">
+          <el-option
+            v-for="team in teams"
+            :key="team.id"
+            :label="team.name"
+            :value="team.id"
+          />
+        </el-select>
+      </div>
+
+      <!-- 球员/经理/队医邀请码 -->
+      <div v-if="isRegister && showInviteCodeField" class="form-group">
+        <el-input v-model="form.inviteCode" placeholder="邀请码" />
+      </div>
+
+      <!-- 上传头像 -->
       <div v-if="isRegister" class="form-group">
-        <label>上传头像：</label>
-        <input type="file" @change="handleAvatarUpload" />
+        <el-upload
+          :show-file-list="false"
+          :auto-upload="false"
+          accept="image/*"
+          :on-change="handleAvatarUpload"
+        >
+          <el-button type="primary" plain>上传头像</el-button>
+        </el-upload>
       </div>
-    </div>
 
-    <!-- 球员/经理/队医邀请码 -->
-    <div v-if="isRegister && showInviteCodeField" class="form-group">
-      <div class="form-group">
-        <input v-model="form.inviteCode" type="text" placeholder="邀请码" />
+      <div class="form-actions">
+        <el-button type="primary" @click="isRegister ? register() : login()" size="large" style="width: 100%">
+          {{ isRegister ? '注册' : '登录' }}
+        </el-button>
+        <el-button type="text" @click="isRegister = !isRegister" class="toggle">
+          {{ isRegister ? '已有账号？去登录' : '没有账号？去注册' }}
+        </el-button>
       </div>
-      <div v-if="isRegister" class="form-group">
-        <label>上传头像：</label>
-        <input type="file" @change="handleAvatarUpload" />
-      </div>
-    </div>
-    <div class="form-actions">
-      <button @click="isRegister ? register() : login()">
-        {{ isRegister ? '注册' : '登录' }}
-      </button>
-      <button class="toggle" @click="isRegister = !isRegister">
-        {{ isRegister ? '已有账号？去登录' : '没有账号？去注册' }}
-      </button>
-    </div>
+    </el-card>
   </div>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
@@ -262,52 +286,44 @@ const handleUserTypeChange = async () => {
 </script>
 
 <style scoped>
-.login-container {
-  width: 300px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #f9f9f9;
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+}
+
+.login-card {
+  width: 380px;
+  padding: 30px 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  background: white;
 }
 
 h2 {
   text-align: center;
   margin-bottom: 20px;
+  color: #409eff;
 }
 
 .form-group {
-  margin-bottom: 15px;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #409eff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  margin-bottom: 20px;
 }
 
 .form-actions {
-  margin-top: 20px;
+  margin-top: 25px;
+  text-align: center;
 }
 
-button.toggle {
-  background-color: transparent;
-  color: #409eff;
-  text-decoration: underline;
+.toggle {
+  display: block;
   margin-top: 10px;
+  text-align: center;
+  width: 100%;
+  font-size: 14px;
+  color: #909399;
 }
 </style>
+
