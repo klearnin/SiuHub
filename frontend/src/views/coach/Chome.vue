@@ -94,7 +94,7 @@ const logout = () => {
 };
 
 const goToReview = () => {
-  router.push("/coach/review");
+  router.push("/chome/review");
 };
 
 onMounted(async () => {

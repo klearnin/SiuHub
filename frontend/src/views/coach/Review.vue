@@ -85,7 +85,7 @@ const handleReview = async (userId, approve) => {
 }
 
 const goBack = () => {
-  router.push('/coach') // 可根据路由调整
+  router.push('/chome') // 可根据路由调整
 }
 
 onMounted(fetchPendingUsers)
