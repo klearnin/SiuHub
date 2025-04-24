@@ -121,8 +121,8 @@ const handleAvatarUpload = (e) => {
 const redirectAfterLogin = (type) => {
   const routes = {
     fan: "/fans",
-    coach: "/coach",
-    player: "/player",
+    coach: "/chome",
+    player: "/phome",
     manager: "/manager",
     medic: "/medic",
   };

@@ -178,8 +178,8 @@ export default {
           const res = await axios.get("http://localhost:5000/api/shcedule/list");
           this.matches = res.data.data;
         } catch (error) {
-          console.error('获取公告失败:', error);
-          this.$message.error('获取公告失败');
+          console.error('获取比赛失败:', error);
+          this.$message.error('获取比赛失败');
         }
       },
 

@@ -1,5 +1,15 @@
 <template>
   <div class="player-page">
+
+     <!-- 顶部导航栏 -->
+     <div class="nav-buttons">
+      <router-link to="/forum" class="nav-button">论坛</router-link>
+      <router-link to="/team" class="nav-button">主队查看</router-link>
+      <router-link to="/Cschedule" class="nav-button">球队日程</router-link>
+      <router-link to="/Pnotice" class="nav-button">球队公告</router-link>
+      <router-link to="/tactics" class="nav-button">球队战术</router-link>
+    </div>
+
     <div class="top-bar">
       <div class="avatar-wrapper" @click="toggleDropdown">
         <img :src="avatarUrl" alt="头像" class="avatar" />
@@ -10,7 +20,7 @@
         </div>
       </div>
     </div>
-    <h1>这是球员主页</h1>
+   
   </div>
 </template>
 
@@ -47,10 +57,9 @@ onMounted(async () => {
 
 <style scoped>
 .player-page {
-  text-align: center;
-  padding: 100px 0;
-  font-size: 24px;
-  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
 }
 .top-bar {
   position: absolute;
@@ -101,5 +110,33 @@ onMounted(async () => {
 }
 .dropdown li:hover {
   background-color: #f0f0f0;
+}
+
+
+.nav-buttons {
+display: flex;
+justify-content: center; /* 水平居中 */
+gap: 30px;                /* 间距 */
+flex-wrap: wrap;          /* 自动换行，防止窗口变小时挤在一行 */
+margin-top: 20px;
+}
+
+.nav-button {
+display: inline-block;
+min-width: 150px;         /* 最小宽度统一 */
+height: 45px;  
+text-align: center;
+padding: 12px 24px;
+background-color: #3498db;
+color: white;
+text-decoration: none;
+border-radius: 8px;
+font-size: 16px;
+transition: background-color 0.3s, transform 0.2s;
+}
+
+.nav-button:hover {
+background-color: #2980b9;
+transform: translateY(-2px); /* 微微上浮，提升视觉反馈 */
 }
 </style>
