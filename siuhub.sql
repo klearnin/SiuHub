@@ -76,12 +76,6 @@ CREATE TABLE notices (
   type ENUM('fan','team') NOT NULL
 );
 
--- 插入测试数据
-INSERT INTO users (username, password, email, role) VALUES
-('coach1', '123456', 'coach1@example.com', 'coach'),
-('player1', '123456', 'player1@example.com', 'player'),
-('manager1', '123456', 'manager1@example.com', 'manager'),
-('fan1', '123456', 'fan1@example.com', 'fan');
 
 INSERT INTO notices (title, content, publish_time, type) VALUES
 ('team1', '123456', '2025-04-13 15:30:00', 'team'),
