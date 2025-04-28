@@ -27,7 +27,7 @@ INSERT INTO users (
   'test@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'fan',                      -- 用户类型，可换成 'coach' 或其他
-  NULL,                       -- 无需 team_id
+  'team_001',                       -- 无需 team_id
   'approved',                 -- 状态
   '/public/avatars/version.jpg'
 );
@@ -46,6 +46,7 @@ INSERT INTO users (
 );
 
 
+DROP TABLE IF EXISTS teams;
 CREATE TABLE teams (
   id VARCHAR(100) PRIMARY KEY COMMENT '球队ID',
   name VARCHAR(100) NOT NULL UNIQUE COMMENT '球队名称',

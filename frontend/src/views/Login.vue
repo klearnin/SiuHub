@@ -179,11 +179,11 @@ const handleLogoUpload = (uploadFile) => {
 
 const redirectAfterLogin = (type) => {
   const routes = {
-    fan: "/fans",
+    fan: "/fhome",
     coach: "/chome",
     player: "/phome",
-    manager: "/manager",
-    medic: "/medic",
+    manager: "/mhome",
+    medic: "/dhome",
   };
   const path = routes[type];
   if (path) {

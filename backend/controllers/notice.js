@@ -4,8 +4,8 @@ exports.createNotice = async (req, res, next) => {
   try {
     const user = req.user;
 
-    if (user.type !== "coach") {
-      return res.status(403).json({ message: "只有教练可以发布公告" });
+    if (user.type !== "coach" && user.type !== "manager" && user.type !== "medic") {
+      return res.status(403).json({ message: "只有教练、经理和队医可以发布公告" });
     }
 
     const { title, content, publish_time, type } = req.body;
@@ -76,8 +76,8 @@ exports.deleteNotice = async (req, res, next) => {
   try {
     const user = req.user;
 
-    if (user.type !== "coach") {
-      return res.status(403).json({ message: "只有教练可以删除公告" });
+    if (user.type !== "coach" && user.type !== "manager" && user.type !== "medic") {
+      return res.status(403).json({ message: "只有教练、经理和队医可以删除公告" });
     }
 
     const { id } = req.params;
