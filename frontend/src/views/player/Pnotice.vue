@@ -1,113 +1,146 @@
 <template>
   <div class="notice-board">
     <h2 class="board-title">球队公告</h2>
+
     <div class="notice-list">
-      <div
-        class="notice-title"
-        v-for="(notice, index) in notices"
+      <el-card
+        v-for="notice in notices"
         :key="notice.id"
-        @click="selectNotice(notice.id, index)"
-        :class="{ 'selected': selectedNoticeId === notice.id }"
+        class="notice-card"
+        @click="openNoticeDialog(notice)"
+        shadow="hover"
       >
-        {{ notice.title }}
-        <transition name="fade">
-          <div class="notice-content" v-if="activeIndex === index" @click.stop>
-            <p>{{ notice.content }}</p>
-            <small>{{ formatDate(notice.publish_time) }}</small>
-          </div>
-        </transition>
-      </div>
+        <div class="card-header">
+          <span class="notice-title">{{ notice.title }}</span>
+        </div>
+        <div class="card-content">
+          <span class="preview-content">{{ getContentPreview(notice.content) }}</span>
+        </div>
+        <div class="card-time">
+          {{ formatDate(notice.publish_time) }}
+        </div>
+      </el-card>
     </div>
+
+    <el-pagination
+      v-if="total > 0"
+      background
+      layout="prev, pager, next"
+      :total="total"
+      :page-size="pageSize"
+      :current-page="currentPage"
+      @current-change="handlePageChange"
+      class="pagination"
+    />
+
     <div class="buttons">
-      <button class="button" @click="back()">返回</button>
+      <el-button class="button" @click="back">返回</el-button>
     </div>
+
+    <!-- 公告详情弹窗 -->
+    <el-dialog v-model="dialogVisible" :show-close="false" width="500px">
+      <template #header>
+        <div class="dialog-header">
+          <span class="dialog-title">{{ selectedNotice?.title }}</span>
+        </div>
+      </template>
+
+      <div class="dialog-content">
+        {{ selectedNotice?.content }}
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">返回</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 export default {
   data() {
     return {
       notices: [],
-      activeIndex: null,
-      selectedNoticeId: null // 新增选中ID存储
+      total: 0,
+      currentPage: 1,
+      pageSize: 6,
+      dialogVisible: false,
+      selectedNotice: null,
     };
   },
   created() {
     this.fetchNotices();
   },
+  setup() {
+    const router = useRouter();
+
+    onMounted(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.type !== "player") {
+          ElMessage.error("无权访问该页面");
+          router.replace("/login");
+        }
+      } else {
+        ElMessage.error("请先登录");
+        router.replace("/login");
+      }
+    });
+
+    return { router };
+  },
   methods: {
+    async fetchNotices() {
+      try {
+        const res = await axios.get("http://localhost:5000/api/notice/list", {
+          params: {
+            page: this.currentPage,
+            size: this.pageSize,
+            type: 'team'  // ✅ 这里加上只要球队公告
+          },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        // 只保留球队公告
+        this.notices = res.data.data.notices.filter(n => n.type === 'team');
+        this.total = res.data.data.total; // 注意：分页基于所有公告的总量
+      } catch (error) {
+        console.error('获取公告失败:', error);
+        ElMessage.error('获取公告失败');
+      }
+    },
+
+    handlePageChange(page) {
+      this.currentPage = page;
+      this.fetchNotices();
+    },
+
     back() {
       this.$router.push('/phome');
     },
 
-    // 修改后的删除方法
-    async del() {
-  if (!this.selectedNoticeId) {
-    ElMessage.warning('请先选择要删除的公告');
-    return;
-  }
-
-  try {
-    // 弹出确认框，等待用户选择
-    await ElMessageBox.confirm('确定删除该公告吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
-
-    // 如果用户点击“确定”，执行删除
-    const res = await axios.delete(`http://localhost:5000/api/notice/${this.selectedNoticeId}`);
-    if (res.data.code === 0) {
-      ElMessage.success('删除成功');
-      this.selectedNoticeId = null;
-      this.activeIndex = null;
-      this.fetchNotices();
-    } else {
-      ElMessage.error('删除失败: ' + (res.data.msg || '未知错误'));
-    }
-
-  } catch (error) {
-    // 用户点击“取消”或者关闭弹窗
-    if (error !== 'cancel') {
-      console.error('删除公告失败:', error);
-      ElMessage.error('删除失败: ' + (error.response?.data?.msg || error.message));
-    } else {
-      ElMessage.info('已取消删除');
-    }
-  }
-}
-,
-
-    // 修改后的选择方法
-    selectNotice(id, index) {
-      this.selectedNoticeId = id;
-      this.toggleNotice(index);
-    },
-
-    async fetchNotices() {
-      try {
-        const res = await axios.get("http://localhost:5000/api/notice/list");
-        this.notices = res.data.data;
-      } catch (error) {
-        console.error('获取公告失败:', error);
-        this.$message.error('获取公告失败');
-      }
-    },
-
-    toggleNotice(index) {
-      this.activeIndex = this.activeIndex === index ? null : index;
+    openNoticeDialog(notice) {
+      this.selectedNotice = notice;
+      this.dialogVisible = true;
     },
 
     formatDate(datetime) {
-      if (!datetime || typeof datetime !== 'string') {
-        return 'Invalid date';
-      }
+      if (!datetime) return '无日期';
       const date = new Date(datetime);
-      return isNaN(date) ? 'Invalid date' : date.toLocaleString();
+      return isNaN(date) ? '无效日期' : date.toLocaleString();
+    },
+
+    getContentPreview(content) {
+      if (!content) return '';
+      return content.length > 50 ? content.slice(0, 50) + '...' : content;
     }
   }
 };
@@ -115,88 +148,97 @@ export default {
 
 <style scoped>
 .notice-board {
-  max-width: 500px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
   font-family: sans-serif;
 }
 
 .board-title {
   text-align: center;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: bold;
   color: #000000;
-  padding: 20px 0;
-  background: #31b4d8;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
 }
 
 .notice-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 20px;
+}
+
+.notice-card {
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+
+.notice-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-  max-height: 500px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .notice-title {
-  background: #f1f1f1;
-  padding: 10px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s;
+  font-size: 20px;
+  font-weight: bold;
+  color: #2e72f1;
 }
 
-.notice-title.selected {
-  background: #d4edff;
-  border-left: 4px solid #31b4d8;
+.card-content {
+  color: #777;
+  font-size: 14px;
+  margin-top: 5px;
 }
 
-.notice-title:hover {
-  background-color: #e0e0e0;
-}
-
-.notice-content {
-  background: white;
-  padding: 10px;
-  margin-top: 8px;
-  border-left: 3px solid #3498db;
-  border-radius: 4px;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  max-height: 0;
-  opacity: 0;
+.card-time {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #aaa;
+  text-align: right;
 }
 
 .buttons {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 .button {
-  width: 150px;
-  height: 60px;
+  width: 200px;
+  height: 50px;
   font-size: 18px;
-  background-color: #ccc;
+  border-radius: 30px;
+}
+
+.pagination {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.dialog-header {
+  background: #409EFF;
+  padding: 15px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+  border-radius: 6px 6px 0 0;
+}
+
+.dialog-content {
+  padding: 20px;
+  font-size: 16px;
   color: #333;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-.button:hover:not(:disabled) {
-  background-color: #4ddbee;
+.dialog-footer {
+  display: flex;
+  justify-content: center;
 }
-
-
 </style>

@@ -35,21 +35,49 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(),
-    routes
+  history: createWebHistory(),
+  routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const publicPages = ['/', '/login'];
-  const authRequired = !publicPages.includes(to.path);
-  const token = localStorage.getItem('token');
 
-  if (authRequired && !token) {
-    return next('/login');
+// 解析 JWT token
+function parseJwt(token) {
+  try {
+    const base64Payload = token.split('.')[1];
+    const payload = atob(base64Payload);
+    return JSON.parse(payload);
+  } catch (err) {
+    console.error("Token解析失败", err);
+    return {};
+  }
+}
+
+// 🔥 路由守卫
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem("token");
+
+  if (!token && to.path !== "/" && to.path !== "/login") {
+    // 未登录访问保护页面，跳回登录
+    ElMessage.error("请先登录");
+    return next("/login");
+  }
+
+  if (token) {
+    const payload = parseJwt(token);
+    const userId = payload.userId;
+    const userRole = payload.type;
+
+    console.log(`🛡️ 当前用户 ID: ${userId}`);
+    console.log(`🛡️ 当前用户身份: ${userRole}`);
+
+    if (to.meta.role && userRole !== to.meta.role) {
+      // 跳转目标需要特定身份，但用户身份不符
+      ElMessage.error("无权访问该页面");
+      return next("/login");
+    }
   }
 
   next();
 });
-
   
 export default router;

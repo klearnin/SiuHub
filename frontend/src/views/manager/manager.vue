@@ -18,10 +18,30 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { ElMessage } from "element-plus";
 
 const avatarUrl = ref(null);
 const dropdownVisible = ref(false);
 const router = useRouter();
+
+// 页面挂载时检查身份
+onMounted(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const userType = payload.type;
+
+    console.log(`👮 页面内部检查身份: ${userType}`);
+
+    if (userType !== "manager") {
+      ElMessage.error("无权访问该页面");
+      router.replace("/login"); // 强制跳回登录
+    }
+  } else {
+    ElMessage.error("请先登录");
+    router.replace("/login");
+  }
+});
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;

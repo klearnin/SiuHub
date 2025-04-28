@@ -67,19 +67,20 @@ INSERT INTO teams (
   'coach_001');
 
 DROP TABLE IF EXISTS notices;
-
 CREATE TABLE notices (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  content TEXT NOT NULL,
-  publish_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  type ENUM('fan','team') NOT NULL
+  id INT AUTO_INCREMENT PRIMARY KEY COMMENT '公告ID',
+  title VARCHAR(255) NOT NULL COMMENT '公告标题',
+  content TEXT NOT NULL COMMENT '公告内容',
+  publish_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
+  type ENUM('fan', 'team') NOT NULL COMMENT '公告类型（面向球迷/球队成员）',
+  team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
 );
 
-
-INSERT INTO notices (title, content, publish_time, type) VALUES
-('team1', '123456', '2025-04-13 15:30:00', 'team'),
-('fan1', '123456111', '2025-04-12 15:30:00', 'fan');
+-- 插入测试公告
+INSERT INTO notices (title, content, publish_time, type, team_id) VALUES
+('team公告1', '这是测试球队的队内公告', '2025-04-13 15:30:00', 'team', 'team_001'),
+('fan公告1', '这是测试球队面向球迷的公告', '2025-04-12 15:30:00', 'fan', 'team_001');
 
 
 -- 删除旧表（顺序注意外键依赖）

@@ -43,6 +43,25 @@ import { ElMessage, ElMessageBox } from 'element-plus' // ✅ 加入 ElMessageBo
 const users = ref([])
 const router = useRouter()
 
+// 页面挂载时检查身份
+onMounted(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const userType = payload.type;
+
+    console.log(`👮 页面内部检查身份: ${userType}`);
+
+    if (userType !== "coach") {
+      ElMessage.error("无权访问该页面");
+      router.replace("/login"); // 强制跳回登录
+    }
+  } else {
+    ElMessage.error("请先登录");
+    router.replace("/login");
+  }
+});
+
 const fetchPendingUsers = async () => {
   try {
     const res = await axios.get('http://localhost:5000/api/auth/pending-users', {
