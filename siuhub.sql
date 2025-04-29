@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- 创建数据库（如果尚未创建）
 CREATE DATABASE IF NOT EXISTS siuhub;
 USE siuhub;
