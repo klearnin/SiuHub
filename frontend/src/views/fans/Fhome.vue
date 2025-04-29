@@ -86,6 +86,7 @@
     background: linear-gradient(to right, #0154A0 0%, #0e5292 70%, #eaeced 100%);
     position: relative;
     overflow: visible;
+    height: 75px;
   }
   
   .nav-bar::after {

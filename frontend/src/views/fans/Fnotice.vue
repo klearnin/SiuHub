@@ -12,9 +12,6 @@
         >
           <div class="card-header">
             <span class="notice-title">{{ notice.title }}</span>
-            <el-tag type="info" size="small" class="type-tag">
-              球迷公告
-            </el-tag>
           </div>
           <div class="card-content">
             <span class="preview-content">{{ getContentPreview(notice.content) }}</span>
