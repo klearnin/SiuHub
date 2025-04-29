@@ -13,6 +13,7 @@ import Cnotice_del from "../views/coach/Notice/Cnotice_del.vue";
 import Edit_training from "../views/coach/Schedule/Edit_training.vue";
 import Edit_match from "../views/coach/Schedule/Edit_match.vue";
 import { pa } from "element-plus/es/locales.mjs";
+import Test from "../views/test.vue";   
 const routes = [
     { path: "/", component: Home },
     { path: "/login", component: Login },
@@ -24,6 +25,7 @@ const routes = [
     {path: "/cnotice_del", component: Cnotice_del},
     {path: "/edit_training", component: Edit_training},
     {path: "/edit_match", component: Edit_match}
+    ,{path: "/test", component: Test}
 ];
 
 const router = createRouter({
