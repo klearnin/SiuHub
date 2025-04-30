@@ -1,6 +1,7 @@
 <template>
     <div class="player-home">
       <!-- 顶部导航栏 -->
+       
       <div class="nav-buttons">
         <router-link to="/forum" class="nav-button">论坛</router-link>
         <router-link to="/team" class="nav-button">主队查看</router-link>
@@ -8,10 +9,12 @@
         <router-link to="/cnotice" class="nav-button">发布公告</router-link>
         <router-link to="/cnotice_del" class="nav-button">球队公告</router-link>
         <router-link to="/tactics" class="nav-button">球队战术</router-link>
+      
       </div>
   
       <!-- 右侧个人信息区 -->
       <div class="profile-section">
+    
         <div class="avatar-circle">
           <!-- 头像占位图 -->
           <img src="/picture/db2f98717e0dbd0304840072562a1770.png" alt="球员头像" class="avatar">
@@ -19,6 +22,7 @@
         <button @click="handleLogout" class="logout-button">退出</button>
       </div>
     </div>
+    
   </template>
   
   <script>
@@ -101,5 +105,7 @@
   .logout-button:hover {
     background-color: #c0392b;
   }
+
+  
   </style>
   
