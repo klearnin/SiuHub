@@ -13,7 +13,7 @@ exports.createTrainingSchedule = async (req, res) => {
     await startQuery(`INSERT INTO training_schedule (schedule_id, training_time, team_training, personal_training)
                       VALUES (${scheduleId}, ${escape(training_time)} ,${escape(team_training)}, ${escape(personal_training)})`);
 
-    res.json({ message: '训练日程创建成功', scheduleId });
+    res.json({ code: 0, message: '训练日程创建成功', scheduleId });
   } catch (err) {
     res.status(500).json({ error: '创建训练日程失败' });
   }
@@ -44,7 +44,7 @@ exports.createMatchSchedule = async (req, res) => {
       }
     }
 
-    res.json({ message: '比赛日程创建成功', scheduleId });
+    res.json({code: 0,  message: '比赛日程创建成功', scheduleId });
   } catch (err) {
     res.status(500).json({ error: '创建比赛日程失败' });
   }
@@ -133,7 +133,7 @@ exports.deleteSchedule = async (req, res) => {
     // 删除 schedule 表的记录（外键自动删除子表）
     await startQuery(`DELETE FROM schedule WHERE id = ${escape(scheduleId)}`);
 
-    res.json({ message: '日程删除成功' });
+    res.json({ code: 0, message: '日程删除成功' });
   } catch (err) {
     res.status(500).json({ error: '删除日程失败' });
   }
@@ -206,7 +206,7 @@ exports.updateSchedule = async (req, res) => {
                             team2 = ${escape(team2)}
                         WHERE schedule_id = ${escape(id)}`);
 
-      res.json({ message: '比赛日程更新成功' });
+      res.json({ code: 0, message: '比赛日程更新成功' });
     } else {
       res.status(400).json({ error: '未知的日程类型' });
     }

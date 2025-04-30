@@ -13,7 +13,8 @@ try{
         host: '127.0.0.1',
         user: 'root',       
         password: '123456',   
-        database: 'siuhub'
+        database: 'siuhub',
+        charset: 'utf8mb4'
     })
 } catch (err) {
     console.log(err,'err');
