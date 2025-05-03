@@ -24,10 +24,10 @@
         @click="openEventPrompt(day.date)"
       >
         <div class="day-number" 
-       
         >{{ day.day }}</div>
-        <ul class="events" v-for="(match, index) in matches" :key="index">
-          <li v-for="(match, index) in matches" :key="index" v-if="match.date === day.date">比赛</li>
+        <ul class="events" v-for="(schedule, index) in schedules" :key="index">
+          <li v-if="schedule.date === day.date"><div class="schedule" v-if="schedule.type==='match'">⚽比赛</div></li>
+          <li v-if="schedule.date === day.date"><div class="schedule" v-if="schedule.type==='training'">🎯训练</div></li>
         </ul>
       </div>
     </div>
@@ -94,21 +94,41 @@
              'slide-right': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'right'
           }"
         >
-          <h3>训练计划</h3>
-          <p>这里是训练相关的内容...</p>
-          <button @click="gotoedit_training">编辑训练</button>
+         <p class="match-info">
+            时间：{{ trainingTime || '未设定' }}<br />
+            队伍训练：{{ teamTraining || '未设定' }}<br />
+            个人训练：{{ personalTraining || '未设定' }}
+          </p>
+          <button @click="edit('训练时间', 'trainingTime')">设置训练时间</button>
+          <button @click="edit('队伍训练内容', 'teamTraining')">设置队伍训练</button>
+          <button @click="edit('个人训练内容', 'personalTraining')">设置个人训练</button>
+
         </div>
-       
+        <MatchEditor 
+       :visible="showEditor" 
+       :title="editorTitle" 
+       @confirm="updateValue"
+       @cancel="showEditor = false"
+    />
       </div>
       
       <!-- 底部按钮 -->
      
-      <div class="either">
-         <button @click="closePopup">取消</button>
-        <button v-if="activeTab === 'match'" @click="saveMatchInfo">保存</button>
-       
-        
-      </div>
+        <div class="either">
+          <button @click="closePopup">取消</button>
+
+          <!-- 先检查是否有对应日期的日程 -->
+          <div v-if="hasScheduleForSelectedDate">
+            <button @click="deleteScheduleInfo">删除</button>
+            <button v-if="activeTab==='match'" @click="changeMatchInfo">修改</button>
+            <button v-if="activeTab==='training'" @click="changeTrainingInfo">修改</button>
+          </div>
+          <div v-else>
+            <button v-if="activeTab==='match'" @click="saveMatchInfo">保存</button>
+            <button v-if="activeTab==='training'" @click="saveTrainingInfo">保存</button>
+          </div>
+        </div>
+
       
     </div>
   </div>
@@ -135,6 +155,7 @@ export default {
       selectedYear: new Date().getFullYear(),
       selectedMonth: new Date().getMonth() + 1,
       calendarDays: [],
+      selectedID: null,
       dayNames: ['日', '一', '二', '三', '四', '五', '六'],
       months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
       showPopup: false,
@@ -149,14 +170,17 @@ export default {
       team2: '',
       matchTime: '',
       matchLocation: '',
+      //训练相关数据
+      trainingTime: '',
+      teamTraining: '',
+      personalTraining: '',
       showEditor: false,
       editorTitle: '',
       editKey: '',
-       
-      hour: '00',
-      minute: '00',
       showTimeEditor: false,
       matches: [], // 事件表
+      trainings: [], // 训练表
+      schedules: [], // 日程表
     };
   },
   computed: {
@@ -164,22 +188,27 @@ export default {
       const y = new Date().getFullYear();
       return Array.from({ length: 30 }, (_, i) => y - 5 + i);
     },
+    hasScheduleForSelectedDate() {
+    return this.schedules.some(schedule => schedule.date === this.selectedDate);
+  }
    
   },
   mounted() {
     this.generateCalendar();
   },
   created() {
-      this.fetchMatches();
+      this.fetchSchedules();
     },
   methods: {
-    async fetchMatches() {
+    async fetchSchedules() {
+      const month = `${this.selectedYear}-${this.selectedMonth.toString().padStart(2, '0')}`;
+      this.x=month;
         try {
-          const res = await axios.get("http://localhost:5000/api/shcedule/list");
-          this.matches = res.data.data;
+          const res = await axios.get("http://localhost:5000/api/schedule/list", { params: { month } });
+          this.schedules = res.data;
         } catch (error) {
-          console.error('获取比赛失败:', error);
-          this.$message.error('获取比赛失败');
+          console.error('获取日程失败:', error);
+          this.$message.error('获取日程失败');
         }
       },
 
@@ -190,7 +219,7 @@ export default {
    
 
     // 生成日历
-    generateCalendar() {
+    async generateCalendar() {
       const year = this.selectedYear;
       const month = this.selectedMonth - 1;
       const firstDay = new Date(year, month, 1);
@@ -211,25 +240,34 @@ export default {
       }
 
       this.calendarDays = days;
+      await this.fetchSchedules();
     },
     
     // 打开事件输入框
-     openEventPrompt(date) {
-      if (!date) return;
-      this.selectedDate = date;
-      this.matchLocation ='';
-      this.team2 = '';
-      this.matchTime='';
-      for (const match of this.matches || []) {
-        if (match.date === selectedDate) {
-          this.matchTime = match.match_time;
-          this.matchLocation =match.location;
-          this.team2 = match.team2;
-          return  ; 
-        } 
-      }
-      this.showPopup = true;
-    },
+      openEventPrompt(date) {
+        if (!date) return;
+        this.selectedDate = date;
+
+        for (const schedule of this.schedules || []) {
+        if (schedule.date === this.selectedDate) {
+          if (schedule.type === 'match') {
+            this.matchTime = schedule.match_time;
+            this.matchLocation = schedule.location;
+            this.team2 = schedule.team2;
+            this.activeTab = 'match';
+          } else if (schedule.type === 'training') {
+            this.trainingTime = schedule.training_time;
+            this.teamTraining = schedule.team_training;
+            this.personalTraining = schedule.personal_training;
+            this.activeTab = 'training';
+          }
+          this.selectedID = schedule.id;
+        }
+     }
+    this.showPopup = true;
+  },
+    
+
 
     switchTab(tab) {
     if (tab === this.activeTab) return;
@@ -256,6 +294,12 @@ export default {
 
      // 关闭弹窗
      closePopup() {
+      this.matchLocation ='';
+      this.team2 = '';
+      this.matchTime='';
+      this.trainingTime = '';
+      this.teamTraining = '';
+      this.personalTraining = '';
       this.showPopup = false;
     },
 
@@ -265,25 +309,106 @@ export default {
       match_time: this.matchTime,
       location: this.matchLocation,
       team2: this.team2,
+      type:'match',
+      team1:'', 
+      events: [],
+
     };
     console.log('发送给后端的内容：', payload);
      // 开启时使用
      try {
-          const res = await  axios.post('http://localhost:5000/api/schedule/match', payload);
-          this.matches = res.data.data;
+          const response = await  axios.post('http://localhost:5000/api/schedule/match', payload);
+          if (response.data.code === 0){
+          alert(`比赛保存成功！`);
+          } 
         } catch (error) {
           console.error('保存失败:', error);
           this.$message.error('保存失败');
         }
-      await this.fetchMatches();
-      this.showPopup = false;
+      await this.fetchSchedules(); 
+      this.closePopup();
   },
 
-    // 加载事件（从 localStorage）
-    loadEvents() {
-      const savedEvents = localStorage.getItem('events');
-      return savedEvents ? JSON.parse(savedEvents) : {};
+  async changeMatchInfo() {  // 👇发送给后端
+    const payload = {
+      date: this.selectedDate,
+      match_time: this.matchTime,
+      location: this.matchLocation,
+      team2: this.team2,
+      type:'match',
+      team1:'',
+    };
+    try {
+          const response = await  axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload);
+          console.log('发送给后端的内容：', payload);
+          if (response.data.code === 0){
+          alert(`比赛修改成功！`);
+          } 
+        } catch (error) {
+          this.$message.error('修改失败');
+        }
+      await this.fetchSchedules(); 
+      this.closePopup();
     },
+
+    async saveTrainingInfo() {
+      const payload = {
+        date: this.selectedDate,
+        training_time: this.trainingTime,
+        team_training: this.teamTraining,
+        personal_training: this.personalTraining,
+      };
+      try {
+        const res = await axios.post('http://localhost:5000/api/schedule/training', payload);
+        alert('训练保存成功');
+      } catch (err) {
+        console.error('保存失败', err);
+        this.$message.error('保存失败');
+      }
+      await this.fetchSchedules();
+      this.closePopup();
+    },
+
+
+    async changeTrainingInfo() {
+      const payload = {
+        date: this.selectedDate,
+        training_time: this.trainingTime,
+        team_training: this.teamTraining,
+        personal_training: this.personalTraining,
+        type: 'training',
+      };
+      try {
+        const res = await axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload);
+        alert('训练修改成功');
+      } catch (err) {
+        console.error('修改失败', err);
+        this.$message.error('修改失败');
+      }
+      await this.fetchSchedules();
+      this.closePopup();
+    },
+
+
+
+    async deleteScheduleInfo() {  
+    try {
+          const response = await  axios.delete(`http://localhost:5000/api/schedule/${this.selectedID}`);
+          if (response.data.code === 0){
+          alert(`${this.type} 删除成功！`);
+          } 
+        } catch (error) {
+          this.$message.error('删除失败');
+        }
+      await this.fetchSchedules(); 
+      this.matchLocation ='';
+      this.team2 = '';
+      this.matchTime='';
+      this.showPopup = false;
+      
+    },
+
+   
   },
 };
 </script>
@@ -530,6 +655,14 @@ export default {
   text-align: center;
 }
 
-
-
+.schedule {
+  font-size: 14px;       /* 稍微小一点，显得精致 */
+  font-weight: bold;     /* 字体加粗，有力量感 */
+  color: #1e90ff;        /* 亮一点的蓝色，活泼又有比赛氛围 */
+  /*background-color: #e6f2ff; /* 淡淡的蓝底，不突兀 */
+  padding: 4px 8px;      /* 有一点内边距，显得圆润 */
+  border-radius: 8px;    /* 圆角，让小块更柔和 */
+  display: inline-block; /* 让它像一个小标签 */
+  margin-top: 4px;       /* 和日期数字拉开一点距离 */
+}
 </style>

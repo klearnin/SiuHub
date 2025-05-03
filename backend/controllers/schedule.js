@@ -13,7 +13,7 @@ exports.createTrainingSchedule = async (req, res) => {
     await startQuery(`INSERT INTO training_schedule (schedule_id, training_time, team_training, personal_training)
                       VALUES (${scheduleId}, ${escape(training_time)} ,${escape(team_training)}, ${escape(personal_training)})`);
 
-    res.json({ message: '训练日程创建成功', scheduleId });
+    res.json({ code: 0, message: '训练日程创建成功', scheduleId });
   } catch (err) {
     res.status(500).json({ error: '创建训练日程失败' });
   }
@@ -44,17 +44,23 @@ exports.createMatchSchedule = async (req, res) => {
       }
     }
 
-    res.json({ message: '比赛日程创建成功', scheduleId });
+    res.json({code: 0,  message: '比赛日程创建成功', scheduleId });
   } catch (err) {
     res.status(500).json({ error: '创建比赛日程失败' });
   }
 };
 
+
 exports.getScheduleByDate = async (req, res) => {
   try {
     const { date, month } = req.query;
 
-    let sql = 'SELECT * FROM schedule';
+    // 查询schedule时，直接格式化date成字符串，避免带时分秒
+    let sql = `
+      SELECT id, DATE_FORMAT(date, '%Y-%m-%d') AS date, type, created_at
+      FROM schedule
+    `;
+
     if (date) {
       sql += ` WHERE date = ${escape(date)}`;
     } else if (month) {
@@ -66,18 +72,31 @@ exports.getScheduleByDate = async (req, res) => {
     const detailedList = [];
 
     for (const schedule of scheduleList) {
-      let detail = { ...schedule };
+      const detail = { ...schedule };
 
       if (schedule.type === 'training') {
-        const [training] = await startQuery(`SELECT * FROM training_schedule WHERE schedule_id = ${escape(schedule.id)}`);
-        if (training) Object.assign(detail, training);
+        const [training] = await startQuery(`
+          SELECT training_time, team_training, personal_training
+          FROM training_schedule
+          WHERE schedule_id = ${escape(schedule.id)}
+        `);
+        if (training) {
+          Object.assign(detail, training);
+        }
       } else if (schedule.type === 'match' || schedule.type === 'past_match') {
-        const [match] = await startQuery(`SELECT * FROM match_schedule WHERE schedule_id = ${escape(schedule.id)}`);
+        const [match] = await startQuery(`
+          SELECT location, match_time, team1, team2
+          FROM match_schedule
+          WHERE schedule_id = ${escape(schedule.id)}
+        `);
         if (match) {
           Object.assign(detail, match);
 
           if (schedule.type === 'past_match') {
-            const events = await startQuery(`SELECT * FROM match_event WHERE match_schedule_id = ${escape(match.id)}`);
+            const events = await startQuery(`
+              SELECT * FROM match_event
+              WHERE match_schedule_id = ${escape(match.id)}
+            `);
             detail.events = events;
           }
         }
@@ -88,9 +107,11 @@ exports.getScheduleByDate = async (req, res) => {
 
     res.json(detailedList);
   } catch (err) {
+    console.error('获取日程失败：', err);
     res.status(500).json({ error: '获取日程失败' });
   }
 };
+
 
 exports.getMatchEvents = async (req, res) => {
   try {
@@ -112,7 +133,7 @@ exports.deleteSchedule = async (req, res) => {
     // 删除 schedule 表的记录（外键自动删除子表）
     await startQuery(`DELETE FROM schedule WHERE id = ${escape(scheduleId)}`);
 
-    res.json({ message: '日程删除成功' });
+    res.json({ code: 0, message: '日程删除成功' });
   } catch (err) {
     res.status(500).json({ error: '删除日程失败' });
   }
@@ -185,7 +206,7 @@ exports.updateSchedule = async (req, res) => {
                             team2 = ${escape(team2)}
                         WHERE schedule_id = ${escape(id)}`);
 
-      res.json({ message: '比赛日程更新成功' });
+      res.json({ code: 0, message: '比赛日程更新成功' });
     } else {
       res.status(400).json({ error: '未知的日程类型' });
     }

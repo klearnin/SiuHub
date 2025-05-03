@@ -7,6 +7,7 @@
         <router-link to="/cnotice" class="nav-button">发布公告</router-link>
         <router-link to="/cnotice_del" class="nav-button">球队公告</router-link>
         <router-link to="/tactics" class="nav-button">球队战术</router-link>
+      
       </div>
     <!-- 顶部头像栏 -->
     <div class="top-bar">
@@ -21,7 +22,6 @@
         </div>
       </div>
     </div>
-
   
 
     <!-- 弹窗：邀请码展示 -->
