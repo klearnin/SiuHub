@@ -319,7 +319,7 @@ export default {
      try {
           const response = await  axios.post('http://localhost:5000/api/schedule/match', payload);
           if (response.data.code === 0){
-          alert(`${this.type} 保存成功！`);
+          alert(`比赛保存成功！`);
           } 
         } catch (error) {
           console.error('保存失败:', error);
@@ -342,7 +342,7 @@ export default {
           const response = await  axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload);
           console.log('发送给后端的内容：', payload);
           if (response.data.code === 0){
-          alert(`${this.type} 修改成功！`);
+          alert(`比赛修改成功！`);
           } 
         } catch (error) {
           this.$message.error('修改失败');
