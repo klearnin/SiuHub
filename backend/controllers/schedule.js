@@ -3,10 +3,11 @@ const { startQuery, escape } = require('../database/index');
 
 exports.createTrainingSchedule = async (req, res) => {
   try {
+    const user = req.user;
     const { date,training_time, team_training, personal_training } = req.body;
 
     // 插入主 schedule 表
-    const result = await startQuery(`INSERT INTO schedule (date, type) VALUES (${escape(date)}, 'training')`);
+    const result = await startQuery(`INSERT INTO schedule (date, type, team_id) VALUES (${escape(date)}, 'training', ${escape(user.team_id)})`);
     const scheduleId = result.insertId;
 
     // 插入 training_schedule 表
@@ -21,6 +22,7 @@ exports.createTrainingSchedule = async (req, res) => {
 
 exports.createMatchSchedule = async (req, res) => {
   try {
+    const user = req.user;
     const { date, type, location, match_time, team1, team2, events } = req.body;
 
     if (!['match', 'past_match'].includes(type)) {
@@ -28,7 +30,7 @@ exports.createMatchSchedule = async (req, res) => {
     }
 
     // 插入 schedule 表
-    const result = await startQuery(`INSERT INTO schedule (date, type) VALUES (${escape(date)}, ${escape(type)})`);
+    const result = await startQuery(`INSERT INTO schedule (date, type, team_id) VALUES (${escape(date)}, ${escape(type)}, ${escape(user.team_id)})`);
     const scheduleId = result.insertId;
 
     // 插入 match_schedule 表
@@ -53,18 +55,19 @@ exports.createMatchSchedule = async (req, res) => {
 
 exports.getScheduleByDate = async (req, res) => {
   try {
+    const user = req.user;
     const { date, month } = req.query;
 
     // 查询schedule时，直接格式化date成字符串，避免带时分秒
     let sql = `
       SELECT id, DATE_FORMAT(date, '%Y-%m-%d') AS date, type, created_at
-      FROM schedule
+      FROM schedule WHERE team_id = ${escape(user.team_id)}
     `;
 
     if (date) {
-      sql += ` WHERE date = ${escape(date)}`;
+      sql += ` AND date = ${escape(date)}`;
     } else if (month) {
-      sql += ` WHERE DATE_FORMAT(date, '%Y-%m') = ${escape(month)}`;
+      sql += ` AND DATE_FORMAT(date, '%Y-%m') = ${escape(month)}`;
     }
 
     const scheduleList = await startQuery(sql);
@@ -129,9 +132,9 @@ exports.getMatchEvents = async (req, res) => {
 exports.deleteSchedule = async (req, res) => {
   try {
     const scheduleId = req.params.id;
-
+    const user = req.user;
     // 删除 schedule 表的记录（外键自动删除子表）
-    await startQuery(`DELETE FROM schedule WHERE id = ${escape(scheduleId)}`);
+    await startQuery(`DELETE FROM schedule WHERE id = ${escape(scheduleId)} AND team_id = ${escape(user.team_id)}`);
 
     res.json({ code: 0, message: '日程删除成功' });
   } catch (err) {
@@ -143,9 +146,9 @@ exports.deleteSchedule = async (req, res) => {
 exports.getScheduleById = async (req, res) => {
   try {
     const { id } = req.params;
-
+    const user = req.user;
     // 先查 schedule 表，判断类型
-    const scheduleRows = await startQuery(`SELECT * FROM schedule WHERE id = ${escape(id)}`);
+    const scheduleRows = await startQuery(`SELECT * FROM schedule WHERE id = ${escape(id)} AND team_id = ${escape(user.team_id)}`);
     if (scheduleRows.length === 0) {
       return res.status(404).json({ error: '未找到对应日程' });
     }

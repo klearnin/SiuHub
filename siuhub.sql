@@ -94,7 +94,9 @@ CREATE TABLE schedule (
     id INT PRIMARY KEY AUTO_INCREMENT,
     date DATE NOT NULL,
     type ENUM('training', 'match', 'past_match') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
+    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
 );
 
 -- 训练表
@@ -128,16 +130,16 @@ CREATE TABLE match_event (
 );
 
 -- 插入一条训练类型的主表记录
-INSERT INTO schedule (date, type) 
-VALUES ('2025-04-13', 'training');
+INSERT INTO schedule (date, type, team_id) 
+VALUES ('2025-04-13', 'training','team_001');
 
 -- 插入对应的训练表记录
 INSERT INTO training_schedule (schedule_id, training_time, team_training, personal_training)
 VALUES (1, '15:00:00', '全队战术训练', '个人射门练习');
 
 -- 插入一条比赛类型的主表记录
-INSERT INTO schedule (date, type) 
-VALUES ('2025-04-24', 'match');
+INSERT INTO schedule (date, type, team_id) 
+VALUES ('2025-04-24', 'match','team_001');
 
 -- 插入对应的比赛表记录
 INSERT INTO match_schedule (schedule_id, location, match_time, team1, team2)
