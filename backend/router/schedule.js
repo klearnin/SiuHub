@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const scheduleController = require('../controllers/schedule');
+const auth = require("../middleware/auth"); 
 
 router.post('/training', auth, scheduleController.createTrainingSchedule);
 router.post('/match', auth, scheduleController.createMatchSchedule);

@@ -20,6 +20,25 @@ exports.createTrainingSchedule = async (req, res) => {
   }
 };
 
+exports.createElseSchedule = async (req, res) => {
+  try {
+    const user = req.user;
+    const { date,else_time, content} = req.body;
+
+    // 插入主 schedule 表
+    const result = await startQuery(`INSERT INTO schedule (date, type, team_id) VALUES (${escape(date)}, 'else', ${escape(user.team_id)})`);
+    const scheduleId = result.insertId;
+
+    // 插入 else_schedule 表
+    await startQuery(`INSERT INTO else_schedule (schedule_id, else_time, content)
+                      VALUES (${scheduleId}, ${escape(else_time)} ,${escape(content)})`);
+
+    res.json({ code: 0, message: '其他日程创建成功', scheduleId });
+  } catch (err) {
+    res.status(500).json({ error: '创建其他日程失败' });
+  }
+};
+
 exports.createMatchSchedule = async (req, res) => {
   try {
     const user = req.user;
@@ -86,7 +105,18 @@ exports.getScheduleByDate = async (req, res) => {
         if (training) {
           Object.assign(detail, training);
         }
-      } else if (schedule.type === 'match' || schedule.type === 'past_match') {
+      }
+      else if (schedule.type === 'else') {
+        const [else_schedule] = await startQuery(`
+          SELECT else_time, content
+          FROM else_schedule
+          WHERE schedule_id = ${escape(schedule.id)}
+        `);
+        if (else_schedule) {
+          Object.assign(detail, else_schedule);
+        }
+      }
+       else if (schedule.type === 'match' || schedule.type === 'past_match') {
         const [match] = await startQuery(`
           SELECT location, match_time, team1, team2
           FROM match_schedule
@@ -162,7 +192,14 @@ exports.getScheduleById = async (req, res) => {
       if (trainingRows.length > 0) {
         Object.assign(detail, trainingRows[0]);
       }
-    } else if (schedule.type === 'match' || schedule.type === 'past_match') {
+    }
+    else if (schedule.type === 'else') {
+      const elseRows = await startQuery(`SELECT * FROM else_schedule WHERE schedule_id = ${escape(id)}`);
+      if (elseRows.length > 0) {
+        Object.assign(detail, elseRows[0]);
+      }
+    }
+     else if (schedule.type === 'match' || schedule.type === 'past_match') {
       const matchRows = await startQuery(`SELECT * FROM match_schedule WHERE schedule_id = ${escape(id)}`);
       if (matchRows.length > 0) {
         const match = matchRows[0];
@@ -199,7 +236,18 @@ exports.updateSchedule = async (req, res) => {
                         WHERE schedule_id = ${escape(id)}`);
 
       res.json({ message: '训练日程更新成功' });
-    } else if (type === 'match' || type === 'past_match') {
+    }
+    else if (type === 'else') {
+      const { else_time, content} = req.body;
+
+      await startQuery(`UPDATE else_schedule
+                        SET else_time = ${escape(else_time)},
+                            content = ${escape(content)}
+                        WHERE schedule_id = ${escape(id)}`);
+
+      res.json({ message: '其他日程更新成功' });
+    }
+     else if (type === 'match' || type === 'past_match') {
       const { location, match_time, team1, team2 } = req.body;
 
       await startQuery(`UPDATE match_schedule
