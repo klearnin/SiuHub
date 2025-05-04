@@ -1,5 +1,5 @@
 const db = require("../database");
-const { nanoid } = import("nanoid");
+const { nanoid } =require("nanoid");
 
 exports.getMyInviteCode = async (req, res, next) => {
     try {
