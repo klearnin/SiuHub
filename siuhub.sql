@@ -132,7 +132,6 @@ CREATE TABLE match_event (
 CREATE TABLE forum_posts (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
-  title VARCHAR(100) NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)

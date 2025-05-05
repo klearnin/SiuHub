@@ -1,21 +1,23 @@
 const db = require("../database");
 
-// 创建帖子
+
+// 创建帖子（已去除 title）
 exports.createPost = async (req, res, next) => {
   try {
-    const { title, content } = req.body;
+    const { content } = req.body; // 只接收 content
     const user_id = req.user.id;
 
     await db.startQuery(`
-      INSERT INTO forum_posts (user_id, title, content, created_at)
-      VALUES (?, ?, ?, NOW())
-    `, [user_id, title, content]);
+      INSERT INTO forum_posts (user_id, content, created_at)
+      VALUES (?, ?, NOW())
+    `, [user_id, content]);
 
     res.json({ code: 0, msg: "发帖成功" });
   } catch (err) {
     next(err);
   }
 };
+
 
 // 获取帖子列表及前三条高赞评论
 exports.getPosts = async (req, res, next) => {
@@ -173,12 +175,13 @@ exports.replyToComment = async (req, res, next) => {
   }
 };
 
-// 获取帖子评论及其回复，评论按点赞数排序
+// 获取帖子评论及其回复，评论按点赞数/时间排序（时间为最新的在最前面）
 exports.getCommentsWithReplies = async (req, res, next) => {
   try {
     const { post_id } = req.query;
 
-    const comments = await db.startQuery(`
+    // 查询按点赞数排序的评论（热度优先）
+    const hotComments = await db.startQuery(`
       SELECT c.*, u.name AS screen_name, u.avatar,
         (SELECT COUNT(*) FROM forum_comment_likes WHERE comment_id = c.id) AS like_count
       FROM forum_comments c
@@ -187,21 +190,46 @@ exports.getCommentsWithReplies = async (req, res, next) => {
       ORDER BY like_count DESC, c.created_at ASC
     `, [post_id]);
 
-    for (const comment of comments) {
-      const replies = await db.startQuery(`
-        SELECT r.*, u.name AS screen_name, u.avatar,
-          (SELECT COUNT(*) FROM forum_reply_likes WHERE reply_id = r.id) AS like_count
-        FROM forum_comment_replies r
-        JOIN users u ON r.user_id = u.id
-        WHERE r.comment_id = ?
-        ORDER BY r.created_at ASC
-      `, [comment.id]);
+    // 查询按时间倒序的评论（最新优先）
+    const latestComments = await db.startQuery(`
+      SELECT c.*, u.name AS screen_name, u.avatar,
+        (SELECT COUNT(*) FROM forum_comment_likes WHERE comment_id = c.id) AS like_count
+      FROM forum_comments c
+      JOIN users u ON c.user_id = u.id
+      WHERE c.post_id = ?
+      ORDER BY c.created_at DESC
+    `, [post_id]);
 
-      comment.replies = replies;
-    }
+    // 查询函数：用于获取每条评论的回复（按点赞数排序）
+    const addRepliesToComments = async (commentList) => {
+      for (const comment of commentList) {
+        const replies = await db.startQuery(`
+          SELECT r.*, u.name AS screen_name, u.avatar,
+            (SELECT COUNT(*) FROM forum_reply_likes WHERE reply_id = r.id) AS like_count
+          FROM forum_comment_replies r
+          JOIN users u ON r.user_id = u.id
+          WHERE r.comment_id = ?
+          ORDER BY like_count DESC, r.created_at ASC
+        `, [comment.id]);
 
-    res.json({ code: 0, msg: "评论获取成功", data: comments });
+        comment.replies = replies;
+      }
+    };
+
+    // 为两类评论都添加回复
+    await addRepliesToComments(hotComments);
+    await addRepliesToComments(latestComments);
+
+    res.json({
+      code: 0,
+      msg: "评论获取成功",
+      data: {
+        hotComments,
+        latestComments
+      }
+    });
   } catch (err) {
     next(err);
   }
 };
+
