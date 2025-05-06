@@ -265,3 +265,14 @@ exports.updateSchedule = async (req, res) => {
     res.status(500).json({ error: '更新日程失败' });
   }
 };
+
+exports.getTeamnameandlist = async (req, res) => {
+  try {
+    const user = req.user;
+    const result = await startQuery(`SELECT name FROM teams WHERE id = ${escape(user.team_id)}`);
+    const teamlist= await startQuery(`SELECT name FROM teams`);
+    res.json({ code: 0, message: '球队名称获取成功', teamname:result ,teamlist:teamlist});
+  } catch (err) {
+    res.status(500).json({ error: '球队名称获取失败' });
+  }
+};

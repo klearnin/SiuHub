@@ -166,6 +166,8 @@ export default {
       matchId:null,
       trainingId: null,
       elseId:null,
+      teamname:'',
+      teamlist:[],
     };
   },
   computed: {
@@ -215,6 +217,15 @@ export default {
           console.error('获取日程失败:', error);
           this.$message.error('获取日程失败');
         }
+        try {
+          const res = await axios.get("http://localhost:5000/api/schedule/team", { 
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+          this.teamname = res.data.teamname[0].name;
+          this.teamlist = res.data.teamlist;
+        } catch (error) {
+          console.error('获取球队名称失败:', error);
+          this.$message.error('获取球队名称失败');
+        }
       },
     
     back() {
@@ -260,6 +271,7 @@ export default {
             this.matchTime = schedule.match_time;
             this.matchLocation = schedule.location;
             this.team2 = schedule.team2;
+            this.team1 = this.teamname;
             this.activeTab = 'match';
           } else if (schedule.type === 'training') {
             this.trainingId = schedule.id;

@@ -11,6 +11,6 @@ router.get('/past/:id', scheduleController.getMatchEvents);
 router.delete('/:id', auth, scheduleController.deleteSchedule);
 router.get('/schedule/:id', auth, scheduleController.getScheduleById)
 router.put('/schedule/:id', scheduleController.updateSchedule);
-
+router.get('/team', auth, scheduleController.getTeamnameandlist);
 
 module.exports = router;
