@@ -142,6 +142,8 @@
 import axios from 'axios';
 import MatchEditor from './MatchEditor.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 
 export default {
@@ -199,12 +201,32 @@ export default {
   created() {
       this.fetchSchedules();
     },
+  setup() {
+    const router = useRouter();
+
+    onMounted(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.type !== "coach") {
+          ElMessage.error("无权访问该页面");
+          router.replace("/login");
+        }
+      } else {
+        ElMessage.error("请先登录");
+        router.replace("/login");
+      }
+    });
+
+    return { router };
+  },
   methods: {
     async fetchSchedules() {
       const month = `${this.selectedYear}-${this.selectedMonth.toString().padStart(2, '0')}`;
       this.x=month;
         try {
-          const res = await axios.get("http://localhost:5000/api/schedule/list", { params: { month } });
+          const res = await axios.get("http://localhost:5000/api/schedule/list", { params: { month } ,
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
           this.schedules = res.data;
         } catch (error) {
           console.error('获取日程失败:', error);
@@ -317,7 +339,10 @@ export default {
     console.log('发送给后端的内容：', payload);
      // 开启时使用
      try {
-          const response = await  axios.post('http://localhost:5000/api/schedule/match', payload);
+          const response = await  axios.post('http://localhost:5000/api/schedule/match', payload,
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
           if (response.data.code === 0){
           alert(`比赛保存成功！`);
           } 
@@ -339,7 +364,10 @@ export default {
       team1:'',
     };
     try {
-          const response = await  axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload);
+          const response = await  axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload,
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
           console.log('发送给后端的内容：', payload);
           if (response.data.code === 0){
           alert(`比赛修改成功！`);
@@ -359,7 +387,9 @@ export default {
         personal_training: this.personalTraining,
       };
       try {
-        const res = await axios.post('http://localhost:5000/api/schedule/training', payload);
+        const res = await axios.post('http://localhost:5000/api/schedule/training', payload,{
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
         alert('训练保存成功');
       } catch (err) {
         console.error('保存失败', err);
@@ -393,7 +423,9 @@ export default {
 
     async deleteScheduleInfo() {  
     try {
-          const response = await  axios.delete(`http://localhost:5000/api/schedule/${this.selectedID}`);
+          const response = await  axios.delete(`http://localhost:5000/api/schedule/${this.selectedID}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
           if (response.data.code === 0){
           alert(`${this.type} 删除成功！`);
           } 

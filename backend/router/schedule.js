@@ -5,6 +5,7 @@ const auth = require("../middleware/auth");
 
 router.post('/training', auth, scheduleController.createTrainingSchedule);
 router.post('/match', auth, scheduleController.createMatchSchedule);
+router.post('/else', auth, scheduleController.createElseSchedule);
 router.get('/list', auth, scheduleController.getScheduleByDate);
 router.get('/past/:id', scheduleController.getMatchEvents);
 router.delete('/:id', auth, scheduleController.deleteSchedule);
