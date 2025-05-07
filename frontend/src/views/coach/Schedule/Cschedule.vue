@@ -43,11 +43,9 @@
               <span class="vs">{{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}</span>
               <span class="team">{{ team2 || '对手未设定' }}</span>
             </p>
-            <button @click="edit('对手', 'team2')">设定对手</button>
+            <button @click="showOpponentSelector = true">选择对手</button>
             <button @click="openTimeEditor('matchTime')">设置时间</button>
             <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
-            <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
-            <MatchEditor :visible="showEditor" :title="editorTitle" @confirm="updateValue" @cancel="showEditor = false" />
           </div>
 
           <!-- 训练内容 -->
@@ -61,9 +59,6 @@
             <button @click="edit('队伍训练内容', 'teamTraining')">设置队伍训练</button>
             <button @click="edit('个人训练内容', 'personalTraining')">设置个人训练</button>
           </div>
-          <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
-          <MatchEditor :visible="showEditor" :title="editorTitle" @confirm="updateValue" @cancel="showEditor = false" />
-
           <!-- 其他内容 -->
           <div class="tab-content" :class="{ active: activeTab === 'else', 'slide-left': (activeTab === 'else' || prevTab === 'else') && transitionDirection === 'left', 'slide-right': (activeTab === 'else' || prevTab === 'else') && transitionDirection === 'right' }">
             <p class="match-info">
@@ -73,30 +68,33 @@
             <button @click="openTimeEditor('elseTime')">设置时间</button>
             <button @click="edit('事件', 'elseEvent')">设置事件</button>
           </div>
-          <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
-          <MatchEditor :visible="showEditor" :title="editorTitle" @confirm="updateValue" @cancel="showEditor = false" />
+         
+          
         </div>
+        <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
+        <MatchEditor :visible="showEditor" :title="editorTitle" @confirm="updateValue" @cancel="showEditor = false" />
+        <TeamSelector :visible="showOpponentSelector" :teamlist="teamlist" @confirm="updateOpponent"@cancel="showOpponentSelector = false"/>
 
         <!-- 底部按钮 -->
         <div class="either">
           <button @click="closePopup">取消</button>
           <div v-if="activeTab==='match'">
             <div v-if="matchId">
-              <button @click="deleteScheduleInfo">删除</button>
+              <button class="del_button" @click="deleteScheduleInfo">删除</button>
               <button @click="changeMatchInfo">修改</button>
             </div>
             <button v-else @click="saveMatchInfo">保存</button>
           </div>
           <div v-if="activeTab==='training'">
             <div v-if="trainingId">
-              <button @click="deleteScheduleInfo">删除</button>
+              <button class="del_button" @click="deleteScheduleInfo">删除</button>
               <button @click="changeTrainingInfo">修改</button>
             </div>
             <button v-else @click="saveTrainingInfo">保存</button>
           </div>
           <div v-if="activeTab==='else'">
             <div v-if="elseId">
-              <button @click="deleteScheduleInfo">删除</button>
+              <button class="del_button" @click="deleteScheduleInfo">删除</button>
               <button @click="changeElseInfo">修改</button>
             </div>
             <button v-else @click="saveElseInfo">保存</button>
@@ -114,15 +112,16 @@ import MatchEditor from './MatchEditor.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import TimeSlider from './TimeSlider.vue'
-
+import TimeSlider from './TimeSlider.vue';
+import TeamSelector from './TeamSelector.vue'
 
 
 export default {
 
   components: {
     MatchEditor,
-    TimeSlider
+    TimeSlider,
+    TeamSelector
 
   },
   
@@ -161,6 +160,8 @@ export default {
 
       showTimeEditor: false,
       timeEditKey: '',
+
+      showOpponentSelector: false,
 
       schedules: [], // 日程表
       matchId:null,
@@ -227,7 +228,15 @@ export default {
           this.$message.error('获取球队名称失败');
         }
       },
+
+      updateOpponent(teamName) {
+        this.team2 = teamName;  // 设定选中的对手
+        this.showOpponentSelector = false;
+      },
     
+
+
+
     back() {
       this.$router.push('/chome');
     },
@@ -628,7 +637,9 @@ export default {
   margin-bottom: 10px;
   
 }
-
+.del_button{
+  background-color: red;
+}
 .popup button:hover {
   background-color: #2980b9;
 }
@@ -771,5 +782,6 @@ export default {
   display: inline-block; /* 让它像一个小标签 */
   margin-top: 4px;       /* 和日期数字拉开一点距离 */
 }
+
 
 </style>
