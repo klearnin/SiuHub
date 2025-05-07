@@ -39,7 +39,7 @@
           <!-- 比赛内容 -->
           <div class="tab-content" :class="{ active: activeTab === 'match', 'slide-left': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'left', 'slide-right': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'right' }">
             <p class="match-info">
-              <span class="team">{{ team1 || '未设定' }}</span>
+              <span class="team">{{ teamname || '未设定' }}</span>
               <span class="vs">{{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}</span>
               <span class="team">{{ team2 || '对手未设定' }}</span>
             </p>
@@ -518,10 +518,7 @@ export default {
           this.$message.error('删除失败');
         }
       await this.fetchSchedules(); 
-      this.matchLocation ='';
-      this.team2 = '';
-      this.matchTime='';
-      this.showPopup = false;
+      this.closePopup();
       
     },
   },

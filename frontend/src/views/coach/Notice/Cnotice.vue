@@ -9,20 +9,35 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
 import NoticeItem from './NoticeItem.vue';
 
-export default {
-  components: {
-    NoticeItem
-  },
-  methods: {
-    goBack() {
-      // 返回上一个页面
-      this.$router.push('/chome')
-    }
-  }
+const router = useRouter();
+
+const goBack = () => {
+  router.push('/chome');
 };
+
+onMounted(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const userType = payload.type;
+
+    console.log(`👮 页面内部检查身份: ${userType}`);
+
+    if (userType !== "coach") {
+      ElMessage.error("无权访问该页面");
+      router.replace("/login");
+    }
+  } else {
+    ElMessage.error("请先登录");
+    router.replace("/login");
+  }
+});
 </script>
 
 <style scoped>
@@ -40,23 +55,21 @@ export default {
   justify-content: center;
 }
 
-/* 新增返回按钮样式 */
+/* 修改返回按钮样式 */
 .back-button {
-  width: 200px;
-  height: 60px;
+  width: 150px;
+  height: 50px;
   font-size: 18px;
   background-color: #ccc;
   color: #333;
   border: none;
   border-radius: 25px;
   cursor: pointer;
+  margin-top: 30px;
   transition: background-color 0.3s;
 }
 
 .back-button:hover {
-  width: 200px;
-  height: 60px;
-  font-size: 18px;
   background-color: #4ddbee;
 }
 </style>
