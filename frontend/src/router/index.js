@@ -8,6 +8,7 @@ import Review from '../views/coach/Review.vue'
 //导入球员界面
 import Phome from "../views/player/Phome.vue";
 import Pnotice from "../views/player/Pnotice.vue";
+import Pschedule from "../views/player/Schedule/Pschedule.vue";
 
 //导入教练界面
 import Chome from "../views/coach/Chome.vue";
@@ -34,6 +35,7 @@ const routes = [
     { path: "/login", component: Login },
     {path: "/phome", component: Phome},
     {path: "/pnotice", component: Pnotice},
+    {path: "/pschedule", component: Pschedule},
     {path: "/chome", component: Chome},
     {path: "/cnotice", component: Cnotice},
     {path: "/cschedule", component: Cschedule},

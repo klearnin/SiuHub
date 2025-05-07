@@ -365,7 +365,7 @@ export default {
       location: this.matchLocation,
       team2: this.team2,
       type:'match',
-      team1:'', 
+      team1: this.team1, 
       events: [],
     };
     console.log('发送给后端的内容：', payload);
@@ -393,7 +393,7 @@ export default {
       location: this.matchLocation,
       team2: this.team2,
       type:'match',
-      team1:'',
+      team1: this.team1,
     };
     try {
           const response = await  axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload,
