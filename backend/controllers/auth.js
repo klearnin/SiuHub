@@ -1,7 +1,7 @@
 const db = require("../database/index");
 const jwt = require("../util/jwt");
 const { jwtSecret } = require("../config/config.default");
-const { nanoid } = import("nanoid");
+const { nanoid } =require("nanoid");
 const path = require("path");
 const fs = require("fs");
 

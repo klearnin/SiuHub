@@ -1,6 +1,5 @@
-<template>
+<template> 
   <div class="calendar-container">
-
     <!-- 年月选择 -->
     <div class="header">
       <select v-model="selectedYear" @change="generateCalendar">
@@ -14,127 +13,96 @@
 
     <!-- 日历网格 -->
     <div class="calendar-grid">
-     
       <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
-      
-      <div
-        class="day-cell"
-        v-for="day in calendarDays"
-        :key="day.date"
-        @click="openEventPrompt(day.date)"
-      >
-        <div class="day-number" 
-        >{{ day.day }}</div>
+      <div class="day-cell" v-for="day in calendarDays" :key="day.date" @click="openEventPrompt(day.date)">
+        <div class="day-number">{{ day.day }}</div>
         <ul class="events" v-for="(schedule, index) in schedules" :key="index">
-          <li v-if="schedule.date === day.date"><div class="schedule" v-if="schedule.type==='match'">⚽比赛</div></li>
-          <li v-if="schedule.date === day.date"><div class="schedule" v-if="schedule.type==='training'">🎯训练</div></li>
+          <li v-if="schedule.date === day.date"><div class="schedule match" v-if="schedule.type==='match'">比赛 ⚽</div></li>
+          <li v-if="schedule.date === day.date"><div class="schedule training" v-if="schedule.type==='training'">训练🎯</div></li>
+          <li v-if="schedule.date === day.date"><div class="schedule else" v-if="schedule.type==='else'">其他📅</div></li>
         </ul>
       </div>
     </div>
 
     <!-- 弹窗 -->
     <div v-if="showPopup" class="popup-overlay">
-    <div class="popup">
-      <!-- 选项卡按钮 -->
-      <div class="tab-buttons">
-        <button 
-          class="tab-button" 
-          :class="{ active: activeTab === 'match' }"
-          @click="switchTab('match')"
-        >
-          比赛
-        </button>
-        <button 
-          class="tab-button" 
-          :class="{ active: activeTab === 'training' }"
-          @click="switchTab('training')"
-        >
-          训练
-        </button>
-        
-      </div>
+      <div class="popup">
+        <!-- 选项卡按钮 -->
+        <div class="tab-buttons">
+          <button class="tab-button" :class="{ active: activeTab === 'match' }" @click="switchTab('match')">比赛</button>
+          <button class="tab-button" :class="{ active: activeTab === 'training' }" @click="switchTab('training')">训练</button>
+          <button class="tab-button" :class="{ active: activeTab === 'else' }" @click="switchTab('else')">其他</button>
+        </div>
 
-      <!-- 选项卡内容 -->
-      <div class="tab-content-wrapper">
-        <!-- 比赛内容 -->
-        <div 
-          class="tab-content" 
-          :class="{ 
-            active: activeTab === 'match',
-            'slide-left': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'left',
-            'slide-right': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'right'
-          }"
+        <!-- 选项卡内容 -->
+        <div class="tab-content-wrapper">
+          <!-- 比赛内容 -->
+          <div class="tab-content" :class="{ active: activeTab === 'match', 'slide-left': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'left', 'slide-right': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'right' }">
+            <p class="match-info">
+              <span class="team">{{ team1 || '未设定' }}</span>
+              <span class="vs">{{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}</span>
+              <span class="team">{{ team2 || '对手未设定' }}</span>
+            </p>
+            <button @click="showOpponentSelector = true">选择对手</button>
+            <button @click="openTimeEditor('matchTime')">设置时间</button>
+            <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
+          </div>
+
+          <!-- 训练内容 -->
+          <div class="tab-content" :class="{ active: activeTab === 'training', 'slide-left': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'left', 'slide-right': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'right' }">
+            <p class="match-info">
+              时间：{{ trainingTime || '未设定' }}<br />
+              队伍训练：{{ teamTraining || '未设定' }}<br />
+              个人训练：{{ personalTraining || '未设定' }}
+            </p>
+            <button @click="openTimeEditor('trainingTime')">设置训练时间</button>
+            <button @click="edit('队伍训练内容', 'teamTraining')">设置队伍训练</button>
+            <button @click="edit('个人训练内容', 'personalTraining')">设置个人训练</button>
+          </div>
+          <!-- 其他内容 -->
+          <div class="tab-content" :class="{ active: activeTab === 'else', 'slide-left': (activeTab === 'else' || prevTab === 'else') && transitionDirection === 'left', 'slide-right': (activeTab === 'else' || prevTab === 'else') && transitionDirection === 'right' }">
+            <p class="match-info">
+              时间：{{ elseTime || '未设定' }}<br /><br />
+              事件：{{ elseEvent|| '未设定' }}<br />
+            </p>
+            <button @click="openTimeEditor('elseTime')">设置时间</button>
+            <button @click="edit('事件', 'elseEvent')">设置事件</button>
+          </div>
+         
           
-        >
-          <p class="match-info">
-            <span class="team">{{ team1 || '未设定' }}</span>
-            <span class="vs">
-              {{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}
-            </span>
-            <span class="team">{{ team2 || '对手未设定' }}</span>
-          </p>
-           <button @click="edit('对手', 'team2')">设定对手</button>
-           <button @click="edit('比赛时间', 'matchTime')">设置时间</button>
-           <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
-
-          <MatchEditor 
-       :visible="showEditor" 
-       :title="editorTitle" 
-       @confirm="updateValue"
-       @cancel="showEditor = false"
-    />
         </div>
+        <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
+        <MatchEditor :visible="showEditor" :title="editorTitle" @confirm="updateValue" @cancel="showEditor = false" />
+        <TeamSelector :visible="showOpponentSelector" :teamlist="teamlist" @confirm="updateOpponent"@cancel="showOpponentSelector = false"/>
 
-        <!-- 训练内容 -->
-        <div 
-          class="tab-content" 
-          :class="{ 
-             active: activeTab === 'training',
-             'slide-left': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'left',
-             'slide-right': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'right'
-          }"
-        >
-         <p class="match-info">
-            时间：{{ trainingTime || '未设定' }}<br />
-            队伍训练：{{ teamTraining || '未设定' }}<br />
-            个人训练：{{ personalTraining || '未设定' }}
-          </p>
-          <button @click="edit('训练时间', 'trainingTime')">设置训练时间</button>
-          <button @click="edit('队伍训练内容', 'teamTraining')">设置队伍训练</button>
-          <button @click="edit('个人训练内容', 'personalTraining')">设置个人训练</button>
-
-        </div>
-        <MatchEditor 
-       :visible="showEditor" 
-       :title="editorTitle" 
-       @confirm="updateValue"
-       @cancel="showEditor = false"
-    />
-      </div>
-      
-      <!-- 底部按钮 -->
-     
+        <!-- 底部按钮 -->
         <div class="either">
           <button @click="closePopup">取消</button>
-
-          <!-- 先检查是否有对应日期的日程 -->
-          <div v-if="hasScheduleForSelectedDate">
-            <button @click="deleteScheduleInfo">删除</button>
-            <button v-if="activeTab==='match'" @click="changeMatchInfo">修改</button>
-            <button v-if="activeTab==='training'" @click="changeTrainingInfo">修改</button>
+          <div v-if="activeTab==='match'">
+            <div v-if="matchId">
+              <button class="del_button" @click="deleteScheduleInfo">删除</button>
+              <button @click="changeMatchInfo">修改</button>
+            </div>
+            <button v-else @click="saveMatchInfo">保存</button>
           </div>
-          <div v-else>
-            <button v-if="activeTab==='match'" @click="saveMatchInfo">保存</button>
-            <button v-if="activeTab==='training'" @click="saveTrainingInfo">保存</button>
+          <div v-if="activeTab==='training'">
+            <div v-if="trainingId">
+              <button class="del_button" @click="deleteScheduleInfo">删除</button>
+              <button @click="changeTrainingInfo">修改</button>
+            </div>
+            <button v-else @click="saveTrainingInfo">保存</button>
+          </div>
+          <div v-if="activeTab==='else'">
+            <div v-if="elseId">
+              <button class="del_button" @click="deleteScheduleInfo">删除</button>
+              <button @click="changeElseInfo">修改</button>
+            </div>
+            <button v-else @click="saveElseInfo">保存</button>
           </div>
         </div>
-
-      
+      </div>
     </div>
   </div>
-    
-  </div>
-
 </template>
 
 <script>
@@ -142,12 +110,19 @@
 import axios from 'axios';
 import MatchEditor from './MatchEditor.vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import TimeSlider from './TimeSlider.vue';
+import TeamSelector from './TeamSelector.vue'
 
 
 export default {
 
   components: {
     MatchEditor,
+    TimeSlider,
+    TeamSelector
+
   },
   
   data() {
@@ -174,13 +149,26 @@ export default {
       trainingTime: '',
       teamTraining: '',
       personalTraining: '',
+      //其他相关数据
+      elseTime:'',
+      elseEvent:'',
+
+      // 设置相关数据
       showEditor: false,
       editorTitle: '',
       editKey: '',
+
       showTimeEditor: false,
-      matches: [], // 事件表
-      trainings: [], // 训练表
+      timeEditKey: '',
+
+      showOpponentSelector: false,
+
       schedules: [], // 日程表
+      matchId:null,
+      trainingId: null,
+      elseId:null,
+      teamname:'',
+      teamlist:[],
     };
   },
   computed: {
@@ -199,18 +187,55 @@ export default {
   created() {
       this.fetchSchedules();
     },
+  setup() {
+    const router = useRouter();
+
+    onMounted(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.type !== "coach") {
+          ElMessage.error("无权访问该页面");
+          router.replace("/login");
+        }
+      } else {
+        ElMessage.error("请先登录");
+        router.replace("/login");
+      }
+    });
+
+    return { router };
+  },
   methods: {
     async fetchSchedules() {
       const month = `${this.selectedYear}-${this.selectedMonth.toString().padStart(2, '0')}`;
       this.x=month;
         try {
-          const res = await axios.get("http://localhost:5000/api/schedule/list", { params: { month } });
+          const res = await axios.get("http://localhost:5000/api/schedule/list", { params: { month } ,
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
           this.schedules = res.data;
         } catch (error) {
           console.error('获取日程失败:', error);
           this.$message.error('获取日程失败');
         }
+        try {
+          const res = await axios.get("http://localhost:5000/api/schedule/team", { 
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+          this.teamname = res.data.teamname[0].name;
+          this.teamlist = res.data.teamlist;
+        } catch (error) {
+          console.error('获取球队名称失败:', error);
+          this.$message.error('获取球队名称失败');
+        }
       },
+
+      updateOpponent(teamName) {
+        this.team2 = teamName;  // 设定选中的对手
+        this.showOpponentSelector = false;
+      },
+    
+
+
 
     back() {
       this.$router.push('/chome');
@@ -244,44 +269,73 @@ export default {
     },
     
     // 打开事件输入框
-      openEventPrompt(date) {
+    openEventPrompt(date) {
         if (!date) return;
         this.selectedDate = date;
 
         for (const schedule of this.schedules || []) {
         if (schedule.date === this.selectedDate) {
           if (schedule.type === 'match') {
+            this.matchId = schedule.id;
             this.matchTime = schedule.match_time;
             this.matchLocation = schedule.location;
             this.team2 = schedule.team2;
+            this.team1 = this.teamname;
             this.activeTab = 'match';
           } else if (schedule.type === 'training') {
+            this.trainingId = schedule.id;
             this.trainingTime = schedule.training_time;
             this.teamTraining = schedule.team_training;
             this.personalTraining = schedule.personal_training;
             this.activeTab = 'training';
+          }else if (schedule.type === 'else') {
+            this.elseId = schedule.id;
+            this.elseTime = schedule.else_time;
+            this.elseEvent = schedule.content;
+            this.activeTab = 'else';
           }
           this.selectedID = schedule.id;
         }
      }
     this.showPopup = true;
   },
+
+  // 关闭弹窗
+  closePopup() {
+      this.matchLocation ='';
+      this.team2 = '';
+      this.matchTime='';
+      this.trainingTime = '';
+      this.teamTraining = '';
+      this.personalTraining = '';
+      this.showPopup = false;
+      this.elseTime='',
+      this.elseEvent='',
+      this.selectedID = null,
+      this.matchId=null,
+      this.trainingId=null,
+      this.elseId=null  
+    },
     
 
 
     switchTab(tab) {
     if (tab === this.activeTab) return;
-
-    const tabs = ['match', 'training'];
+    const tabs = ['match', 'training','else'];
     const currentIndex = tabs.indexOf(this.activeTab);
     const targetIndex = tabs.indexOf(tab);
     this.transitionDirection = targetIndex > currentIndex ? 'left' : 'right';
-    
     this.prevTab = this.activeTab;
     this.activeTab = tab;
-    
+    for (const schedule of this.schedules || []) {
+        if (schedule.type === this.activeTab && schedule.date === this.selectedDate) {
+          this.selectedID = schedule.id;
+        }
+     }
     
   },
+
+    // 编辑日程信息
     edit(title, key) {
       this.editorTitle = `请输入${title}`;
       this.editKey = key;
@@ -292,16 +346,17 @@ export default {
       this.showEditor = false;
     },
 
-     // 关闭弹窗
-     closePopup() {
-      this.matchLocation ='';
-      this.team2 = '';
-      this.matchTime='';
-      this.trainingTime = '';
-      this.teamTraining = '';
-      this.personalTraining = '';
-      this.showPopup = false;
+    openTimeEditor(key) {
+      this.timeEditKey = key;
+      this.showTimeEditor = true;
     },
+
+    updateTimeFromSlider(value) {
+      this[this.timeEditKey] = value;
+      this.showTimeEditor = false;
+    },
+
+     
 
     async saveMatchInfo() {  // 👇发送给后端
     const payload = {
@@ -312,12 +367,14 @@ export default {
       type:'match',
       team1:'', 
       events: [],
-
     };
     console.log('发送给后端的内容：', payload);
      // 开启时使用
      try {
-          const response = await  axios.post('http://localhost:5000/api/schedule/match', payload);
+          const response = await  axios.post('http://localhost:5000/api/schedule/match', payload,
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
           if (response.data.code === 0){
           alert(`比赛保存成功！`);
           } 
@@ -339,7 +396,10 @@ export default {
       team1:'',
     };
     try {
-          const response = await  axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload);
+          const response = await  axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload,
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
           console.log('发送给后端的内容：', payload);
           if (response.data.code === 0){
           alert(`比赛修改成功！`);
@@ -359,7 +419,9 @@ export default {
         personal_training: this.personalTraining,
       };
       try {
-        const res = await axios.post('http://localhost:5000/api/schedule/training', payload);
+        const res = await axios.post('http://localhost:5000/api/schedule/training', payload,{
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
         alert('训练保存成功');
       } catch (err) {
         console.error('保存失败', err);
@@ -388,15 +450,70 @@ export default {
       await this.fetchSchedules();
       this.closePopup();
     },
+        async saveElseInfo() {
+      const payload = {
+        date: this.selectedDate,
+        else_time: this.elseTime,
+        content: this.elseEvent,
+      };
+      try {
+        const res = await axios.post('http://localhost:5000/api/schedule/else', payload, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.data.code === 0) {
+          this.$message.success('其他日程保存成功');
+        } else {
+          this.$message.error('保存失败：' + res.data.message);
+        }
+      } catch (err) {
+        console.error('保存失败', err);
+        this.$message.error('其他日程保存失败');
+      }
+      await this.fetchSchedules();
+      this.closePopup();
+    },
+
+    async changeElseInfo() {
+      const payload = {
+        date: this.selectedDate,
+        else_time: this.elseTime,
+        content: this.elseEvent ,
+        type: 'else',
+      };
+      try {
+        const res = await axios.put(`http://localhost:5000/api/schedule/schedule/${this.elseId}`, payload, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.data.message === '其他日程更新成功') {
+          this.$message.success('其他日程修改成功');
+        } else {
+          this.$message.error('修改失败：' + res.data.message);
+        }
+      } catch (err) {
+        console.error('修改失败', err);
+        this.$message.error('其他日程修改失败');
+      }
+      await this.fetchSchedules();
+      this.closePopup();
+    },
+
 
 
 
     async deleteScheduleInfo() {  
     try {
-          const response = await  axios.delete(`http://localhost:5000/api/schedule/${this.selectedID}`);
-          if (response.data.code === 0){
-          alert(`${this.type} 删除成功！`);
-          } 
+          const response = await  axios.delete(`http://localhost:5000/api/schedule/${this.selectedID}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
+          if (response.data.code === 0) {
+            const typeMap = {
+              match: '比赛',
+              training: '训练',
+              else: '其他'
+            };
+            const typeName = typeMap[this.activeTab] || '日程';
+            alert(`${typeName}删除成功！`);
+          }
         } catch (error) {
           this.$message.error('删除失败');
         }
@@ -407,8 +524,6 @@ export default {
       this.showPopup = false;
       
     },
-
-   
   },
 };
 </script>
@@ -522,7 +637,9 @@ export default {
   margin-bottom: 10px;
   
 }
-
+.del_button{
+  background-color: red;
+}
 .popup button:hover {
   background-color: #2980b9;
 }
@@ -665,4 +782,6 @@ export default {
   display: inline-block; /* 让它像一个小标签 */
   margin-top: 4px;       /* 和日期数字拉开一点距离 */
 }
+
+
 </style>
