@@ -93,7 +93,7 @@ export default {
       const token = localStorage.getItem("token");
       if (token) {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.type !== "coach") {
+        if (payload.type !== "manager") {
           ElMessage.error("无权访问该页面");
           router.replace("/login");
         }
@@ -130,7 +130,7 @@ export default {
     },
 
     back() {
-      this.$router.push('/chome');
+      this.$router.push('/mhome');
     },
 
     openNoticeDialog(notice) {

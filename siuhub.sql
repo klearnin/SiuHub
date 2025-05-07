@@ -28,7 +28,7 @@ INSERT INTO users (
   'test@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'fan',                      -- 用户类型，可换成 'coach' 或其他
-  NULL,                       -- 无需 team_id
+  'team_001',                       -- 无需 team_id
   'approved',                 -- 状态
   '/public/avatars/version.jpg'
 );
@@ -47,6 +47,7 @@ INSERT INTO users (
 );
 
 
+DROP TABLE IF EXISTS teams;
 CREATE TABLE teams (
   id VARCHAR(100) PRIMARY KEY COMMENT '球队ID',
   name VARCHAR(100) NOT NULL UNIQUE COMMENT '球队名称',
@@ -68,19 +69,20 @@ INSERT INTO teams (
   'coach_001');
 
 DROP TABLE IF EXISTS notices;
-
 CREATE TABLE notices (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  content TEXT NOT NULL,
-  publish_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  type ENUM('fan','team') NOT NULL
+  id INT AUTO_INCREMENT PRIMARY KEY COMMENT '公告ID',
+  title VARCHAR(255) NOT NULL COMMENT '公告标题',
+  content TEXT NOT NULL COMMENT '公告内容',
+  publish_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
+  type ENUM('fan', 'team') NOT NULL COMMENT '公告类型（面向球迷/球队成员）',
+  team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
 );
 
-
-INSERT INTO notices (title, content, publish_time, type) VALUES
-('team1', '123456', '2025-04-13 15:30:00', 'team'),
-('fan1', '123456111', '2025-04-12 15:30:00', 'fan');
+-- 插入测试公告
+INSERT INTO notices (title, content, publish_time, type, team_id) VALUES
+('team公告1', '这是测试球队的队内公告', '2025-04-13 15:30:00', 'team', 'team_001'),
+('fan公告1', '这是测试球队面向球迷的公告', '2025-04-12 15:30:00', 'fan', 'team_001');
 
 
 -- 删除旧表（顺序注意外键依赖）
@@ -125,6 +127,76 @@ CREATE TABLE match_event (
     event_time VARCHAR(20),
     description TEXT,
     FOREIGN KEY (match_schedule_id) REFERENCES match_schedule(id) ON DELETE CASCADE
+);
+
+-- 修复帖子表
+DROP TABLE IF EXISTS forum_posts;
+CREATE TABLE forum_posts (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id VARCHAR(100) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 修复帖子点赞表
+DROP TABLE IF EXISTS forum_post_likes;
+CREATE TABLE forum_post_likes (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  post_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
+  liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(post_id, user_id),
+  FOREIGN KEY (post_id) REFERENCES forum_posts(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 修复评论表
+DROP TABLE IF EXISTS forum_comments;
+CREATE TABLE forum_comments (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  post_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (post_id) REFERENCES forum_posts(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 修复评论点赞表
+DROP TABLE IF EXISTS forum_comment_likes;
+CREATE TABLE forum_comment_likes (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  comment_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
+  liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(comment_id, user_id),
+  FOREIGN KEY (comment_id) REFERENCES forum_comments(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 修复评论回复表
+DROP TABLE IF EXISTS forum_comment_replies;
+CREATE TABLE forum_comment_replies (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  comment_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (comment_id) REFERENCES forum_comments(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 修复回复点赞表
+DROP TABLE IF EXISTS forum_reply_likes;
+CREATE TABLE forum_reply_likes (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  reply_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
+  liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(reply_id, user_id),
+  FOREIGN KEY (reply_id) REFERENCES forum_comment_replies(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- 插入一条训练类型的主表记录
