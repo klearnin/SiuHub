@@ -3,6 +3,9 @@ import Home from "../views/Home.vue";
 import Login from '../views/Login.vue';
 import Review from '../views/coach/Review.vue'
 
+//导入论坛界面
+import Forum from "../views/forum.vue";
+import ForumDetail from "../views/forumDetail.vue";
 
 //导入球迷界面
 import Fhome from "../views/fans/Fhome.vue";
@@ -34,6 +37,8 @@ import { pa } from "element-plus/es/locales.mjs";
 const routes = [
   { path: "/", component: Home },
   { path: '/login', component: Login },
+  { path: '/forum', component: Forum },
+  { path: '/forum/:id', component: ForumDetail },
   { path: '/fhome', component: Fhome },
   { path: '/fnotice', component: Fnotice },
   { path: '/mhome', component: Mhome },

@@ -128,67 +128,72 @@ CREATE TABLE match_event (
     FOREIGN KEY (match_schedule_id) REFERENCES match_schedule(id) ON DELETE CASCADE
 );
 
--- 帖子表
+-- 修复帖子表
+DROP TABLE IF EXISTS forum_posts;
 CREATE TABLE forum_posts (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 帖子点赞表
+-- 修复帖子点赞表
+DROP TABLE IF EXISTS forum_post_likes;
 CREATE TABLE forum_post_likes (
   id INT PRIMARY KEY AUTO_INCREMENT,
   post_id INT NOT NULL,
-  user_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
   liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(post_id, user_id),
   FOREIGN KEY (post_id) REFERENCES forum_posts(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 评论表
+-- 修复评论表
+DROP TABLE IF EXISTS forum_comments;
 CREATE TABLE forum_comments (
   id INT PRIMARY KEY AUTO_INCREMENT,
   post_id INT NOT NULL,
-  user_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (post_id) REFERENCES forum_posts(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 评论点赞表
+-- 修复评论点赞表
+DROP TABLE IF EXISTS forum_comment_likes;
 CREATE TABLE forum_comment_likes (
   id INT PRIMARY KEY AUTO_INCREMENT,
   comment_id INT NOT NULL,
-  user_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
   liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(comment_id, user_id),
   FOREIGN KEY (comment_id) REFERENCES forum_comments(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 评论回复表（独立存放）
+-- 修复评论回复表
+DROP TABLE IF EXISTS forum_comment_replies;
 CREATE TABLE forum_comment_replies (
   id INT PRIMARY KEY AUTO_INCREMENT,
   comment_id INT NOT NULL,
-  user_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (comment_id) REFERENCES forum_comments(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 回复点赞表
+-- 修复回复点赞表
+DROP TABLE IF EXISTS forum_reply_likes;
 CREATE TABLE forum_reply_likes (
   id INT PRIMARY KEY AUTO_INCREMENT,
   reply_id INT NOT NULL,
-  user_id INT NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
   liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(reply_id, user_id),
   FOREIGN KEY (reply_id) REFERENCES forum_comment_replies(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
-

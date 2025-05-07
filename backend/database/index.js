@@ -21,25 +21,32 @@ try{
 
 // 创建数据库查询API
 // 使用async 函数，让查询变为异步处理，主线程不需要等待数据库IO操作
-async function startQuery(sql) {
+// 修改后的 startQuery：支持参数绑定
+async function startQuery(sql, params = []) {
     try {
-        //async函数返回值为Promise对象，因此创建Promise,在Promise中进行查询操作
         const promise = new Promise((resolve, reject) => {
-            let a = pool.getConnection(async function (err, connection) {
-                connection.query(sql, async function (err, result, field) {
+            pool.getConnection((err, connection) => {
+                if (err) {
+                    console.error("连接数据库失败:", err.message);
+                    return reject(err);
+                }
+
+                connection.query(sql, params, (err, result) => {
                     if (err) {
-                        console.error("ERROR---" + err.sqlMessage)
+                        console.error("ERROR---" + err.sqlMessage);
+                        return reject(err);
                     }
-                    // 返回查询结果
-                    resolve(result)
-                    // 查询完毕后及时释放数据库连接
-                    connection.release()
-                })
-            })
-        })
-        return promise
+
+                    resolve(result);
+                    connection.release();
+                });
+            });
+        });
+
+        return promise;
     } catch (err) {
-        next(err)
+        console.error("执行 startQuery 出错：", err.message);
+        throw err;
     }
 }
 
