@@ -1,90 +1,139 @@
 <template>
-    <div class="editor-overlay" v-if="visible">
-      <div class="editor-box">
-        <h3>{{ title || '选择对手' }}</h3>
-        <select v-model="selectedTeam">
-          <option disabled value="">请选择一个对手</option>
-          <option v-for="team in teamlist" :key="team.id" :value="team.name">
-            {{ team.name }}
-          </option>
-        </select>
-        <div class="btn-row">
-          <button @click="confirm">确定</button>
-          <button @click="$emit('cancel')">取消</button>
-        </div>
+  <div class="editor-overlay" v-if="visible">
+    <div class="editor-box">
+      <h3>{{ title || '选择或输入对手' }}</h3>
+      <el-autocomplete
+        v-model="selectedTeam"
+        :fetch-suggestions="querySearch"
+        placeholder="请选择或输入对手"
+        trigger-on-focus
+        popper-class="custom-autocomplete"
+        @select="handleSelect"
+      >
+        <template #default="{ item }">
+          <div class="custom-item">
+            <img class="team-logo" :src="item.avatar" alt="logo" />
+            <span>{{ item.value }}</span>
+          </div>
+        </template>
+      </el-autocomplete>
+      <div class="btn-row">
+        <button @click="confirm">确定</button>
+        <button @click="$emit('cancel')">取消</button>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    props: {
-      visible: Boolean,
-      title: String,
-      teamlist: {
-        type: Array,
-        required: true
-      }
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    visible: Boolean,
+    title: String,
+    teamlist: {
+      type: Array,
+      required: true
+    }
+  },
+  data() {
+    return {
+      selectedTeam: ''
+    };
+  },
+  methods: {
+    querySearch(queryString, cb) {
+      const results = this.teamlist
+        .filter(team =>
+          team.name.toLowerCase().includes(queryString.toLowerCase())
+        )
+        .map(team => ({
+          value: team.name,
+          avatar: team.avatar || 'https://via.placeholder.com/30x30?text=?'
+        }));
+      cb(results.length > 0 || queryString ? results : this.teamlist.map(t => ({
+        value: t.name,
+        avatar: t.avatar || 'https://via.placeholder.com/30x30?text=?'
+      })));
     },
-    data() {
-      return {
-        selectedTeam: ''
-      };
+    handleSelect(item) {
+      this.selectedTeam = item.value;
     },
-    methods: {
-      confirm() {
-        if (this.selectedTeam) {
-          this.$emit('confirm', this.selectedTeam);
-          this.selectedTeam = '';
-        }
+    confirm() {
+      if (this.selectedTeam.trim()) {
+        this.$emit('confirm', this.selectedTeam.trim());
+        this.selectedTeam = '';
       }
     }
-  };
-  </script>
-  
-  <style scoped>
-  .editor-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
+};
+</script>
+
+<style scoped>
+.editor-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.editor-box {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.btn-row button {
+  padding: 8px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 45px;
+  cursor: pointer;
+}
+
+.btn-row button:hover {
+  background-color: #2980b9;
+}
+</style>
+
+<!-- 自定义下拉菜单样式 -->
+<style>
+.custom-autocomplete {
+  background-color: #fff0f0;
+  border-radius: 10px;
+  border: 1px solid #a0cfff;
+}
+
+.custom-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 10px;
+  background-color: #ffffff;
   
-  .editor-box {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 280px;
-    text-align: center;
-  }
+}
+
+.custom-item:hover {
+  background-color: #cde8ff;
   
-  .editor-box select {
-    width: 100%;
-    padding: 8px;
-    margin: 10px 0;
-    font-size: 14px;
-  }
-  
-  .btn-row {
-    display: flex;
-    justify-content: space-around;
-  }
-  
-  .btn-row button {
-    padding: 8px 16px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 45px;
-    cursor: pointer;
-    margin-right: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .btn-row button:hover {
-    background-color: #2980b9;
-  }
-  </style>
-  
+  cursor: pointer;
+}
+
+.team-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+</style>

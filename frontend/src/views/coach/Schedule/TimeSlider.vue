@@ -45,44 +45,74 @@
   </script>
   
   <style scoped>
-  .time-slider {
-    padding: 15px;
-  }
-  .slider-row {
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-  }
-  .slider-row span {
-    width: 50px;
-  }
-  .preview {
-    margin: 15px 0;
-  }
-  .btn-group {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
   .editor-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .editor-box {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 280px;
-    text-align: center;
-  }
-  :deep(.el-slider__button) {
-  width: 10px;
-  height: 10px;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 }
+
+.editor-box {
+  background: #ffffff;
+  padding: 25px 20px;
+  border-radius: 12px;
+  width: 320px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.time-slider {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-row span {
+  width: 40px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #444;
+}
+
+.preview {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a73e8;
+  text-align: center;
+  margin: 12px 0 4px;
+}
+
+.btn-group {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 18px;
+}
+
+:deep(.el-slider__button) {
+  width: 12px;
+  height: 12px;
+  background-color: #1a73e8;
+  border: 2px solid white;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+:deep(.el-slider__bar) {
+  background-color: #a0cfff;
+}
+
+:deep(.el-button) {
+  border-radius: 20px;
+  font-weight: bold;
+}
+
   </style>
   
