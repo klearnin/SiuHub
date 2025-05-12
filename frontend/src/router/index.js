@@ -21,6 +21,7 @@ import Chome from "../views/coach/Chome.vue";
 import Cnotice from "../views/coach/Notice/Cnotice.vue";
 import Cschedule from "../views/coach/Schedule/Cschedule.vue";
 import Cnotice_del from "../views/coach/Notice/Cnotice_del.vue";
+import Ctest from "../views/coach/Ctest.vue";
 
 
 //导入经理界面
@@ -34,7 +35,7 @@ import Dnotice from "../views/medic/Notice/Dnotice.vue";
 import Dnotice_del from "../views/medic/Notice/Dnotice_del.vue";
 
 import { pa } from "element-plus/es/locales.mjs";
-import Test from "../views/test.vue";   
+
 const routes = [
   { path: "/", component: Home },
   { path: '/login', component: Login },
@@ -55,6 +56,7 @@ const routes = [
   { path: "/cnotice", component: Cnotice},
   { path: "/cschedule", component: Cschedule},
   { path: "/cnotice_del", component: Cnotice_del},
+  {path: "/ctest", component: Ctest},
     { path: "/", component: Home },
     { path: "/login", component: Login },
     {path: "/phome", component: Phome},
@@ -64,7 +66,7 @@ const routes = [
     {path: "/cnotice", component: Cnotice},
     {path: "/cschedule", component: Cschedule},
     {path: "/cnotice_del", component: Cnotice_del},
-    ,{path: "/test", component: Test}
+    
 ];
 
 const router = createRouter({

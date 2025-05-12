@@ -2,10 +2,15 @@
     <div class="editor-overlay" v-if="visible">
       <div class="editor-box">
         <h3>{{ title }}</h3>
-        <input v-model="inputValue" placeholder="请输入..." />
+        <textarea 
+        v-model="inputValue" 
+        placeholder="请输入..."
+        @input="autoResize"
+        class="auto-resize-input" 
+      ></textarea>
         <div class="btn-row">
           <button @click="confirm">确定</button>
-          <button @click="$emit('cancel')">取消</button>
+          <button @click="cancel">取消</button>
         </div>
       </div>
     </div>
@@ -20,9 +25,19 @@
       };
     },
     methods: {
+      autoResize(e) {
+        e.target.style.height = 'auto'
+        e.target.style.height = e.target.scrollHeight + 'px'
+      },
       confirm() {
-        this.$emit('confirm', this.inputValue);
-        this.inputValue = '';
+        this.$emit('confirm', this.inputValue)
+        this.inputValue = ''
+        // 重置高度
+        document.querySelector('.auto-resize-input').style.height = 'auto'
+      },
+      cancel(){
+        this.$emit('cancel'),
+        this.inputValue = ''
       }
     }
   };
@@ -70,6 +85,19 @@
   }
   .btn-row button:hover {
   background-color: #2980b9;
+}
+.auto-resize-input {
+  width: 100%;
+  min-height: 40px;  /* 初始高度 */
+  max-height: 200px; /* 最大高度 */
+  padding: 8px;
+  margin: 10px 0;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: none;       /* 禁止手动调整 */
+  overflow-y: hidden; /* 隐藏滚动条 */
+  transition: height 0.2s;
 }
   </style>
   

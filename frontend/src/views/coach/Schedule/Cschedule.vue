@@ -28,6 +28,7 @@
     <div v-if="showPopup" class="popup-overlay">
       <div class="popup">
         <!-- 选项卡按钮 -->
+        <!-- 模板部分保持原结构不变 -->
         <div class="tab-buttons">
           <button class="tab-button" :class="{ active: activeTab === 'match' }" @click="switchTab('match')">比赛</button>
           <button class="tab-button" :class="{ active: activeTab === 'training' }" @click="switchTab('training')">训练</button>
@@ -52,17 +53,19 @@
           <div class="tab-content" :class="{ active: activeTab === 'training', 'slide-left': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'left', 'slide-right': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'right' }">
             <p class="match-info">
               时间：{{ trainingTime || '未设定' }}<br />
-              队伍训练：{{ teamTraining || '未设定' }}<br />
-              个人训练：{{ personalTraining || '未设定' }}
+              <br />
+              训练内容：{{ teamTraining || '未设定' }}<br />
+              
             </p>
             <button @click="openTimeEditor('trainingTime')">设置训练时间</button>
-            <button @click="edit('队伍训练内容', 'teamTraining')">设置队伍训练</button>
-            <button @click="edit('个人训练内容', 'personalTraining')">设置个人训练</button>
+            <button @click="edit('队伍训练内容', 'teamTraining')">设置训练内容</button>
+            
           </div>
           <!-- 其他内容 -->
           <div class="tab-content" :class="{ active: activeTab === 'else', 'slide-left': (activeTab === 'else' || prevTab === 'else') && transitionDirection === 'left', 'slide-right': (activeTab === 'else' || prevTab === 'else') && transitionDirection === 'right' }">
             <p class="match-info">
-              时间：{{ elseTime || '未设定' }}<br /><br />
+              时间：{{ elseTime || '未设定' }}<br />
+              <br />
               事件：{{ elseEvent|| '未设定' }}<br />
             </p>
             <button @click="openTimeEditor('elseTime')">设置时间</button>
@@ -73,11 +76,11 @@
         </div>
         <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
         <MatchEditor :visible="showEditor" :title="editorTitle" @confirm="updateValue" @cancel="showEditor = false" />
-        <TeamSelector :visible="showOpponentSelector" :teamlist="teamlist" @confirm="updateOpponent"@cancel="showOpponentSelector = false"/>
+        <TeamSelector :myteamname="teamname" :visible="showOpponentSelector" :teamlist="teamlist" @confirm="updateOpponent"@cancel="showOpponentSelector = false"/>
 
         <!-- 底部按钮 -->
         <div class="either">
-          <button @click="closePopup">取消</button>
+          <button class="cancel-button" @click="closePopup">取消</button>
           <div v-if="activeTab==='match'">
             <div v-if="matchId">
               <button class="del_button" @click="deleteScheduleInfo">删除</button>
@@ -109,7 +112,7 @@
 
 import axios from 'axios';
 import MatchEditor from './MatchEditor.vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus'; // ✅ 加了ElMessage
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import TimeSlider from './TimeSlider.vue';
@@ -368,7 +371,14 @@ export default {
       team1: this.team1, 
       events: [],
     };
-    console.log('发送给后端的内容：', payload);
+    if (
+          this.matchTime.trim() === '' || 
+          this.matchLocation.trim() === '' ||
+          this.team2.trim() === ''
+        ) {
+          ElMessage.warning("请输入完整比赛日程！");
+          return;
+        }
      // 开启时使用
      try {
           const response = await  axios.post('http://localhost:5000/api/schedule/match', payload,
@@ -376,11 +386,10 @@ export default {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           if (response.data.code === 0){
-          alert(`比赛保存成功！`);
+            ElMessage.success(`比赛日程保存成功！`);
           } 
         } catch (error) {
-          console.error('保存失败:', error);
-          this.$message.error('保存失败');
+          ElMessage.error(`保存失败：${response.data.msg}`);
         }
       await this.fetchSchedules(); 
       this.closePopup();
@@ -402,10 +411,10 @@ export default {
           });
           console.log('发送给后端的内容：', payload);
           if (response.data.code === 0){
-          alert(`比赛修改成功！`);
+            ElMessage.success(`比赛日程修改成功！`);
           } 
         } catch (error) {
-          this.$message.error('修改失败');
+          ElMessage.error(`修改失败：${response.data.msg}`);
         }
       await this.fetchSchedules(); 
       this.closePopup();
@@ -418,11 +427,18 @@ export default {
         team_training: this.teamTraining,
         personal_training: this.personalTraining,
       };
+      if (
+          this.trainingTime.trim() === '' || 
+          this.teamTraining.trim() === '' 
+        ) {
+          ElMessage.warning("请输入完整训练日程！");
+          return;
+        }
       try {
         const res = await axios.post('http://localhost:5000/api/schedule/training', payload,{
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
-        alert('训练保存成功');
+          ElMessage.success(`训练日程保存成功！`);
       } catch (err) {
         console.error('保存失败', err);
         this.$message.error('保存失败');
@@ -442,7 +458,7 @@ export default {
       };
       try {
         const res = await axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload);
-        alert('训练修改成功');
+        ElMessage.success(`训练日程修改成功！`);
       } catch (err) {
         console.error('修改失败', err);
         this.$message.error('修改失败');
@@ -456,12 +472,19 @@ export default {
         else_time: this.elseTime,
         content: this.elseEvent,
       };
+      if (
+          this.elseTime.trim() === '' || 
+          this.elseEvent.trim() === '' 
+        ) {
+          ElMessage.warning("请输入完整其他日程！");
+          return;
+        }
       try {
         const res = await axios.post('http://localhost:5000/api/schedule/else', payload, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         if (res.data.code === 0) {
-          this.$message.success('其他日程保存成功');
+          ElMessage.success(`训练日程保存成功！`);
         } else {
           this.$message.error('保存失败：' + res.data.message);
         }
@@ -512,10 +535,10 @@ export default {
               else: '其他'
             };
             const typeName = typeMap[this.activeTab] || '日程';
-            alert(`${typeName}删除成功！`);
+            ElMessage.success(`${typeName}日程删除成功！`);
           }
         } catch (error) {
-          this.$message.error('删除失败');
+          ElMessage.error('删除失败');
         }
       await this.fetchSchedules(); 
       this.closePopup();
@@ -605,7 +628,7 @@ export default {
 .popup {
   width: 70%;    /* 视口宽度的80% */
   height: 80%;   /* 视口高度的60% */
-  background-color: white;
+  background-color: #eaecee;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
@@ -613,6 +636,7 @@ export default {
 .either{
   display:flex;
   justify-content:right;
+  padding-top: 2%;
 }
 
 .popup input {
@@ -634,11 +658,24 @@ export default {
   margin-bottom: 10px;
   
 }
-.del_button{
-  background-color: red;
+/* 强制覆盖特殊按钮 */
+.popup .del_button {
+  background-color: #cc4343 !important;
 }
+.popup .cancel-button {
+  background-color: #999 !important;
+}
+
+/* 通用悬停效果 */
 .popup button:hover {
   background-color: #2980b9;
+}
+/* 特殊按钮悬停 */
+.popup .del_button:hover {
+  background-color: rgb(184, 24, 24) !important;
+}
+.popup .cancel-button:hover {
+  background-color: #666 !important;
 }
 
 .header button {
@@ -657,28 +694,84 @@ export default {
   background-color: #4ddbee;
 }
 
-.tab-buttons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
+
+/* 美化样式 */
+
 
 .tab-button {
-  padding: 10px 20px;
-  background: #f0f0f0;
+  flex: 1;
+  padding: 12px 20px;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, #fff, #f8f9fa);
+  color: #2d3748 !important; /* 深灰色确保可见性 */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-size: 14px !important; 
+  font-weight: 600;
+  
+  /* 伪元素实现高级悬停效果 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
 }
 
-.tab-button:hover {
-  background: #e0e0e0;
+/* 动态颜色方案 */
+.tab-button:nth-child(1) {
+  --active-color: #3b82f6; /* 蓝色系 */
+}
+.tab-button:nth-child(2) {
+  --active-color: #10b981; /* 绿色系 */
+}
+.tab-button:nth-child(3) {
+  --active-color: #f59e0b; /* 橙色系 */
 }
 
+/* 激活状态 */
 .tab-button.active {
-  background: #0e4aa3;
-  color: white;
+  background: linear-gradient(145deg, var(--active-color), color-mix(in srgb, var(--active-color) 90%, black));
+  color: rgb(15, 14, 14);
+  box-shadow: 
+    0 4px 12px color-mix(in srgb, var(--active-color) 20%, transparent),
+    0 2px 0 color-mix(in srgb, var(--active-color) 30%, transparent) inset;
+  
+  &::before { /* 底部装饰线 */
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 2px;
+  }
+}
+
+/* 悬停交互 */
+.tab-button:hover:not(.active) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  &::after {
+    opacity: 1;
+  }
+}
+
+/* 微交互动画 */
+.tab-button:active {
+  transform: scale(0.98);
 }
 
 /* 选项卡内容容器 */
@@ -692,7 +785,7 @@ export default {
 /* 选项卡内容通用样式 */
 .tab-content {
   position: absolute;
-  height: 95%;
+  height: 100%;
   width: 100%;
   top: 0;
   padding: 15px;
@@ -702,7 +795,7 @@ export default {
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0;
   pointer-events: none;
-  border: solid 2px #62b9d1;
+  
 
   /* 新增的部分 */
   display: flex;
@@ -755,7 +848,7 @@ export default {
   height: 100px;
   margin-bottom: 20px;
   font-weight: bold;
-  border:solid #0e4aa3;
+  border:solid #a5c6f9;
 
 }
 

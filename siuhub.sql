@@ -60,11 +60,12 @@ INSERT INTO teams (
   id, name, abbr, logo_path, invite_code, creator_id
 ) VALUES (
   'team_001',
-  '测试队伍',
+  '测试队伍1',
   'TEST',
   '/public/team-logos/version.jpg',
   'invite001',
   'coach_001');
+ 
 
 
 CREATE TABLE notices (
