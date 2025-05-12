@@ -5,7 +5,7 @@
      <div class="nav-buttons">
       <router-link to="/forum" class="nav-button">论坛</router-link>
       <router-link to="/team" class="nav-button">主队查看</router-link>
-      <router-link to="/Cschedule" class="nav-button">球队日程</router-link>
+      <router-link to="/Pschedule" class="nav-button">球队日程</router-link>
       <router-link to="/Pnotice" class="nav-button">球队公告</router-link>
       <router-link to="/tactics" class="nav-button">球队战术</router-link>
     </div>
@@ -28,10 +28,31 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { ElMessage } from "element-plus";
+
 
 const avatarUrl = ref(null);
 const dropdownVisible = ref(false);
 const router = useRouter();
+
+// 页面挂载时检查身份
+onMounted(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const userType = payload.type;
+
+    console.log(`👮 页面内部检查身份: ${userType}`);
+
+    if (userType !== "player") {
+      ElMessage.error("无权访问该页面");
+      router.replace("/login"); // 强制跳回登录
+    }
+  } else {
+    ElMessage.error("请先登录");
+    router.replace("/login");
+  }
+});
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
@@ -57,86 +78,112 @@ onMounted(async () => {
 
 <style scoped>
 .player-page {
-  display: flex;
-  justify-content: space-between;
-  padding: 20px;
+  position: relative;
+  min-height: 100vh;
+  background: #f5f7fa;
 }
+
+/* 顶部导航条 */
+.nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 10px 40px;
+  background: linear-gradient(to right, #0154A0 0%, #0e5292 70%, #eaeced 100%);
+  position: relative;
+  overflow: visible;
+}
+
+/* 斜纹遮罩 */
+.nav-buttons::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 70%;
+  right: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0) 40px,
+    rgba(255, 255, 255, 0.15) 40px,
+    rgba(255, 255, 255, 0.15) 80px
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 导航按钮 */
+.nav-button {
+  position: relative;
+  z-index: 2; /* 保证在斜纹遮罩之上 */
+  display: inline-block;
+  min-width: 150px;
+  height: 60px;
+  text-align: center;
+  padding: 12px 24px;
+  background: none;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 18px;
+  transition: color 0.3s, transform 0.2s, background-color 0.3s;
+}
+
+.nav-button:hover {
+  color: #00bcd4;
+  transform: translateY(-2px);
+}
+
+/* 顶部右上角头像栏 */
 .top-bar {
   position: absolute;
-  top: 20px;
+  top: 9px;
   right: 80px;
+  z-index: 2;
 }
+
 .avatar-wrapper {
   position: relative;
   cursor: pointer;
 }
+
 .avatar {
-  width: 100px;
-  height: 100px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #ccc;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border: 2px solid #eee;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
+
 .dropdown {
   position: absolute;
-  top: 110px;
-  right: -10px;
-  background-color: white;
+  top: 60px;
+  right: 0;
+  background: white;
   border: 1px solid #ccc;
   border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 10;
-  padding: 8px 12px;
-  min-width: max-content;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  z-index: 20;
+  min-width: 120px;
 }
+
 .dropdown ul {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  padding: 0;
-  margin: 0;
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
+
 .dropdown li {
-  white-space: nowrap;
+  padding: 10px;
+  text-align: center;
   cursor: pointer;
-  padding: 6px 12px;
-  border-radius: 4px;
   transition: background-color 0.2s;
-  font-size: 16px;
 }
+
 .dropdown li:hover {
   background-color: #f0f0f0;
 }
-
-
-.nav-buttons {
-display: flex;
-justify-content: center; /* 水平居中 */
-gap: 30px;                /* 间距 */
-flex-wrap: wrap;          /* 自动换行，防止窗口变小时挤在一行 */
-margin-top: 20px;
-}
-
-.nav-button {
-display: inline-block;
-min-width: 150px;         /* 最小宽度统一 */
-height: 45px;  
-text-align: center;
-padding: 12px 24px;
-background-color: #3498db;
-color: white;
-text-decoration: none;
-border-radius: 8px;
-font-size: 16px;
-transition: background-color 0.3s, transform 0.2s;
-}
-
-.nav-button:hover {
-background-color: #2980b9;
-transform: translateY(-2px); /* 微微上浮，提升视觉反馈 */
-}
 </style>
+

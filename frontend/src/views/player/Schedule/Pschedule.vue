@@ -44,9 +44,6 @@
               <span class="vs">{{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}</span>
               <span class="team">{{ team2 || '对手未设定' }}</span>
             </p>
-            <button @click="showOpponentSelector = true">选择对手</button>
-            <button @click="openTimeEditor('matchTime')">设置时间</button>
-            <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
           </div>
 
           <!-- 训练内容 -->
@@ -57,8 +54,6 @@
               训练内容：{{ teamTraining || '未设定' }}<br />
               
             </p>
-            <button @click="openTimeEditor('trainingTime')">设置训练时间</button>
-            <button @click="edit('队伍训练内容', 'teamTraining')">设置训练内容</button>
             
           </div>
           <!-- 其他内容 -->
@@ -68,40 +63,13 @@
               <br />
               事件：{{ elseEvent|| '未设定' }}<br />
             </p>
-            <button @click="openTimeEditor('elseTime')">设置时间</button>
-            <button @click="edit('事件', 'elseEvent')">设置事件</button>
-          </div>
-         
-          
+          </div>  
         </div>
-        <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
-        <MatchEditor :visible="showEditor" :title="editorTitle" @confirm="updateValue" @cancel="showEditor = false" />
-        <TeamSelector :myteamname="teamname" :visible="showOpponentSelector" :teamlist="teamlist" @confirm="updateOpponent"@cancel="showOpponentSelector = false"/>
 
         <!-- 底部按钮 -->
         <div class="either">
           <button class="cancel-button" @click="closePopup">取消</button>
-          <div v-if="activeTab==='match'">
-            <div v-if="matchId">
-              <button class="del_button" @click="deleteScheduleInfo">删除</button>
-              <button @click="changeMatchInfo">修改</button>
-            </div>
-            <button v-else @click="saveMatchInfo">保存</button>
-          </div>
-          <div v-if="activeTab==='training'">
-            <div v-if="trainingId">
-              <button class="del_button" @click="deleteScheduleInfo">删除</button>
-              <button @click="changeTrainingInfo">修改</button>
-            </div>
-            <button v-else @click="saveTrainingInfo">保存</button>
-          </div>
-          <div v-if="activeTab==='else'">
-            <div v-if="elseId">
-              <button class="del_button" @click="deleteScheduleInfo">删除</button>
-              <button @click="changeElseInfo">修改</button>
-            </div>
-            <button v-else @click="saveElseInfo">保存</button>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -111,22 +79,14 @@
 <script>
 
 import axios from 'axios';
-import MatchEditor from './MatchEditor.vue';
 import { ElMessage } from 'element-plus'; // ✅ 加了ElMessage
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import TimeSlider from './TimeSlider.vue';
-import TeamSelector from './TeamSelector.vue'
+
 
 
 export default {
 
-  components: {
-    MatchEditor,
-    TimeSlider,
-    TeamSelector
-
-  },
   
   data() {
     return {
@@ -197,7 +157,7 @@ export default {
       const token = localStorage.getItem("token");
       if (token) {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.type !== "coach") {
+        if (payload.type !== "player") {
           ElMessage.error("无权访问该页面");
           router.replace("/login");
         }
@@ -241,7 +201,7 @@ export default {
 
 
     back() {
-      this.$router.push('/chome');
+      this.$router.push('/phome');
     },
 
    
@@ -297,10 +257,10 @@ export default {
             this.elseEvent = schedule.content;
             this.activeTab = 'else';
           }
-          this.selectedID = schedule.id;
+          this.selectedID = schedule.id; this.showPopup = true;
         }
      }
-    this.showPopup = true;
+   
   },
 
   // 关闭弹窗
@@ -358,192 +318,6 @@ export default {
       this[this.timeEditKey] = value;
       this.showTimeEditor = false;
     },
-
-     
-
-    async saveMatchInfo() {  // 👇发送给后端
-    const payload = {
-      date: this.selectedDate,
-      match_time: this.matchTime,
-      location: this.matchLocation,
-      team2: this.team2,
-      type:'match',
-      team1: this.team1, 
-      events: [],
-    };
-    if (
-          this.matchTime.trim() === '' || 
-          this.matchLocation.trim() === '' ||
-          this.team2.trim() === ''
-        ) {
-          ElMessage.warning("请输入完整比赛日程！");
-          return;
-        }
-     // 开启时使用
-     try {
-          const response = await  axios.post('http://localhost:5000/api/schedule/match', payload,
-          {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          });
-          if (response.data.code === 0){
-            ElMessage.success(`比赛日程保存成功！`);
-          } 
-        } catch (error) {
-          ElMessage.error(`保存失败：${response.data.msg}`);
-        }
-      await this.fetchSchedules(); 
-      this.closePopup();
-  },
-
-  async changeMatchInfo() {  // 👇发送给后端
-    const payload = {
-      date: this.selectedDate,
-      match_time: this.matchTime,
-      location: this.matchLocation,
-      team2: this.team2,
-      type:'match',
-      team1: this.team1,
-    };
-    try {
-          const response = await  axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload,
-          {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          });
-          console.log('发送给后端的内容：', payload);
-          if (response.data.code === 0){
-            ElMessage.success(`比赛日程修改成功！`);
-          } 
-        } catch (error) {
-          ElMessage.error(`修改失败：${response.data.msg}`);
-        }
-      await this.fetchSchedules(); 
-      this.closePopup();
-    },
-
-    async saveTrainingInfo() {
-      const payload = {
-        date: this.selectedDate,
-        training_time: this.trainingTime,
-        team_training: this.teamTraining,
-        personal_training: this.personalTraining,
-      };
-      if (
-          this.trainingTime.trim() === '' || 
-          this.teamTraining.trim() === '' 
-        ) {
-          ElMessage.warning("请输入完整训练日程！");
-          return;
-        }
-      try {
-        const res = await axios.post('http://localhost:5000/api/schedule/training', payload,{
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          });
-          ElMessage.success(`训练日程保存成功！`);
-      } catch (err) {
-        console.error('保存失败', err);
-        this.$message.error('保存失败');
-      }
-      await this.fetchSchedules();
-      this.closePopup();
-    },
-
-
-    async changeTrainingInfo() {
-      const payload = {
-        date: this.selectedDate,
-        training_time: this.trainingTime,
-        team_training: this.teamTraining,
-        personal_training: this.personalTraining,
-        type: 'training',
-      };
-      try {
-        const res = await axios.put(`http://localhost:5000/api/schedule/schedule/${this.selectedID}`, payload);
-        ElMessage.success(`训练日程修改成功！`);
-      } catch (err) {
-        console.error('修改失败', err);
-        this.$message.error('修改失败');
-      }
-      await this.fetchSchedules();
-      this.closePopup();
-    },
-        async saveElseInfo() {
-      const payload = {
-        date: this.selectedDate,
-        else_time: this.elseTime,
-        content: this.elseEvent,
-      };
-      if (
-          this.elseTime.trim() === '' || 
-          this.elseEvent.trim() === '' 
-        ) {
-          ElMessage.warning("请输入完整其他日程！");
-          return;
-        }
-      try {
-        const res = await axios.post('http://localhost:5000/api/schedule/else', payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (res.data.code === 0) {
-          ElMessage.success(`训练日程保存成功！`);
-        } else {
-          this.$message.error('保存失败：' + res.data.message);
-        }
-      } catch (err) {
-        console.error('保存失败', err);
-        this.$message.error('其他日程保存失败');
-      }
-      await this.fetchSchedules();
-      this.closePopup();
-    },
-
-    async changeElseInfo() {
-      const payload = {
-        date: this.selectedDate,
-        else_time: this.elseTime,
-        content: this.elseEvent ,
-        type: 'else',
-      };
-      try {
-        const res = await axios.put(`http://localhost:5000/api/schedule/schedule/${this.elseId}`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (res.data.message === '其他日程更新成功') {
-          this.$message.success('其他日程修改成功');
-        } else {
-          this.$message.error('修改失败：' + res.data.message);
-        }
-      } catch (err) {
-        console.error('修改失败', err);
-        this.$message.error('其他日程修改失败');
-      }
-      await this.fetchSchedules();
-      this.closePopup();
-    },
-
-
-
-
-    async deleteScheduleInfo() {  
-    try {
-          const response = await  axios.delete(`http://localhost:5000/api/schedule/${this.selectedID}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          });
-          if (response.data.code === 0) {
-            const typeMap = {
-              match: '比赛',
-              training: '训练',
-              else: '其他'
-            };
-            const typeName = typeMap[this.activeTab] || '日程';
-            ElMessage.success(`${typeName}日程删除成功！`);
-          }
-        } catch (error) {
-          ElMessage.error('删除失败');
-        }
-      await this.fetchSchedules(); 
-      this.closePopup();
-      
-    },
   },
 };
 </script>
@@ -599,18 +373,6 @@ export default {
   margin: 0;
 }
 
-.delete-event {
-  background-color: red;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  padding: 2px 6px;
-  cursor: pointer;
-}
-
-.delete-event:hover {
-  background-color: darkred;
-}
 
 /* 弹窗样式 */
 .popup-overlay {
@@ -670,10 +432,7 @@ export default {
 .popup button:hover {
   background-color: #2980b9;
 }
-/* 特殊按钮悬停 */
-.popup .del_button:hover {
-  background-color: rgb(184, 24, 24) !important;
-}
+
 .popup .cancel-button:hover {
   background-color: #666 !important;
 }
@@ -848,7 +607,7 @@ export default {
   height: 100px;
   margin-bottom: 20px;
   font-weight: bold;
-  border:solid #a5c6f9;
+  border:solid #a9c7ef;
 
 }
 

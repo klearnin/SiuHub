@@ -10,4 +10,7 @@ router.use("/notice",noticeRouter);
 const scheduleRouter = require('./schedule');
 router.use('/schedule', scheduleRouter);
 
+router.use("/forum", require("./forum"));
+
+
 module.exports = router

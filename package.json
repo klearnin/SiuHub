@@ -9,6 +9,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "dependencies": {
+    "@vueup/vue-quill": "^1.2.0",
     "@vueuse/core": "^13.1.0",
     "cors": "^2.8.5",
     "element-plus": "^2.9.7",
