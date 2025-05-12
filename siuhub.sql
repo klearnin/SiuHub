@@ -65,6 +65,7 @@ INSERT INTO teams (
   '/public/team-logos/version.jpg',
   'invite001',
   'coach_001');
+ 
 
 
 CREATE TABLE notices (

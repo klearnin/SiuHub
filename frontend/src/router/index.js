@@ -14,12 +14,15 @@ import Fnotice from "../views/fans/Fnotice.vue";
 //导入球员界面
 import Phome from "../views/player/Phome.vue";
 import Pnotice from "../views/player/Pnotice.vue";
+import Pschedule from "../views/player/Schedule/Pschedule.vue";
 
 //导入教练界面
 import Chome from "../views/coach/Chome.vue";
 import Cnotice from "../views/coach/Notice/Cnotice.vue";
 import Cschedule from "../views/coach/Schedule/Cschedule.vue";
 import Cnotice_del from "../views/coach/Notice/Cnotice_del.vue";
+import Ctest from "../views/coach/Ctest.vue";
+import CtacticBoard from "../views/coach/TacticBoard/CtacticBoard.vue";
 
 
 //导入经理界面
@@ -33,7 +36,7 @@ import Dnotice from "../views/medic/Notice/Dnotice.vue";
 import Dnotice_del from "../views/medic/Notice/Dnotice_del.vue";
 
 import { pa } from "element-plus/es/locales.mjs";
-import Test from "../views/test.vue";   
+
 const routes = [
   { path: "/", component: Home },
   { path: '/login', component: Login },
@@ -54,15 +57,18 @@ const routes = [
   { path: "/cnotice", component: Cnotice},
   { path: "/cschedule", component: Cschedule},
   { path: "/cnotice_del", component: Cnotice_del},
+  {path: "/ctest", component: Ctest},
+  {path: "/ctacticboard", component: CtacticBoard},
     { path: "/", component: Home },
     { path: "/login", component: Login },
     {path: "/phome", component: Phome},
     {path: "/pnotice", component: Pnotice},
+    {path: "/pschedule", component: Pschedule},
     {path: "/chome", component: Chome},
     {path: "/cnotice", component: Cnotice},
     {path: "/cschedule", component: Cschedule},
     {path: "/cnotice_del", component: Cnotice_del},
-    ,{path: "/test", component: Test}
+    
 ];
 
 const router = createRouter({

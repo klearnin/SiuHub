@@ -28,8 +28,11 @@
 <script>
 export default {
   props: {
+
+    myteamname: String,
     visible: Boolean,
     title: String,
+    
     teamlist: {
       type: Array,
       required: true
@@ -42,19 +45,28 @@ export default {
   },
   methods: {
     querySearch(queryString, cb) {
-      const results = this.teamlist
-        .filter(team =>
-          team.name.toLowerCase().includes(queryString.toLowerCase())
-        )
-        .map(team => ({
-          value: team.name,
-          avatar: team.avatar || 'https://via.placeholder.com/30x30?text=?'
-        }));
-      cb(results.length > 0 || queryString ? results : this.teamlist.map(t => ({
-        value: t.name,
-        avatar: t.avatar || 'https://via.placeholder.com/30x30?text=?'
-      })));
-    },
+    const myTeamName = this.myteamname.toLowerCase();
+    
+    const filtered = this.teamlist.filter(team => {
+      if (team.name.toLowerCase() === myTeamName) return false;
+      return team.name.toLowerCase().includes(queryString.toLowerCase());
+    });
+
+    // 关键修改点：去掉 logo_path 中的 /public 前缀
+    const results = filtered.map(team => ({
+      value: team.name,
+      avatar: `http://localhost:5000${team.logo_path}`
+    }));
+
+    cb(queryString ? results : 
+      this.teamlist
+        .filter(team => team.name.toLowerCase() !== myTeamName)
+        .map(t => ({
+          value: t.name,
+          avatar: `http://localhost:5000${t.logo_path}`,
+        }))
+    );
+  },
     handleSelect(item) {
       this.selectedTeam = item.value;
     },

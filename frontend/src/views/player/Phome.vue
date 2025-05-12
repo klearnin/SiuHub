@@ -5,7 +5,7 @@
      <div class="nav-buttons">
       <router-link to="/forum" class="nav-button">论坛</router-link>
       <router-link to="/team" class="nav-button">主队查看</router-link>
-      <router-link to="/Cschedule" class="nav-button">球队日程</router-link>
+      <router-link to="/Pschedule" class="nav-button">球队日程</router-link>
       <router-link to="/Pnotice" class="nav-button">球队公告</router-link>
       <router-link to="/tactics" class="nav-button">球队战术</router-link>
     </div>
