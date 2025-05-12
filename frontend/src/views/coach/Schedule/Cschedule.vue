@@ -44,9 +44,14 @@
               <span class="vs">{{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}</span>
               <span class="team">{{ team2 || '对手未设定' }}</span>
             </p>
-            <button @click="showOpponentSelector = true">选择对手</button>
-            <button @click="openTimeEditor('matchTime')">设置时间</button>
-            <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
+            
+             
+              
+                <button @click="showOpponentSelector = true">选择对手</button>
+                <button @click="openTimeEditor('matchTime')">设置时间</button>
+                <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
+              
+         
           </div>
 
           <!-- 训练内容 -->
@@ -145,6 +150,7 @@ export default {
       transitionDirection: 'left',
        // 比赛设置相关数据
       team1: '我的球队',
+     
       team2: '',
       matchTime: '',
       matchLocation: '',
@@ -171,6 +177,7 @@ export default {
       trainingId: null,
       elseId:null,
       teamname:'',
+      myteamlogo:'',
       teamlist:[],
     };
   },
@@ -225,6 +232,7 @@ export default {
           const res = await axios.get("http://localhost:5000/api/schedule/team", { 
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
           this.teamname = res.data.teamname[0].name;
+
           this.teamlist = res.data.teamlist;
         } catch (error) {
           console.error('获取球队名称失败:', error);
@@ -845,7 +853,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 100px;
+  height: 20%;
   margin-bottom: 20px;
   font-weight: bold;
   border:solid #a5c6f9;
@@ -860,6 +868,21 @@ export default {
 .match-info .vs {
   width: 50%;
   text-align: center;
+}
+.matchset{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.set{
+
+  top: 150px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* 垂直居中 */
+  align-items: center;       /* 水平居中 */
+  gap: 10px;                 /* 元素之间留点间距，可选 */
 }
 
 .schedule {

@@ -28,7 +28,7 @@
 
 
 
-      <router-link to="/tactics" class="nav-item">球队战术</router-link>
+      <router-link to="/ctacticboard" class="nav-item">球队战术</router-link>
     </div>
 
     <!-- 右上角头像 -->
@@ -106,6 +106,7 @@ onMounted(async () => {
     const res = await axios.get("http://localhost:5000/api/user/my-avatar", {
       headers: { Authorization: `Bearer ${token}` },
     });
+    console.log("头像地址：", res.data.avatar);
     avatarUrl.value = `http://localhost:5000${res.data.avatar}`;
   } catch (err) {
     console.error("获取头像失败", err);
@@ -371,19 +372,19 @@ const goToReview = () => {
   border: solid 1px #000;
   display: flex;
   justify-content: center;
-  align-items: center
- 
+  align-items: center;
+  border-radius: 20px;
 }
 .item img {
-  width: 250%;
-  height: 330%;
+  width: 230%;
+  height: 320%;
   object-fit: cover; /* 保持图片比例 */
 }
 .container{
-  animation: rotation 10s infinite linear;
+  animation: rotation 12s infinite linear;
 }
 .item img{
-  animation: rotation 10s infinite linear reverse;
+  animation: rotation 12s infinite linear reverse;
 }
 @keyframes rotation{
   to{

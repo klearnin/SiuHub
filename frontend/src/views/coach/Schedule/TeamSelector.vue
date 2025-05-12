@@ -28,6 +28,7 @@
 <script>
 export default {
   props: {
+
     myteamname: String,
     visible: Boolean,
     title: String,
@@ -44,33 +45,28 @@ export default {
   },
   methods: {
     querySearch(queryString, cb) {
-  // 排除自己队伍名称
-  const myTeamName = this.myteamname.toLowerCase();
-  
-  const filtered = this.teamlist.filter(team => {
-    // 排除当前用户的队伍
-    if (team.name.toLowerCase() === myTeamName) return false;
+    const myTeamName = this.myteamname.toLowerCase();
     
-    // 保持原有过滤逻辑
-    return team.name.toLowerCase().includes(queryString.toLowerCase());
-  });
+    const filtered = this.teamlist.filter(team => {
+      if (team.name.toLowerCase() === myTeamName) return false;
+      return team.name.toLowerCase().includes(queryString.toLowerCase());
+    });
 
-  const results = filtered.map(team => ({
-    value: team.name,
-    avatar: team.avatar || 'https://via.placeholder.com/30x30?text=?'
-  }));
+    // 关键修改点：去掉 logo_path 中的 /public 前缀
+    const results = filtered.map(team => ({
+      value: team.name,
+      avatar: `http://localhost:5000${team.logo_path}`
+    }));
 
-  // 当没有查询时显示所有非自己队伍（空搜索时）
-  // 有查询时只显示过滤结果（可能为空）
-  cb(queryString ? results : 
-    this.teamlist
-      .filter(team => team.name.toLowerCase() !== myTeamName)
-      .map(t => ({
-        value: t.name,
-        avatar: t.avatar || 'https://via.placeholder.com/30x30?text=?'
-      }))
-  );
-},
+    cb(queryString ? results : 
+      this.teamlist
+        .filter(team => team.name.toLowerCase() !== myTeamName)
+        .map(t => ({
+          value: t.name,
+          avatar: `http://localhost:5000${t.logo_path}`,
+        }))
+    );
+  },
     handleSelect(item) {
       this.selectedTeam = item.value;
     },
