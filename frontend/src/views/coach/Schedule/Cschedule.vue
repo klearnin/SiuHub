@@ -175,7 +175,7 @@ export default {
   methods: {
     async fetchMatches() {
         try {
-          const res = await axios.get("http://localhost:5000/api/shcedule/list");
+          const res = await axios.get("http://localhost:5000/api/schedule/list");
           this.matches = res.data.data;
         } catch (error) {
           console.error('获取比赛失败:', error);

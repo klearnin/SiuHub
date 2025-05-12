@@ -14,9 +14,11 @@
               <div class="timestamp">{{ formatDate(post.created_at) }}</div>
             </div>
             <el-button type="text" class="like-btn" @click="likePost">
-              <el-icon :style="{ color: post.liked ? '#f56c6c' : '#999', fontSize: '18px', marginRight: '4px' }">
-                <Pointer />
-              </el-icon>
+              <img
+                :src="post.liked ? '/picture/full.png' : '/picture/empty.png'"
+                alt="like"
+                style="width: 20px; height: 20px; margin-right: 6px;"
+              />
               {{ post.like_count }}
             </el-button>
           </div>
@@ -50,9 +52,11 @@
                 <div class="timestamp">{{ formatDate(comment.created_at) }}</div>
               </div>
               <el-button type="text" class="like-btn" @click="likeComment(comment.id)">
-                <el-icon :style="{ color: comment.liked ? '#f56c6c' : '#999', fontSize: '18px', marginRight: '4px' }">
-                  <Pointer />
-                </el-icon>
+                <img
+                  :src="comment.liked ? '/picture/full.png' : '/picture/empty.png'"
+                  alt="like"
+                  style="width: 20px; height: 20px; margin-right: 6px;"
+                />
                 {{ comment.like_count }}
               </el-button>
             </div>
@@ -71,10 +75,13 @@
               <div class="reply" v-for="reply in comment.replies" :key="reply.id">
                 <span class="reply-author">{{ reply.screen_name }}：</span>
                 {{ reply.content }}
+                <!-- 回复点赞图标 -->
                 <span class="reply-like" @click="likeReply(reply.id)">
-                  <el-icon :style="{ color: reply.liked ? '#f56c6c' : '#999', fontSize: '14px', marginRight: '4px' }">
-                    <Pointer />
-                  </el-icon>
+                  <img
+                    :src="reply.liked ? '/picture/full.png' : '/picture/empty.png'"
+                    alt="like"
+                    style="width: 16px; height: 16px; margin-right: 4px;"
+                  />
                   {{ reply.like_count }}
                 </span>
               </div>
@@ -106,16 +113,16 @@
     },
     methods: {
       async fetchPost() {
-        const res = await axios.get("http://localhost:5000/api/forum/posts");//, {
-        //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        // });
+        const res = await axios.get("http://localhost:5000/api/forum/posts", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
         const postId = this.$route.params.id;
         this.post = res.data.data.find((p) => p.id == postId) || {};
       },
       async fetchComments() {
         const res = await axios.get("http://localhost:5000/api/forum/comments", {
           params: { post_id: this.$route.params.id },
-          //headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
         });
   
         const data =

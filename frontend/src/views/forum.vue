@@ -3,7 +3,7 @@
       <div class="forum-container">
         <div class="forum-header">
           <el-button type="primary" plain @click="$router.back()" class="back-btn">返回</el-button>
-          <h2 class="board-title">球迷论坛</h2>
+          <h2 class="board-title">球队论坛</h2>
         </div>
   
         <div class="forum-board">
@@ -31,9 +31,11 @@
                     type="text"
                     @click.stop="toggleLike(post)"
                   >
-                    <el-icon :style="{ color: post.liked ? '#f56c6c' : '#999', fontSize: '18px', marginRight: '4px' }">
-                      <Pointer />
-                    </el-icon>
+                    <img
+                      :src="post.liked ? '/picture/full.png' : '/picture/empty.png'"
+                      alt="like"
+                      style="width: 20px; height: 20px; margin-right: 6px;"
+                    />
                     {{ post.like_count }}
                   </el-button>
                 </div>
@@ -42,7 +44,7 @@
                 </div>
                 <div class="top-comments" v-if="post.topComments.length">
                   <div class="top-comment" v-for="comment in post.topComments" :key="comment.id">
-                    <span class="comment-author">{{ comment.screen_name }}：</span>
+                    <span class="comment-author">{{ comment.screen_name }}</span><span class="comment-colon">:</span>
                     {{ comment.content }}<!-- （👍{{ comment.like_count }}） -->
                   </div>
                 </div>
@@ -73,11 +75,10 @@
     methods: {
       async fetchPosts() {
         try {
-          const res = await axios.get("http://localhost:5000/api/forum/posts");//, {
-          //   headers: {
-          //     Authorization: `Bearer ${localStorage.getItem("token")}`
-          //   }
-          // });
+          const res = await axios.get("http://localhost:5000/api/forum/posts", {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+          });
+
           this.posts = res.data.data;
         } catch (err) {
           ElMessage.error("帖子加载失败");
@@ -246,6 +247,16 @@
     margin-top: 10px;
     font-size: 14px;
     color: #555;
+  }
+
+  .comment-author {
+  font-weight: bold;
+  font-family: "SimHei", "Microsoft YaHei", sans-serif;
+  color: #333;
+  }
+
+  .top-comment {
+  margin-bottom: 6px;
   }
   </style>
   

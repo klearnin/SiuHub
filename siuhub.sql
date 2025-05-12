@@ -1,9 +1,9 @@
+SET NAMES utf8mb4;
 -- 创建数据库（如果尚未创建）
+DROP DATABASE IF EXISTS siuhub;
 CREATE DATABASE IF NOT EXISTS siuhub;
 USE siuhub;
 
--- 创建 users 表
-DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   id VARCHAR(100) PRIMARY KEY COMMENT '用户ID',
   name VARCHAR(50) NOT NULL COMMENT '昵称',
@@ -46,7 +46,6 @@ INSERT INTO users (
 );
 
 
-DROP TABLE IF EXISTS teams;
 CREATE TABLE teams (
   id VARCHAR(100) PRIMARY KEY COMMENT '球队ID',
   name VARCHAR(100) NOT NULL UNIQUE COMMENT '球队名称',
@@ -67,7 +66,7 @@ INSERT INTO teams (
   'invite001',
   'coach_001');
 
-DROP TABLE IF EXISTS notices;
+
 CREATE TABLE notices (
   id INT AUTO_INCREMENT PRIMARY KEY COMMENT '公告ID',
   title VARCHAR(255) NOT NULL COMMENT '公告标题',
@@ -84,18 +83,15 @@ INSERT INTO notices (title, content, publish_time, type, team_id) VALUES
 ('fan公告1', '这是测试球队面向球迷的公告', '2025-04-12 15:30:00', 'fan', 'team_001');
 
 
--- 删除旧表（顺序注意外键依赖）
-DROP TABLE IF EXISTS match_event;
-DROP TABLE IF EXISTS match_schedule;
-DROP TABLE IF EXISTS training_schedule;
-DROP TABLE IF EXISTS schedule;
 
 -- 主表
 CREATE TABLE schedule (
     id INT PRIMARY KEY AUTO_INCREMENT,
     date DATE NOT NULL,
-    type ENUM('training', 'match', 'past_match') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    type ENUM('training', 'match', 'past_match' ,'else') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
+    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
 );
 
 -- 训练表
@@ -105,6 +101,15 @@ CREATE TABLE training_schedule (
     training_time TIME,
     team_training TEXT,
     personal_training TEXT,
+    FOREIGN KEY (schedule_id) REFERENCES schedule(id) ON DELETE CASCADE
+);
+
+-- 其他表
+CREATE TABLE else_schedule (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    schedule_id INT NOT NULL,
+    else_time TIME,
+    content TEXT,
     FOREIGN KEY (schedule_id) REFERENCES schedule(id) ON DELETE CASCADE
 );
 
@@ -129,71 +134,95 @@ CREATE TABLE match_event (
 );
 
 -- 修复帖子表
-DROP TABLE IF EXISTS forum_posts;
+
 CREATE TABLE forum_posts (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id VARCHAR(100) NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 修复帖子点赞表
-DROP TABLE IF EXISTS forum_post_likes;
+
 CREATE TABLE forum_post_likes (
   id INT PRIMARY KEY AUTO_INCREMENT,
   post_id INT NOT NULL,
   user_id VARCHAR(100) NOT NULL,
   liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(post_id, user_id),
-  FOREIGN KEY (post_id) REFERENCES forum_posts(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (post_id) REFERENCES forum_posts(id)ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)ON DELETE CASCADE
 );
 
 -- 修复评论表
-DROP TABLE IF EXISTS forum_comments;
+
 CREATE TABLE forum_comments (
   id INT PRIMARY KEY AUTO_INCREMENT,
   post_id INT NOT NULL,
   user_id VARCHAR(100) NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (post_id) REFERENCES forum_posts(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (post_id) REFERENCES forum_posts(id)ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)ON DELETE CASCADE
 );
 
 -- 修复评论点赞表
-DROP TABLE IF EXISTS forum_comment_likes;
+
 CREATE TABLE forum_comment_likes (
   id INT PRIMARY KEY AUTO_INCREMENT,
   comment_id INT NOT NULL,
   user_id VARCHAR(100) NOT NULL,
   liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(comment_id, user_id),
-  FOREIGN KEY (comment_id) REFERENCES forum_comments(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (comment_id) REFERENCES forum_comments(id)ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)ON DELETE CASCADE
 );
 
 -- 修复评论回复表
-DROP TABLE IF EXISTS forum_comment_replies;
+
 CREATE TABLE forum_comment_replies (
   id INT PRIMARY KEY AUTO_INCREMENT,
   comment_id INT NOT NULL,
   user_id VARCHAR(100) NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (comment_id) REFERENCES forum_comments(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (comment_id) REFERENCES forum_comments(id)ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)ON DELETE CASCADE
 );
 
 -- 修复回复点赞表
-DROP TABLE IF EXISTS forum_reply_likes;
+
 CREATE TABLE forum_reply_likes (
   id INT PRIMARY KEY AUTO_INCREMENT,
   reply_id INT NOT NULL,
   user_id VARCHAR(100) NOT NULL,
   liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(reply_id, user_id),
-  FOREIGN KEY (reply_id) REFERENCES forum_comment_replies(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (reply_id) REFERENCES forum_comment_replies(id)ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id)ON DELETE CASCADE
 );
+
+-- 插入一条训练类型的主表记录
+INSERT INTO schedule (date, type, team_id) 
+VALUES ('2025-04-13', 'training','team_001');
+
+-- 插入对应的训练表记录
+INSERT INTO training_schedule (schedule_id, training_time, team_training, personal_training)
+VALUES (1, '15:00:00', '全队战术训练', '个人射门练习');
+
+-- 插入一条比赛类型的主表记录
+INSERT INTO schedule (date, type, team_id) 
+VALUES ('2025-04-24', 'match','team_001');
+
+-- 插入对应的比赛表记录
+INSERT INTO match_schedule (schedule_id, location, match_time, team1, team2)
+VALUES (2, '市体育场', '18:30:00', '红队', '蓝队');
+
+-- 插入一条其他类型的主表记录
+INSERT INTO schedule (date, type, team_id) 
+VALUES ('2025-04-15', 'else','team_001');
+
+-- 插入对应的训练表记录
+INSERT INTO else_schedule (schedule_id, else_time, content)
+VALUES (3, '16:00:00', '艹只因');
