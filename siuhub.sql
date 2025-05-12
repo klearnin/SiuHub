@@ -1,4 +1,5 @@
 SET NAMES utf8mb4;
+set character_set_results=gb2312;
 -- 创建数据库（如果尚未创建）
 DROP DATABASE IF EXISTS siuhub;
 CREATE DATABASE IF NOT EXISTS siuhub;
