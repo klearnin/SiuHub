@@ -1,42 +1,56 @@
 <template>
-    <div class="forum-container">
-      <div class="forum-header">
-        <el-button type="primary" plain @click="$router.back()" class="back-btn">返回</el-button>
-        <h2 class="board-title">球迷论坛</h2>
-      </div>
-  
-      <div class="forum-board">
-        <div class="new-post">
-          <el-input v-model="newPostContent" type="textarea" placeholder="分享你的看法..." :rows="3" />
-          <el-button type="primary" @click="submitPost" :disabled="!newPostContent">发布帖子</el-button>
+    <div class="forum-background">
+      <div class="forum-container">
+        <div class="forum-header">
+          <el-button type="primary" plain @click="$router.back()" class="back-btn">返回</el-button>
+          <h2 class="board-title">球队论坛</h2>
         </div>
   
-        <div class="post-list">
-          <el-card v-for="post in posts" :key="post.id" class="post-card" shadow="hover">
-            <div class="post-header">
-              <img :src="getAvatar(post.avatar)" class="avatar" @error="setDefaultAvatar($event)" />
-              <div class="info">
-                <div class="nickname">{{ post.screen_name }}</div>
-                <div class="timestamp">{{ formatDate(post.created_at) }}</div>
-              </div>
-              <el-button
-                class="like-btn"
-                type="text"
-                @click="toggleLike(post)"
-              >
-                👍 {{ post.like_count }}
-              </el-button>
+        <div class="forum-board">
+          <div class="new-post">
+            <el-input v-model="newPostContent" type="textarea" placeholder="分享你的看法..." :rows="3" />
+            <el-button type="primary" @click="submitPost" :disabled="!newPostContent">发布帖子</el-button>
+          </div>
+  
+          <div class="post-list">
+            <div
+              class="click-wrapper"
+              v-for="post in posts"
+              :key="post.id"
+              @click="goToPostDetail(post.id)"
+            >
+              <el-card class="post-card" shadow="hover">
+                <div class="post-header">
+                  <img :src="getAvatar(post.avatar)" class="avatar" @error="setDefaultAvatar($event)" />
+                  <div class="info">
+                    <div class="nickname">{{ post.screen_name }}</div>
+                    <div class="timestamp">{{ formatDate(post.created_at) }}</div>
+                  </div>
+                  <el-button
+                    class="like-btn"
+                    type="text"
+                    @click.stop="toggleLike(post)"
+                  >
+                    <img
+                      :src="post.liked ? '/picture/full.png' : '/picture/empty.png'"
+                      alt="like"
+                      style="width: 20px; height: 20px; margin-right: 6px;"
+                    />
+                    {{ post.like_count }}
+                  </el-button>
+                </div>
+                <div class="post-content">
+                  {{ post.content }}
+                </div>
+                <div class="top-comments" v-if="post.topComments.length">
+                  <div class="top-comment" v-for="comment in post.topComments" :key="comment.id">
+                    <span class="comment-author">{{ comment.screen_name }}</span><span class="comment-colon">:</span>
+                    {{ comment.content }}<!-- （👍{{ comment.like_count }}） -->
+                  </div>
+                </div>
+              </el-card>
             </div>
-            <div class="post-content" @click="goToPostDetail(post.id)">
-              {{ post.content }}
-            </div>
-            <div class="top-comments" v-if="post.topComments.length">
-              <div class="top-comment" v-for="comment in post.topComments" :key="comment.id">
-                <span class="comment-author">{{ comment.screen_name }}：</span>
-                {{ comment.content }}（👍{{ comment.like_count }}）
-              </div>
-            </div>
-          </el-card>
+          </div>
         </div>
       </div>
     </div>
@@ -45,9 +59,13 @@
   <script>
   import axios from "axios";
   import { ElMessage, ElMessageBox } from "element-plus";
-  
+  import { Pointer } from '@element-plus/icons-vue';
+
   export default {
     name: "ForumBoard",
+    components: {
+      Pointer
+    },    
     data() {
       return {
         posts: [],
@@ -57,7 +75,10 @@
     methods: {
       async fetchPosts() {
         try {
-          const res = await axios.get("http://localhost:5000/api/forum/posts");
+          const res = await axios.get("http://localhost:5000/api/forum/posts", {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+          });
+
           this.posts = res.data.data;
         } catch (err) {
           ElMessage.error("帖子加载失败");
@@ -122,11 +143,11 @@
         return date.toLocaleString();
       },
       getAvatar(path) {
-        if (!path) return "/default-avatar.png";
+        if (!path) return "/version.png";
         return path.startsWith("http") ? path : `http://localhost:5000${path}`;
       },
       setDefaultAvatar(event) {
-        event.target.src = "/default-avatar.png";
+        event.target.src = "/version.png";
       },
     },
     mounted() {
@@ -136,9 +157,15 @@
   </script>
   
   <style scoped>
+  .forum-background {
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    width: 100%;
+  }
+  
   .forum-container {
-    max-width: 1200px;
-    margin: 20px auto;
+    max-width: 1000px;
+    margin: 0 auto;
     padding: 20px;
   }
   
@@ -170,8 +197,12 @@
     gap: 20px;
   }
   
-  .post-card {
+  /* 新增：让整个卡片可点 */
+  .click-wrapper {
     cursor: pointer;
+  }
+  
+  .post-card {
     transition: box-shadow 0.3s;
   }
   
@@ -202,8 +233,9 @@
   }
   
   .like-btn {
-    font-size: 14px;
-    color: #f56c6c;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
   }
   
   .post-content {
@@ -215,6 +247,16 @@
     margin-top: 10px;
     font-size: 14px;
     color: #555;
+  }
+
+  .comment-author {
+  font-weight: bold;
+  font-family: "SimHei", "Microsoft YaHei", sans-serif;
+  color: #333;
+  }
+
+  .top-comment {
+  margin-bottom: 6px;
   }
   </style>
   

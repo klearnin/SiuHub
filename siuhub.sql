@@ -1,4 +1,5 @@
 SET NAMES utf8mb4;
+set character_set_results=gb2312;
 -- 创建数据库（如果尚未创建）
 DROP DATABASE IF EXISTS siuhub;
 CREATE DATABASE IF NOT EXISTS siuhub;
@@ -60,7 +61,7 @@ INSERT INTO teams (
   id, name, abbr, logo_path, invite_code, creator_id
 ) VALUES (
   'team_001',
-  '测试队伍1',
+  '测试队伍',
   'TEST',
   '/public/team-logos/version.jpg',
   'invite001',
@@ -227,3 +228,47 @@ VALUES ('2025-04-15', 'else','team_001');
 -- 插入对应的训练表记录
 INSERT INTO else_schedule (schedule_id, else_time, content)
 VALUES (3, '16:00:00', '艹只因');
+
+CREATE TABLE players (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  player_number INT NOT NULL,
+  player_name VARCHAR(100),
+  avatar VARCHAR(200) COMMENT '头像本地路径',
+  team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+  user_id VARCHAR(100),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('1','player_1','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('2','player_2','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('3','player_3','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('4','player_4','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('5','player_5','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('6','player_6','team_001','/public/avatars/1746619913987.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('7','player_7','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('8','player_8','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('9','player_9','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('10','player_10','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('11','player_11','team_001','/public/avatars/version.jpg');
