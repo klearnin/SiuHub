@@ -11,6 +11,7 @@ const scheduleRouter = require('./schedule');
 router.use('/schedule', scheduleRouter);
 
 router.use("/forum", require("./forum"));
+router.use("/match", require("./match"));
 
 
 module.exports = router

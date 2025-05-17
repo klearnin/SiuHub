@@ -125,15 +125,6 @@ CREATE TABLE match_schedule (
     FOREIGN KEY (schedule_id) REFERENCES schedule(id) ON DELETE CASCADE
 );
 
--- 比赛事件表（仅过去比赛使用）
-CREATE TABLE match_event (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    match_schedule_id INT NOT NULL,
-    event_time VARCHAR(20),
-    description TEXT,
-    FOREIGN KEY (match_schedule_id) REFERENCES match_schedule(id) ON DELETE CASCADE
-);
-
 -- 修复帖子表
 
 CREATE TABLE forum_posts (
@@ -227,3 +218,57 @@ VALUES ('2025-04-15', 'else','team_001');
 -- 插入对应的训练表记录
 INSERT INTO else_schedule (schedule_id, else_time, content)
 VALUES (3, '16:00:00', '艹只因');
+
+-- 基础事件记录表
+CREATE TABLE match_event_log (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  match_id INT NOT NULL,
+  period ENUM('1H', '2H', 'ET1', 'ET2', 'PEN') NOT NULL,
+  event_minute INT NOT NULL,
+  minute_note VARCHAR(20),
+  event_type ENUM('goal', 'yellow_card', 'red_card', 'penalty', 'substitution') NOT NULL,
+  team_name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (match_id) REFERENCES match_schedule(id) ON DELETE CASCADE
+);
+
+-- 进球事件表
+CREATE TABLE match_goals (
+  event_id INT PRIMARY KEY,
+  scorer_id VARCHAR(100),
+  scorer_name VARCHAR(100),
+  assist_id VARCHAR(100),
+  assist_name VARCHAR(100),
+  is_penalty BOOLEAN NOT NULL DEFAULT FALSE COMMENT '是否为点球进球',
+  FOREIGN KEY (event_id) REFERENCES match_event_log(id) ON DELETE CASCADE
+);
+
+-- 替补事件表
+CREATE TABLE match_substitutions (
+  event_id INT PRIMARY KEY,
+  sub_in_id VARCHAR(100),
+  sub_in_name VARCHAR(100),
+  sub_out_id VARCHAR(100),
+  sub_out_name VARCHAR(100),
+  FOREIGN KEY (event_id) REFERENCES match_event_log(id) ON DELETE CASCADE
+);
+
+-- 红黄牌事件表
+CREATE TABLE match_cards (
+  event_id INT PRIMARY KEY,
+  player_id VARCHAR(100),
+  player_name VARCHAR(100),
+  card_type ENUM('yellow', 'red') NOT NULL,
+  FOREIGN KEY (event_id) REFERENCES match_event_log(id) ON DELETE CASCADE
+);
+
+-- 点球事件表（仅点球大战用）
+CREATE TABLE match_penalties (
+  event_id INT PRIMARY KEY,
+  player_id VARCHAR(100),
+  player_name VARCHAR(100),
+  result ENUM('score', 'miss') NOT NULL,
+  FOREIGN KEY (event_id) REFERENCES match_event_log(id) ON DELETE CASCADE
+);
+
+
