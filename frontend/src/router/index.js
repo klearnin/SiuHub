@@ -59,6 +59,7 @@ const routes = [
   { path: "/cnotice_del", component: Cnotice_del},
   {path: "/ctest", component: Ctest},
   {path: "/ctacticboard", component: CtacticBoard},
+
     { path: "/", component: Home },
     { path: "/login", component: Login },
     {path: "/phome", component: Phome},

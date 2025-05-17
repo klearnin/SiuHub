@@ -17,7 +17,7 @@
       <div class="day-cell" v-for="day in calendarDays" :key="day.date" @click="openEventPrompt(day.date)">
         <div class="day-number">{{ day.day }}</div>
         <ul class="events" v-for="(schedule, index) in schedules" :key="index">
-          <li v-if="schedule.date === day.date"><div class="schedule match" v-if="schedule.type==='match'">比赛 ⚽</div></li>
+          <li v-if="schedule.date === day.date"><div class="schedule match" v-if="schedule.type==='match'">比赛 �?/div></li>
           <li v-if="schedule.date === day.date"><div class="schedule training" v-if="schedule.type==='training'">训练🎯</div></li>
           <li v-if="schedule.date === day.date"><div class="schedule else" v-if="schedule.type==='else'">其他📅</div></li>
         </ul>
@@ -27,22 +27,22 @@
     <!-- 弹窗 -->
     <div v-if="showPopup" class="popup-overlay">
       <div class="popup">
-        <!-- 选项卡按钮 -->
-        <!-- 模板部分保持原结构不变 -->
+        <!-- 选项卡按�?-->
+        <!-- 模板部分保持原结构不�?-->
         <div class="tab-buttons">
           <button class="tab-button" :class="{ active: activeTab === 'match' }" @click="switchTab('match')">比赛</button>
           <button class="tab-button" :class="{ active: activeTab === 'training' }" @click="switchTab('training')">训练</button>
           <button class="tab-button" :class="{ active: activeTab === 'else' }" @click="switchTab('else')">其他</button>
         </div>
 
-        <!-- 选项卡内容 -->
+        <!-- 选项卡内�?-->
         <div class="tab-content-wrapper">
           <!-- 比赛内容 -->
           <div class="tab-content" :class="{ active: activeTab === 'match' }">
             <p class="match-info">
-              <span class="team">{{ teamname || '未设定' }}</span>
-              <span class="vs">{{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}</span>
-              <span class="team">{{ team2 || '对手未设定' }}</span>
+              <span class="team">{{ teamname || '未设�? }}</span>
+              <span class="vs">{{ matchTime || '时间未设�? }} / {{ matchLocation || '地点未设�? }}</span>
+              <span class="team">{{ team2 || '对手未设�? }}</span>
             </p>
             
             <div class="team-logos-container">
@@ -50,11 +50,7 @@
                 <img v-if="teamLogo" :src="teamLogo" alt="主队队徽" class="team-logo-large" />
                 <span v-else class="team-logo-placeholder">主队队徽</span>
               </div>
-              <div class="buttons-center">
-                <button @click="showOpponentSelector = true">选择对手</button>
-                <button @click="openTimeEditor('matchTime')">设置时间</button>
-                <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
-              </div>
+             
               <div class="team-logo-container">
                 <img v-if="team2Logo" :src="team2Logo" alt="客队队徽" class="team-logo-large" />
                 <span v-else class="team-logo-placeholder">对手队徽</span>
@@ -66,66 +62,38 @@
           <div class="tab-content" :class="{ active: activeTab === 'training' }">
             <div class="schedule-info training-info">
               <div class="info-row">
-                <strong>时间：</strong>
-                <span>{{ trainingTime || '未设定' }}</span>
+                <strong>时间�?/strong>
+                <span>{{ trainingTime || '未设�? }}</span>
               </div>
               <div class="info-row">
-                <strong>训练内容：</strong>
-                <span>{{ teamTraining || '未设定' }}</span>
+                <strong>训练内容�?/strong>
+                <span>{{ teamTraining || '未设�? }}</span>
               </div>
             </div>
-            <div class="button-group">
-              <button @click="openTimeEditor('trainingTime')">设置训练时间</button>
-              <button @click="edit('队伍训练内容', 'teamTraining')">设置训练内容</button>
-            </div>
+           
           </div>
           <!-- 其他内容 -->
           <div class="tab-content" :class="{ active: activeTab === 'else' }">
             <div class="schedule-info other-info">
               <div class="info-row">
-                <strong>时间：</strong>
-                <span>{{ elseTime || '未设定' }}</span>
+                <strong>时间�?/strong>
+                <span>{{ elseTime || '未设�? }}</span>
               </div>
               <div class="info-row">
-                <strong>事件：</strong>
-                <span>{{ elseEvent || '未设定' }}</span>
+                <strong>事件�?/strong>
+                <span>{{ elseEvent || '未设�? }}</span>
               </div>
             </div>
-            <div class="button-group">
-              <button @click="openTimeEditor('elseTime')">设置时间</button>
-              <button @click="edit('事件', 'elseEvent')">设置事件</button>
-            </div>
+            
+            
           </div>
           
         </div>
-        <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
-        <MatchEditor :visible="showEditor" :title="editorTitle" @confirm="updateValue" @cancel="showEditor = false" />
-        <TeamSelector :myteamname="teamname" :visible="showOpponentSelector" :teamlist="teamlist" @confirm="updateOpponent"@cancel="showOpponentSelector = false"/>
-
+      
         <!-- 底部按钮 -->
         <div class="either">
           <button class="cancel-button" @click="closePopup">取消</button>
-          <div v-if="activeTab==='match'">
-            <div v-if="matchId">
-              <button class="del_button" @click="deleteScheduleInfo">删除</button>
-              <button @click="changeMatchInfo">修改</button>
-            </div>
-            <button v-else @click="saveMatchInfo">保存</button>
-          </div>
-          <div v-if="activeTab==='training'">
-            <div v-if="trainingId">
-              <button class="del_button" @click="deleteScheduleInfo">删除</button>
-              <button @click="changeTrainingInfo">修改</button>
-            </div>
-            <button v-else @click="saveTrainingInfo">保存</button>
-          </div>
-          <div v-if="activeTab==='else'">
-            <div v-if="elseId">
-              <button class="del_button" @click="deleteScheduleInfo">删除</button>
-              <button @click="changeElseInfo">修改</button>
-            </div>
-            <button v-else @click="saveElseInfo">保存</button>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -135,22 +103,15 @@
 <script>
 
 import axios from 'axios';
-import MatchEditor from './MatchEditor.vue';
-import { ElMessage } from 'element-plus'; // ✅ 加了ElMessage
+import { ElMessage } from 'element-plus'; // �?加了ElMessage
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import TimeSlider from './TimeSlider.vue';
-import TeamSelector from './TeamSelector.vue'
+
 
 
 export default {
 
-  components: {
-    MatchEditor,
-    TimeSlider,
-    TeamSelector
-
-  },
+  
   
   data() {
     return {
@@ -158,12 +119,12 @@ export default {
       selectedMonth: new Date().getMonth() + 1,
       calendarDays: [],
       selectedID: null,
-      dayNames: ['日', '一', '二', '三', '四', '五', '六'],
-      months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+      dayNames: ['�?, '一', '�?, '�?, '�?, '�?, '�?],
+      months: ['一�?, '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一�?, '十二�?],
       showPopup: false,
       selectedDate: null,
       
-      //窗口滑动的相关数据
+      //窗口滑动的相关数�?
       activeTab: 'match',
        // 比赛设置相关数据
       team1: '我的球队',
@@ -189,7 +150,7 @@ export default {
 
       showOpponentSelector: false,
 
-      schedules: [], // 日程表
+      schedules: [], // 日程�?
       matchId:null,
       trainingId: null,
       elseId:null,
@@ -223,8 +184,8 @@ export default {
       const token = localStorage.getItem("token");
       if (token) {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.type !== "coach") {
-          ElMessage.error("无权访问该页面");
+        if (payload.type !== "player") {
+          ElMessage.error("无权访问该页�?);
           router.replace("/login");
         }
       } else {
@@ -255,7 +216,7 @@ export default {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         
-        // 检查响应数据是否存在
+        // 检查响应数据是否存�?
         if (res.data && res.data.teamname && res.data.teamname.length > 0) {
           this.teamname = res.data.teamname[0].name;
           
@@ -269,7 +230,7 @@ export default {
           
           this.teamlist = res.data.teamlist || [];
           
-          // 为日程添加队徽信息
+          // 为日程添加队徽信�?
           this.processSchedulesWithLogos();
         }
       } catch (error) {
@@ -278,7 +239,7 @@ export default {
       }
     },
 
-    // 处理日程数据，添加队徽信息
+    // 处理日程数据，添加队徽信�?
     processSchedulesWithLogos() {
       if (!this.teamlist || this.teamlist.length === 0 || !this.schedules) return;
       
@@ -308,7 +269,7 @@ export default {
 
 
     back() {
-      this.$router.push('/chome');
+      this.$router.push('/phome');
     },
 
    
@@ -323,12 +284,12 @@ export default {
 
       const days = [];
 
-      // 添加空白项
+      // 添加空白�?
       for (let i = 0; i < startWeekDay; i++) {
         days.push({ day: '', date: '' });
       }
 
-      // 添加日期项
+      // 添加日期�?
       for (let i = 1; i <= lastDate; i++) {
         const dateStr = `${year}-${String(this.selectedMonth).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         days.push({ day: i, date: dateStr });
@@ -338,7 +299,7 @@ export default {
       await this.fetchSchedules();
     },
     
-    // 打开事件输入框
+    // 打开事件输入�?
     openEventPrompt(date) {
         if (!date) return;
         this.selectedDate = date;
@@ -359,7 +320,7 @@ export default {
             if (schedule.team2logo) {
               this.team2Logo = schedule.team2logo;
             } else {
-              // 如果schedule没有队徽，尝试从teamlist中获取
+              // 如果schedule没有队徽，尝试从teamlist中获�?
               const team = this.teamlist.find(t => t.name === schedule.team2);
               if (team && team.logo_path) {
                 this.team2Logo = `http://localhost:5000${team.logo_path}`;
@@ -416,7 +377,7 @@ export default {
 
     // 编辑日程信息
     edit(title, key) {
-      this.editorTitle = `请输入${title}`;
+      this.editorTitle = `请输�?{title}`;
       this.editKey = key;
       this.showEditor = true;
     },
@@ -465,7 +426,7 @@ export default {
             ElMessage.success(`比赛日程保存成功！`);
           } 
         } catch (error) {
-          ElMessage.error(`保存失败：${response.data.msg}`);
+          ElMessage.error(`保存失败�?{response.data.msg}`);
         }
       await this.fetchSchedules(); 
       this.closePopup();
@@ -490,7 +451,7 @@ export default {
             ElMessage.success(`比赛日程修改成功！`);
           } 
         } catch (error) {
-          ElMessage.error(`修改失败：${response.data.msg}`);
+          ElMessage.error(`修改失败�?{response.data.msg}`);
         }
       await this.fetchSchedules(); 
       this.closePopup();
@@ -562,7 +523,7 @@ export default {
         if (res.data.code === 0) {
           ElMessage.success(`训练日程保存成功！`);
         } else {
-          this.$message.error('保存失败：' + res.data.message);
+          this.$message.error('保存失败�? + res.data.message);
         }
       } catch (err) {
         console.error('保存失败', err);
@@ -586,7 +547,7 @@ export default {
         if (res.data.message === '其他日程更新成功') {
           this.$message.success('其他日程修改成功');
         } else {
-          this.$message.error('修改失败：' + res.data.message);
+          this.$message.error('修改失败�? + res.data.message);
         }
       } catch (err) {
         console.error('修改失败', err);
@@ -836,7 +797,7 @@ export default {
   box-shadow: 0 5px 10px rgba(134, 142, 150, 0.4);
 }
 
-/* 选项卡样式 */
+/* 选项卡样�?*/
 .tab-buttons {
   display: flex;
   margin-bottom: 20px;
@@ -862,7 +823,7 @@ export default {
   margin: 0 5px;
 }
 
-/* 动态颜色方案 */
+/* 动态颜色方�?*/
 .tab-button:nth-child(1).active {
   background: linear-gradient(135deg, #4dabf7, #0c2b5d);
   color: white;
@@ -878,7 +839,7 @@ export default {
   color: white;
 }
 
-/* 激活状态 */
+/* 激活状�?*/
 .tab-button.active {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
@@ -888,7 +849,7 @@ export default {
   background-color: #dee2e6;
 }
 
-/* 选项卡内容容器 */
+/* 选项卡内容容�?*/
 .tab-content-wrapper {
   position: relative;
   min-height: 300px;
@@ -1057,7 +1018,7 @@ export default {
   text-align: center;
 }
 
-/* 训练和其他事件信息样式 */
+/* 训练和其他事件信息样�?*/
 .schedule-info {
   width: 100%;
   padding: 20px;
@@ -1114,3 +1075,4 @@ export default {
   width: 100%;
 }
 </style>
+
