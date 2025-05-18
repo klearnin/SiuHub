@@ -9,10 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
+    "@vueuse/head": "^2.0.0",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.8.3",
     "element-plus": "^2.9.8",
+    "interactjs": "^1.10.27",
     "pinia": "^3.0.1",
+    "screenfull": "^6.0.2",
+    "two.js": "^0.8.18",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
