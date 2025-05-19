@@ -19,7 +19,7 @@ exports.createTactic = async (req, res, next) => {
     const { tactic_name, style, players, characters } = req.body;
 
     // 开启事务
-    await db.startQuery('START TRANSACTION');
+    //await db.startQuery('START TRANSACTION');
 
     // 1. 插入 tactics 表
     const tacticSql = `
@@ -56,15 +56,15 @@ exports.createTactic = async (req, res, next) => {
     await db.startQuery(characterSql);
 
     // 提交事务
-    await db.startQuery('COMMIT');
+    //await db.startQuery('COMMIT');
     res.json({ code: 0, msg: '创建战术成功', tactic_id });
   } catch (err) {
     // 回滚事务
-    await db.startQuery('ROLLBACK');
+   // await db.startQuery('ROLLBACK');
     console.error('创建战术失败:', err);
     next(err);
   }
-};
+}
 
 exports.getTactic = async (req, res, next) => {
   try {
@@ -104,6 +104,7 @@ exports.getTactic = async (req, res, next) => {
         characters: tacticCharacters.find(c => c.tactic_id === tactic.id) || null,
       };
     });
+    
 
     res.json({ code: 0, msg: '获取成功', tacticList });
   } catch (err) {
@@ -157,7 +158,7 @@ exports.updateTactic = async (req, res, next) => {
     }
 
     // 开启事务
-    await db.startQuery('START TRANSACTION');
+    //await db.startQuery('START TRANSACTION');
 
     // 1. 更新 tactics 主表
     const tacticSql = `
@@ -195,12 +196,12 @@ exports.updateTactic = async (req, res, next) => {
     await db.startQuery(updateCharacterSql);
 
     // 提交事务
-    await db.startQuery('COMMIT');
+    //await db.startQuery('COMMIT');
     res.json({ code: 0, msg: '战术更新成功' });
 
   } catch (err) {
     // 回滚事务
-    await db.startQuery('ROLLBACK');
+    //await db.startQuery('ROLLBACK');
     console.error('更新战术失败:', err);
     next(err);
   }

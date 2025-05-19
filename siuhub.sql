@@ -318,5 +318,5 @@ VALUES('1','2','1','1');
 INSERT INTO tactic_player(Xvalue,Yvalue,tactic_id,player_id)
 VALUES('2','4','1','2');
 
-INSERT INTO tactic_characters(右角球手,左角球手,点球手,短传任意球手,长传任意球手,队长,tactic_id)
+INSERT INTO tactic_characters(right_corner,left_corner,penalty_kicker,short_freekick,long_freekick,captain,tactic_id)
 VALUES(1,1,1,1,1,2,1)
