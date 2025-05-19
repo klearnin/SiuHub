@@ -293,16 +293,27 @@ export default {
     },
 
     updateOpponent(teamName) {
-      this.team2 = teamName;
-      // 从teamlist中找到对应队伍的logo
-      const selectedTeam = this.teamlist.find(team => team.name === teamName);
-      if (selectedTeam && selectedTeam.logo_path) {
-        this.team2Logo = `http://localhost:5000${selectedTeam.logo_path}`;
-      } else {
-        this.team2Logo = null; // 没找到对应队徽时清空
-      }
-      this.showOpponentSelector = false;
-    },
+  this.team2 = teamName;
+  
+  // 去除 teamName 和 team.name 的首尾空格，并统一转小写比较
+  const cleanTeamName = teamName.trim().toLowerCase();
+  const selectedTeam = this.teamlist.find(team => 
+    team.name.trim().toLowerCase() === cleanTeamName
+  );
+
+  if (selectedTeam?.logo_path) {
+    this.team2Logo = `http://localhost:5000${selectedTeam.logo_path}`;
+  } else {
+    this.team2Logo = null;
+    console.warn(`未找到匹配的队伍: ${teamName}`, {
+      teamName,
+      cleanTeamName,
+      teamlist: this.teamlist.map(t => t.name.trim())
+    });
+  }
+  
+  this.showOpponentSelector = false;
+},
     
 
 

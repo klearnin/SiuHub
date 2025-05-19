@@ -54,7 +54,8 @@
         <el-button @click="updateInviteCode">更新</el-button>
       </div>
     </el-dialog>
-    <div class="container">
+    
+    <!--转转转 <div class="container">
     <div class="item">
       <img src="../../assets/1.jpg" alt="" />
     </div>
@@ -67,7 +68,7 @@
     </div> <div class="item">
       <img src="../../assets/5.jpg" alt="" />
     </div>
-</div>
+</div>-->
   </div>
 </template>
 
