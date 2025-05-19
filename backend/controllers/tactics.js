@@ -128,6 +128,13 @@ exports.deleteTactic = async (req, res, next) => {
       return res.status(403).json({ code: 1, message: '无权限或战术不存在' });
     }
 
+    const nextSql = `
+      UPDATE next_tactic 
+      SET next_id = NULL
+      WHERE next_id = ${db.escape(tacticId)}
+    `;
+    await db.startQuery(nextSql);
+
     // 删除战术（自动级联删除子表）
     const deleteSql = `DELETE FROM tactics WHERE id = ${db.escape(tacticId)}`;
     await db.startQuery(deleteSql);
@@ -202,6 +209,40 @@ exports.updateTactic = async (req, res, next) => {
     // 回滚事务
     await db.startQuery('ROLLBACK');
     console.error('更新战术失败:', err);
+    next(err);
+  }
+};
+
+exports.setnext = async (req, res, next) => {
+  try {
+    const nextId = req.params.nextid; // 从 URL 中获取 ID
+    const user = req.user;
+
+    const nextSql = `
+    INSERT INTO next_tactic (next_id, team_id)
+    VALUES (${db.escape(nextId)}, ${db.escape(user.team_id)})
+    ON DUPLICATE KEY UPDATE next_id = VALUES(${db.escape(nextId)});
+    `;
+
+    await db.startQuery(nextSql);
+    res.json({ code: 0, message: '设置成功' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getnext = async (req, res, next) => {
+  try {
+    const user = req.user;
+
+    const nextSql = `
+      SELECT * FROM next_tactic
+      WHERE team_id = ${db.escape(user.team_id)})
+    `;
+
+    nexttac = db.startQuery(nextSql);
+    res.json({ code: 0, message: '设置成功', nexttac });
+  } catch (err) {
     next(err);
   }
 };

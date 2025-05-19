@@ -309,6 +309,14 @@ CREATE TABLE tactic_characters(
   FOREIGN KEY (tactic_id) REFERENCES tactics(id) ON DELETE CASCADE
 );
 
+CREATE TABLE next_tactic(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  next_id INT,
+  FOREIGN KEY (next_id) REFERENCES tactics(id) ON DELETE CASCADE,
+  team_id VARCHAR(100) NOT NULL UNIQUE COMMENT '所属球队ID',
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
+
 INSERT INTO tactics(tactic_name,style,team_id)
 VALUES('test_1','防守反击','team_001');
 
@@ -318,5 +326,8 @@ VALUES('1','2','1','1');
 INSERT INTO tactic_player(Xvalue,Yvalue,tactic_id,player_id)
 VALUES('2','4','1','2');
 
-INSERT INTO tactic_characters(右角球手,左角球手,点球手,短传任意球手,长传任意球手,队长,tactic_id)
-VALUES(1,1,1,1,1,2,1)
+INSERT INTO tactic_characters(right_corner,left_corner,penalty_kicker,short_freekick,long_freekick,captain,tactic_id)
+VALUES(1,1,1,1,1,2,1);
+
+INSERT INTO next_tactic(next_id,team_id)
+VALUES('1','team_001');
