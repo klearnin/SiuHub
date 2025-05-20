@@ -29,6 +29,7 @@ import CtacticBoard from "../views/coach/TacticBoard/CtacticBoard.vue";
 import Mhome from "../views/manager/Mhome.vue";
 import Mnotice from "../views/manager/Notice/Mnotice.vue";
 import Mnotice_del from "../views/manager/Notice/Mnotice_del.vue";
+import Mmatch from "../views/manager/Match/Mmatch.vue";
 
 //导入队医界面
 import Dhome from "../views/medic/Dhome.vue";
@@ -36,6 +37,7 @@ import Dnotice from "../views/medic/Notice/Dnotice.vue";
 import Dnotice_del from "../views/medic/Notice/Dnotice_del.vue";
 
 import { pa } from "element-plus/es/locales.mjs";
+import path from "path";
 
 const routes = [
   { path: "/", component: Home },
@@ -47,6 +49,7 @@ const routes = [
   { path: '/mhome', component: Mhome },
   { path: '/mnotice', component: Mnotice },
   { path: '/mnotice_del', component: Mnotice_del }, 
+  { path: '/matchToday', component: Mmatch },
   { path: '/dhome', component: Dhome },
   { path: '/dnotice', component: Dnotice },
   { path: '/dnotice_del', component: Dnotice_del }, 

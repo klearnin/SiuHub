@@ -1,4 +1,5 @@
 SET NAMES utf8mb4;
+set character_set_results=gb2312;
 -- 创建数据库（如果尚未创建）
 DROP DATABASE IF EXISTS siuhub;
 CREATE DATABASE IF NOT EXISTS siuhub;
@@ -40,6 +41,19 @@ INSERT INTO users (
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'coach',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'manager_001',         -- 用户 ID
+  '测试经理',                 -- 昵称
+  '12345678904',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'manager',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
   '/public/avatars/version.jpg'

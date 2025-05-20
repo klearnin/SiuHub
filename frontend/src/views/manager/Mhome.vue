@@ -43,57 +43,64 @@
           </div>
         </div>
       </div>
+      <div class="match-today-wrapper" @click="goMatchToday">
+        今日比赛
+      </div>
   
     </div>
   </template>
   
   <script setup>
-  import { ref, onMounted } from "vue";
-  import { useRouter } from "vue-router";
-  import axios from "axios";
-  import { ElMessage } from "element-plus";
-  
-  const router = useRouter();
-  const avatarUrl = ref(null);
-  const dropdownVisible = ref(false);
-  const showNoticeDropdown = ref(false);
-  
-  onMounted(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const userType = payload.type;
-      console.log(`👮 页面内部检查身份: ${userType}`);
-      if (userType !== "manager") {
-        ElMessage.error("无权访问该页面");
+    import { ref, onMounted } from "vue";
+    import { useRouter } from "vue-router";
+    import axios from "axios";
+    import { ElMessage } from "element-plus";
+    
+    const router = useRouter();
+    const avatarUrl = ref(null);
+    const dropdownVisible = ref(false);
+    const showNoticeDropdown = ref(false);
+    
+    onMounted(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const userType = payload.type;
+        console.log(`👮 页面内部检查身份: ${userType}`);
+        if (userType !== "manager") {
+          ElMessage.error("无权访问该页面");
+          router.replace("/login");
+        }
+      } else {
+        ElMessage.error("请先登录");
         router.replace("/login");
       }
-    } else {
-      ElMessage.error("请先登录");
-      router.replace("/login");
-    }
-  });
-  
-  onMounted(async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/user/my-avatar", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      avatarUrl.value = `http://localhost:5000${res.data.avatar}`;
-    } catch (err) {
-      console.error("获取头像失败", err);
-    }
-  });
-  
-  const toggleDropdown = () => {
-    dropdownVisible.value = !dropdownVisible.value;
-  };
-  
-  const logout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
-  };
+    });
+    
+    onMounted(async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("http://localhost:5000/api/user/my-avatar", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        avatarUrl.value = `http://localhost:5000${res.data.avatar}`;
+      } catch (err) {
+        console.error("获取头像失败", err);
+      }
+    });
+    
+    const toggleDropdown = () => {
+      dropdownVisible.value = !dropdownVisible.value;
+    };
+    
+    const logout = () => {
+      localStorage.removeItem("token");
+      router.push("/login");
+    };
+
+    const goMatchToday = () => {
+      router.push("/matchToday");
+    };
   
   </script>
   
@@ -265,6 +272,26 @@
   .fade-slide-leave-to {
     opacity: 0;
     transform: translate(-50%, -10px);
+  }
+  .match-today-wrapper {
+    width: 200px;
+    height: 80px;
+    line-height: 80px;
+    background: #00bcd4;
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 188, 212, 0.6);
+    text-align: center;
+    cursor: pointer;
+    margin: 120px auto; /* 上下居中距离，左右居中 */
+    user-select: none;
+    transition: background-color 0.3s;
+  }
+
+  .match-today-wrapper:hover {
+    background: #0097a7;
   }
   </style>
   

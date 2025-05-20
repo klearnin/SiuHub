@@ -38,45 +38,64 @@
         <!-- 选项卡内容 -->
         <div class="tab-content-wrapper">
           <!-- 比赛内容 -->
-          <div class="tab-content" :class="{ active: activeTab === 'match', 'slide-left': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'left', 'slide-right': (activeTab === 'match' || prevTab === 'match') && transitionDirection === 'right' }">
+          <div class="tab-content" :class="{ active: activeTab === 'match' }">
             <p class="match-info">
               <span class="team">{{ teamname || '未设定' }}</span>
               <span class="vs">{{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}</span>
               <span class="team">{{ team2 || '对手未设定' }}</span>
             </p>
             
-             
-              
+            <div class="team-logos-container">
+              <div class="team-logo-container">
+                <img v-if="teamLogo" :src="teamLogo" alt="主队队徽" class="team-logo-large" />
+                <span v-else class="team-logo-placeholder">主队队徽</span>
+              </div>
+              <div class="buttons-center">
                 <button @click="showOpponentSelector = true">选择对手</button>
                 <button @click="openTimeEditor('matchTime')">设置时间</button>
                 <button @click="edit('比赛地点', 'matchLocation')">设置地点</button>
-              
-         
+              </div>
+              <div class="team-logo-container">
+                <img v-if="team2Logo" :src="team2Logo" alt="客队队徽" class="team-logo-large" />
+                <span v-else class="team-logo-placeholder">对手队徽</span>
+              </div>
+            </div>
           </div>
 
           <!-- 训练内容 -->
-          <div class="tab-content" :class="{ active: activeTab === 'training', 'slide-left': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'left', 'slide-right': (activeTab === 'training' || prevTab === 'training') && transitionDirection === 'right' }">
-            <p class="match-info">
-              时间：{{ trainingTime || '未设定' }}<br />
-              <br />
-              训练内容：{{ teamTraining || '未设定' }}<br />
-              
-            </p>
-            <button @click="openTimeEditor('trainingTime')">设置训练时间</button>
-            <button @click="edit('队伍训练内容', 'teamTraining')">设置训练内容</button>
-            
+          <div class="tab-content" :class="{ active: activeTab === 'training' }">
+            <div class="schedule-info training-info">
+              <div class="info-row">
+                <strong>时间：</strong>
+                <span>{{ trainingTime || '未设定' }}</span>
+              </div>
+              <div class="info-row">
+                <strong>训练内容：</strong>
+                <span>{{ teamTraining || '未设定' }}</span>
+              </div>
+            </div>
+            <div class="button-group">
+              <button @click="openTimeEditor('trainingTime')">设置训练时间</button>
+              <button @click="edit('队伍训练内容', 'teamTraining')">设置训练内容</button>
+            </div>
           </div>
           <!-- 其他内容 -->
-          <div class="tab-content" :class="{ active: activeTab === 'else', 'slide-left': (activeTab === 'else' || prevTab === 'else') && transitionDirection === 'left', 'slide-right': (activeTab === 'else' || prevTab === 'else') && transitionDirection === 'right' }">
-            <p class="match-info">
-              时间：{{ elseTime || '未设定' }}<br />
-              <br />
-              事件：{{ elseEvent|| '未设定' }}<br />
-            </p>
-            <button @click="openTimeEditor('elseTime')">设置时间</button>
-            <button @click="edit('事件', 'elseEvent')">设置事件</button>
+          <div class="tab-content" :class="{ active: activeTab === 'else' }">
+            <div class="schedule-info other-info">
+              <div class="info-row">
+                <strong>时间：</strong>
+                <span>{{ elseTime || '未设定' }}</span>
+              </div>
+              <div class="info-row">
+                <strong>事件：</strong>
+                <span>{{ elseEvent || '未设定' }}</span>
+              </div>
+            </div>
+            <div class="button-group">
+              <button @click="openTimeEditor('elseTime')">设置时间</button>
+              <button @click="edit('事件', 'elseEvent')">设置事件</button>
+            </div>
           </div>
-         
           
         </div>
         <TimeSlider v-if="showTimeEditor" @confirm="updateTimeFromSlider" @cancel="showTimeEditor = false" />
@@ -146,8 +165,6 @@ export default {
       
       //窗口滑动的相关数据
       activeTab: 'match',
-      prevTab: null,
-      transitionDirection: 'left',
        // 比赛设置相关数据
       team1: '我的球队',
      
@@ -179,6 +196,8 @@ export default {
       teamname:'',
       myteamlogo:'',
       teamlist:[],
+      teamLogo: null,
+      team2Logo: null,
     };
   },
   computed: {
@@ -219,31 +238,82 @@ export default {
   methods: {
     async fetchSchedules() {
       const month = `${this.selectedYear}-${this.selectedMonth.toString().padStart(2, '0')}`;
-      this.x=month;
-        try {
-          const res = await axios.get("http://localhost:5000/api/schedule/list", { params: { month } ,
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
-          this.schedules = res.data;
-        } catch (error) {
-          console.error('获取日程失败:', error);
-          this.$message.error('获取日程失败');
-        }
-        try {
-          const res = await axios.get("http://localhost:5000/api/schedule/team", { 
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+      this.x = month;
+      try {
+        const res = await axios.get("http://localhost:5000/api/schedule/list", { 
+          params: { month },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        this.schedules = res.data;
+      } catch (error) {
+        console.error('获取日程失败:', error);
+        this.$message.error('获取日程失败');
+      }
+      
+      try {
+        const res = await axios.get("http://localhost:5000/api/schedule/team", { 
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        
+        // 检查响应数据是否存在
+        if (res.data && res.data.teamname && res.data.teamname.length > 0) {
           this.teamname = res.data.teamname[0].name;
-
-          this.teamlist = res.data.teamlist;
-        } catch (error) {
-          console.error('获取球队名称失败:', error);
-          this.$message.error('获取球队名称失败');
+          
+          // 获取主队队徽
+          if (res.data.teamlist && res.data.teamlist.length > 0) {
+            const myTeam = res.data.teamlist.find(team => team.name === this.teamname);
+            if (myTeam && myTeam.logo_path) {
+              this.teamLogo = `http://localhost:5000${myTeam.logo_path}`;
+            }
+          }
+          
+          this.teamlist = res.data.teamlist || [];
+          
+          // 为日程添加队徽信息
+          this.processSchedulesWithLogos();
         }
-      },
+      } catch (error) {
+        console.error('获取球队名称失败:', error);
+        this.$message.error('获取球队名称失败');
+      }
+    },
 
-      updateOpponent(teamName) {
-        this.team2 = teamName;  // 设定选中的对手
-        this.showOpponentSelector = false;
-      },
+    // 处理日程数据，添加队徽信息
+    processSchedulesWithLogos() {
+      if (!this.teamlist || this.teamlist.length === 0 || !this.schedules) return;
+      
+      this.schedules.forEach(schedule => {
+        if (schedule.type === 'match' && schedule.team2) {
+          const team = this.teamlist.find(t => t.name === schedule.team2);
+          if (team && team.logo_path) {
+            schedule.team2logo = `http://localhost:5000${team.logo_path}`;
+          }
+        }
+      });
+    },
+
+    updateOpponent(teamName) {
+  this.team2 = teamName;
+  
+  // 去除 teamName 和 team.name 的首尾空格，并统一转小写比较
+  const cleanTeamName = teamName.trim().toLowerCase();
+  const selectedTeam = this.teamlist.find(team => 
+    team.name.trim().toLowerCase() === cleanTeamName
+  );
+
+  if (selectedTeam?.logo_path) {
+    this.team2Logo = `http://localhost:5000${selectedTeam.logo_path}`;
+  } else {
+    this.team2Logo = null;
+    console.warn(`未找到匹配的队伍: ${teamName}`, {
+      teamName,
+      cleanTeamName,
+      teamlist: this.teamlist.map(t => t.name.trim())
+    });
+  }
+  
+  this.showOpponentSelector = false;
+},
     
 
 
@@ -284,6 +354,9 @@ export default {
         if (!date) return;
         this.selectedDate = date;
 
+        // 重置队徽
+        this.team2Logo = null;
+
         for (const schedule of this.schedules || []) {
         if (schedule.date === this.selectedDate) {
           if (schedule.type === 'match') {
@@ -292,6 +365,18 @@ export default {
             this.matchLocation = schedule.location;
             this.team2 = schedule.team2;
             this.team1 = this.teamname;
+            
+            // 设置队徽
+            if (schedule.team2logo) {
+              this.team2Logo = schedule.team2logo;
+            } else {
+              // 如果schedule没有队徽，尝试从teamlist中获取
+              const team = this.teamlist.find(t => t.name === schedule.team2);
+              if (team && team.logo_path) {
+                this.team2Logo = `http://localhost:5000${team.logo_path}`;
+              }
+            }
+            
             this.activeTab = 'match';
           } else if (schedule.type === 'training') {
             this.trainingId = schedule.id;
@@ -331,20 +416,14 @@ export default {
 
 
     switchTab(tab) {
-    if (tab === this.activeTab) return;
-    const tabs = ['match', 'training','else'];
-    const currentIndex = tabs.indexOf(this.activeTab);
-    const targetIndex = tabs.indexOf(tab);
-    this.transitionDirection = targetIndex > currentIndex ? 'left' : 'right';
-    this.prevTab = this.activeTab;
-    this.activeTab = tab;
-    for (const schedule of this.schedules || []) {
+      if (tab === this.activeTab) return;
+      this.activeTab = tab;
+      for (const schedule of this.schedules || []) {
         if (schedule.type === this.activeTab && schedule.date === this.selectedDate) {
           this.selectedID = schedule.id;
         }
-     }
-    
-  },
+      }
+    },
 
     // 编辑日程信息
     edit(title, key) {
@@ -561,43 +640,96 @@ export default {
   max-width: 800px;
   margin: auto;
   padding: 20px;
-  font-family: sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
 .header {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 25px;
+  align-items: center;
+}
+
+.header select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #cfd4da;
+  background-color: white;
+  font-size: 14px;
+  transition: all 0.2s;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.header select:hover {
+  border-color: #3b82f6;
+}
+
+.header select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.header button {
+  width: 60px;
+  height: 36px;
+  font-size: 14px;
+  background-color: #e9ecef;
+  color: #495057;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.header button:hover {
+  background-color: #4dabf7;
+  color: white;
+  transform: translateY(-2px);
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 10px;
+  margin-bottom: 20px;
 }
 
 .day-name {
-  font-weight: bold;
+  font-weight: 600;
   text-align: center;
+  padding: 10px 0;
+  background-color: #e9ecef;
+  border-radius: 8px 8px 0 0;
+  color: #495057;
 }
 
 .day-cell {
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
   min-height: 100px;
-  padding: 5px;
-  background-color: #f9f9f9;
+  padding: 8px;
+  background-color: white;
   cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .day-cell:hover {
-  background-color: #eef6ff;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-color: #dee2e6;
 }
 
 .day-number {
-  font-weight: bold;
-  margin-bottom: 5px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #343a40;
 }
 
 .events {
@@ -607,17 +739,33 @@ export default {
   margin: 0;
 }
 
-.delete-event {
-  background-color: red;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  padding: 2px 6px;
-  cursor: pointer;
+.events li {
+  margin-bottom: 4px;
 }
 
-.delete-event:hover {
-  background-color: darkred;
+.schedule {
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.match {
+  background: linear-gradient(135deg, #4dabf7, #3b82f6);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.training {
+  background: linear-gradient(135deg, #51cf66, #37b24d);
+  box-shadow: 0 2px 4px rgba(55, 178, 77, 0.3);
+}
+
+.else {
+  background: linear-gradient(135deg, #fcc419, #f59f00);
+  box-shadow: 0 2px 4px rgba(245, 159, 0, 0.3);
 }
 
 /* 弹窗样式 */
@@ -627,84 +775,87 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
 }
 
 .popup {
-  width: 70%;    /* 视口宽度的80% */
-  height: 80%;   /* 视口高度的60% */
-  background-color: #eaecee;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-}
-.either{
-  display:flex;
-  justify-content:right;
-  padding-top: 2%;
+  width: 80%;
+  max-width: 700px;
+  height: auto;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
 }
 
-.popup input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+.either {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 15px;
+  margin-top: auto;
+  border-top: 1px solid #e9ecef;
 }
 
 .popup button {
-  padding: 8px 16px;
-  background-color: #3498db;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #4dabf7, #3b82f6);
   color: white;
   border: none;
-  border-radius: 45px;
+  border-radius: 25px;
   cursor: pointer;
   margin-right: 10px;
-  margin-bottom: 10px;
-  
+  margin-bottom: 5px;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 3px 6px rgba(59, 130, 246, 0.3);
 }
+
+.popup button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(59, 130, 246, 0.4);
+}
+
+.popup button:active {
+  transform: translateY(0);
+}
+
 /* 强制覆盖特殊按钮 */
 .popup .del_button {
-  background-color: #cc4343 !important;
-}
-.popup .cancel-button {
-  background-color: #999 !important;
+  background: linear-gradient(135deg, #fa5252, #e03131);
+  box-shadow: 0 3px 6px rgba(224, 49, 49, 0.3);
 }
 
-/* 通用悬停效果 */
-.popup button:hover {
-  background-color: #2980b9;
-}
-/* 特殊按钮悬停 */
 .popup .del_button:hover {
-  background-color: rgb(184, 24, 24) !important;
+  box-shadow: 0 5px 10px rgba(224, 49, 49, 0.4);
 }
+
+.popup .cancel-button {
+  background: linear-gradient(135deg, #adb5bd, #868e96);
+  box-shadow: 0 3px 6px rgba(134, 142, 150, 0.3);
+}
+
 .popup .cancel-button:hover {
-  background-color: #666 !important;
+  box-shadow: 0 5px 10px rgba(134, 142, 150, 0.4);
 }
 
-.header button {
-  width: 50px;
-  height: 30px;
-  font-size: 18px;
-  background-color: #ccc;
-  color: #333;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+/* 选项卡样式 */
+.tab-buttons {
+  display: flex;
+  margin-bottom: 20px;
+  background-color: #f1f3f5;
+  padding: 5px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
-
-.header button:hover:not(:disabled) {
-  background-color: #4ddbee;
-}
-
-
-/* 美化样式 */
-
 
 .tab-button {
   flex: 1;
@@ -713,188 +864,264 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(145deg, #fff, #f8f9fa);
-  color: #2d3748 !important; /* 深灰色确保可见性 */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  font-size: 14px !important; 
-  font-weight: 600;
-  
-  /* 伪元素实现高级悬停效果 */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255,255,255,0.2);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
+  background: transparent;
+  color: #495057;
+  font-size: 14px;
+  margin: 0 5px;
 }
 
 /* 动态颜色方案 */
-.tab-button:nth-child(1) {
-  --active-color: #3b82f6; /* 蓝色系 */
+.tab-button:nth-child(1).active {
+  background: linear-gradient(135deg, #4dabf7, #0c2b5d);
+  color: white;
 }
-.tab-button:nth-child(2) {
-  --active-color: #10b981; /* 绿色系 */
+
+.tab-button:nth-child(2).active {
+  background: linear-gradient(135deg, #51cf66, #0b6a1d);
+  color: white;
 }
-.tab-button:nth-child(3) {
-  --active-color: #f59e0b; /* 橙色系 */
+
+.tab-button:nth-child(3).active {
+  background: linear-gradient(135deg, #fcc419, #7a5715);
+  color: white;
 }
 
 /* 激活状态 */
 .tab-button.active {
-  background: linear-gradient(145deg, var(--active-color), color-mix(in srgb, var(--active-color) 90%, black));
-  color: rgb(15, 14, 14);
-  box-shadow: 
-    0 4px 12px color-mix(in srgb, var(--active-color) 20%, transparent),
-    0 2px 0 color-mix(in srgb, var(--active-color) 30%, transparent) inset;
-  
-  &::before { /* 底部装饰线 */
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 3px;
-    background: rgba(255,255,255,0.8);
-    border-radius: 2px;
-  }
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* 悬停交互 */
 .tab-button:hover:not(.active) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  &::after {
-    opacity: 1;
-  }
-}
-
-/* 微交互动画 */
-.tab-button:active {
-  transform: scale(0.98);
+  background-color: #dee2e6;
 }
 
 /* 选项卡内容容器 */
 .tab-content-wrapper {
   position: relative;
-  height: 82%;
-  overflow: hidden;
-  display:flex;
+  min-height: 300px;
+  height: auto;
+  overflow: visible;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 /* 选项卡内容通用样式 */
 .tab-content {
-  position: absolute;
-  height: 100%;
+  position: relative;
   width: 100%;
-  top: 0;
-  padding: 15px;
-  background: white;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  height: auto;
+  min-height: 350px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  transition: opacity 0.3s ease;
   opacity: 0;
-  pointer-events: none;
-  
-
-  /* 新增的部分 */
-  display: flex;
+  display: none;
   flex-direction: column;
-  justify-content: center;   /* 垂直居中 */
-  align-items: center;       /* 水平居中 */
-  gap: 10px;                 /* 元素之间留点间距，可选 */
+  align-items: center;
+  gap: 15px;
 }
 
-.tab-content button {
-  width: 200px;
-  height: 100px;
-}
-
-
-/* 激活的选项卡 */
 .tab-content.active {
   opacity: 1;
-  pointer-events: auto;
-  transform: translateX(0);
+  display: flex;
+  animation: fadeIn 0.3s ease forwards;
 }
 
-/* 向左滑动 */
-.tab-content.slide-left {
-  transform: translateX(-100%);
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* 向右滑动 */
-.tab-content.slide-right {
-  transform: translateX(100%);
-}
-
-/* 当前激活的选项卡滑动效果 */
-.tab-content.active.slide-left {
-  transform: translateX(0);
-}
-
-.tab-content.active.slide-right {
-  transform: translateX(0);
-}
-
-
-
-/*比赛信息样式*/
+/* 比赛信息样式*/
 .match-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: 20%;
-  margin-bottom: 20px;
-  font-weight: bold;
-  border:solid #a5c6f9;
+  padding: 20px;
+  margin-bottom: 25px;
+  font-weight: 600;
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  background-color: #f8f9fa;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
 
+.match-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  border-color: #c5cfd9;
 }
 
 .match-info .team {
   width: 45%;
   text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1c7ed6;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  line-height: 1.4;
 }
 
 .match-info .vs {
   width: 50%;
   text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #495057;
+  line-height: 1.5;
+  padding: 0 10px;
+  position: relative;
 }
-.matchset{
+
+.match-info .vs::before,
+.match-info .vs::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 30px;
+  height: 2px;
+  background-color: #adb5bd;
+  transform: translateY(-50%);
+}
+
+.match-info .vs::before {
+  left: -15px;
+}
+
+.match-info .vs::after {
+  right: -15px;
+}
+
+/* 队徽样式 */
+.team-logos-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  margin: 15px 0;
+  padding: 0 10px;
 }
-.set{
 
-  top: 150px;
-  padding: 15px;
+.buttons-center {
   display: flex;
   flex-direction: column;
-  justify-content: center;   /* 垂直居中 */
-  align-items: center;       /* 水平居中 */
-  gap: 10px;                 /* 元素之间留点间距，可选 */
+  gap: 12px;
+  flex: 1;
+  max-width: 60%;
+  align-items: center;
 }
 
-.schedule {
-  font-size: 14px;       /* 稍微小一点，显得精致 */
-  font-weight: bold;     /* 字体加粗，有力量感 */
-  color: #1e90ff;        /* 亮一点的蓝色，活泼又有比赛氛围 */
-  /*background-color: #e6f2ff; /* 淡淡的蓝底，不突兀 */
-  padding: 4px 8px;      /* 有一点内边距，显得圆润 */
-  border-radius: 8px;    /* 圆角，让小块更柔和 */
-  display: inline-block; /* 让它像一个小标签 */
-  margin-top: 4px;       /* 和日期数字拉开一点距离 */
+.team-logo-container {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
 }
 
+.team-logo-large {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background-color: white;
+  padding: 5px;
+  border: 3px solid transparent;
+}
 
+.team-logo-container:first-child .team-logo-large {
+  border-color: #4dabf7;
+}
+
+.team-logo-container:last-child .team-logo-large {
+  border-color: #f03e3e;
+}
+
+.team-logo-large:hover {
+  transform: scale(1.05) rotate(5deg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.team-logo-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #f1f3f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  color: #868e96;
+  text-align: center;
+}
+
+/* 训练和其他事件信息样式 */
+.schedule-info {
+  width: 100%;
+  padding: 20px;
+  margin-bottom: 25px;
+  font-weight: 600;
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  background-color: #f8f9fa;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.schedule-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  border-color: #c5cfd9;
+}
+
+.training-info {
+  border-left: 5px solid #51cf66;
+}
+
+.other-info {
+  border-left: 5px solid #fcc419;
+}
+
+.info-row {
+  margin-bottom: 15px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.info-row strong {
+  color: #1c7ed6;
+  margin-right: 10px;
+  font-weight: 700;
+}
+
+.info-row span {
+  color: #495057;
+  font-weight: 600;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 300px;
+  margin-top: 10px;
+}
+
+.button-group button {
+  width: 100%;
+}
 </style>
