@@ -7,15 +7,26 @@
         <div v-if="matches.length === 0" class="no-match">今天没有比赛安排。</div>
         <ul class="match-list">
           <li v-for="match in matches" :key="match.id" class="match-item">
-            <div><strong>时间：</strong>{{ formatTime(match.time) }}</div>
-            <div>
-              <strong>对阵：</strong>
-              <img :src="fullImageUrl(match.homeLogo)" class="team-logo" alt="主队徽" />
-              {{ match.homeTeam }} VS {{ match.awayTeam }}
-              <img :src="fullImageUrl(match.awayLogo)" class="team-logo" alt="客队徽" />
+            <div class="match-info-wrapper">
+            <!-- 主队 -->
+            <div class="team-block team-left">
+                <img :src="fullImageUrl(match.homeLogo)" class="team-logo-lg" alt="主队徽" />
+                <div class="team-name">{{ match.homeTeam }}</div>
             </div>
-            <div><strong>场地：</strong>{{ match.venue }}</div>
-            <div><strong>比分：</strong>{{ match.score }}</div>
+
+            <!-- 中间信息 -->
+            <div class="match-center-info">
+                <div class="match-time">{{ formatTime(match.time) }}</div>
+                <div class="match-score">{{ match.score }}</div>
+                <div class="match-venue">{{ match.venue }}</div>
+            </div>
+
+            <!-- 客队 -->
+            <div class="team-block team-right">
+                <img :src="fullImageUrl(match.awayLogo)" class="team-logo-lg" alt="客队徽" />
+                <div class="team-name">{{ match.awayTeam }}</div>
+            </div>
+            </div>
   
             <!-- 事件录入表单 -->
             <div class="event-form">
@@ -149,12 +160,56 @@
   
             <!-- 事件列表 -->
             <div class="event-list" v-if="match.events.length">
-              <h3>比赛事件</h3>
-              <ul>
-                <li v-for="event in match.events" :key="event.id">
-                  {{ event.period }} - 第{{ event.event_minute }}分钟 - {{ event.team_name }} - {{ event.scorer_name }} {{ event.card_type || "" }}
-                </li>
-              </ul>
+            <h3>比赛事件</h3>
+            <div class="event-timeline-rows">
+                <div
+                class="event-row"
+                v-for="(row, index) in getUnifiedTimelineRows(match.events, match)"
+                :key="index"
+                >
+                <div class="event-side left">
+                    <template v-if="row.isHome">
+                    <div class="event-content">
+                        <template v-if="row.event.event_type === 'goal'">
+                        ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }} 
+                        <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
+                        <template v-if="row.event.is_penalty">（点球）</template>
+                        </template>
+                        <template v-else-if="row.event.event_type === 'card'">
+                        <span v-if="row.event.card_type === 'red'">🟥</span>
+                        <span v-else>🟨</span>
+                        {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }}
+                        </template>
+                        <template v-else-if="row.event.event_type === 'substitution'">
+                        🔄 {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.sub_out_name }} ⬅️ {{ row.event.sub_in_name }}
+                        </template>
+                    </div>
+                    </template>
+                </div>
+
+                <div class="event-time">{{ formatMinuteNote(row.time) }}</div>
+
+                <div class="event-side right">
+                    <template v-if="row.isAway">
+                    <div class="event-content">
+                        <template v-if="row.event.event_type === 'goal'">
+                        ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }} 
+                        <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
+                        <template v-if="row.event.is_penalty">（点球）</template>
+                        </template>
+                        <template v-else-if="row.event.event_type === 'card'">
+                        <span v-if="row.event.card_type === 'red'">🟥</span>
+                        <span v-else>🟨</span>
+                        {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }}
+                        </template>
+                        <template v-else-if="row.event.event_type === 'substitution'">
+                        🔄 {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.sub_out_name }} ⬅️ {{ row.event.sub_in_name }}
+                        </template>
+                    </div>
+                    </template>
+                </div>
+                </div>
+            </div>
             </div>
           </li>
         </ul>
@@ -407,6 +462,54 @@ const updateFinalMinute = () => {
   eventForm.value.minute_note = `${main}+${extra}`;
 };
 
+const parseMinuteNote = (note) => {
+  const [mainStr, extraStr] = note.split('+');
+  return {
+    main: parseInt(mainStr || '0', 10),
+    extra: parseInt(extraStr || '0', 10),
+  };
+};
+
+const sortedEvents = (events, side, match) => {
+  const teamName = side === 'home' ? match.homeTeam : match.awayTeam;
+
+  return [...events]
+    .filter(e => e.team_name === teamName)
+    .sort((a, b) => {
+      const aNote = parseMinuteNote(a.minute_note);
+      const bNote = parseMinuteNote(b.minute_note);
+      if (aNote.main !== bNote.main) {
+        return aNote.main - bNote.main;
+      }
+      return aNote.extra - bNote.extra;
+    });
+};
+
+function formatMinuteNote(note) {
+  if (!note) return '';
+  const parts = note.split('+');
+  if (parts.length === 2 && parts[1] === '0') {
+    return parts[0];  // 只显示加号前面的数字
+  }
+  return note;
+}
+
+const getUnifiedTimelineRows = (events, match) => {
+  const all = [...events].sort((a, b) => {
+    const pa = parseMinuteNote(a.minute_note);
+    const pb = parseMinuteNote(b.minute_note);
+    if (pa.main !== pb.main) return pa.main - pb.main;
+    return pa.extra - pb.extra;
+  });
+
+  return all.map(e => ({
+    time: e.minute_note,
+    isHome: e.team_name === match.homeTeam,
+    isAway: e.team_name === match.awayTeam,
+    event: e,
+  }));
+};
+
   </script>
   
   <style scoped>
@@ -506,5 +609,163 @@ const updateFinalMinute = () => {
   .event-list li {
     margin-bottom: 6px;
   }
+
+  .event-timeline {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin-top: 20px;
+  padding: 0 10px;
+}
+
+.event-column {
+  width: 45%;
+}
+
+.event-column.left {
+  text-align: right;
+}
+
+.event-column.right {
+  text-align: left;
+}
+
+.timeline-center {
+  width: 10%;
+  text-align: center;
+  position: relative;
+}
+
+.timeline-center::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #999;
+  transform: translateX(-50%);
+}
+
+.time-label {
+  margin: 10px 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.event-item {
+  margin-bottom: 10px;
+}
+
+.event-content {
+  display: inline-block;
+  max-width: 90%;
+  background-color: #eef2f7;
+  padding: 6px 10px;
+  border-radius: 5px;
+}
+
+.event-timeline-rows {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+.event-row {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  min-height: 40px;
+}
+
+.event-side {
+  width: 45%;
+}
+
+.event-side.left {
+  text-align: right;
+  padding-right: 10px;
+}
+
+.event-side.right {
+  text-align: left;
+  padding-left: 10px;
+}
+
+.event-time {
+  width: 10%;
+  text-align: center;
+  font-weight: bold;
+  color: #555;
+  position: relative;
+}
+
+.event-time::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #aaa;
+  transform: translateX(-50%);
+}
+
+.match-info-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  padding: 20px 10px;
+  border-bottom: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+
+.team-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+}
+
+.team-logo-lg {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+
+.team-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.match-center-info {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.match-time {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.match-score {
+  font-size: 42px !important;        /* 原来是 20px，扩大字号 */
+  font-weight: 700;       /* 更粗一点，强调比分 */
+  margin: 6px 0;
+}
+
+.match-venue {
+  font-size: 14px;
+  color: #666;
+}
+
   </style>
   
