@@ -41,10 +41,28 @@
                 </label>
   
                 <label>
-                  时间（分钟）：
-                  <input type="number" v-model.number="eventForm.event_minute" min="0" />
+                    时间（分钟）：
+                    <input
+                        type="number"
+                        v-model.number="eventForm.main_minute"
+                        :min="minuteRange.min"
+                        :max="minuteRange.max"
+                        @change="handleMinuteChange"
+                    />
                 </label>
-  
+
+                <label>
+                    补时：
+                    <input
+                        type="number"
+                        v-model.number="eventForm.extra_minute"
+                        :disabled="!allowExtraTime"
+                        min="0"
+                        max="15"
+                        @change="handleExtraTimeChange"
+                    />
+                </label>
+
                 <label>
                   所属球队：
                   <select v-model="eventForm.team_side">
@@ -62,8 +80,20 @@
                     </select>
                   </label>
                   <label v-else>
-                    球员名称：
+                    进球球员名称：
                     <input type="text" v-model="eventForm.scorer_name" />
+                  </label>
+
+                  <label v-if="eventForm.team_side === 'home'">
+                    助攻队员：
+                    <select v-model="eventForm.assist_id">
+                      <option :value="null">无</option> <!-- 添加“无”选项 -->
+                      <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
+                    </select>
+                  </label>
+                  <label v-else>
+                    助攻球员名称：
+                    <input type="text" v-model="eventForm.assist_name" placeholder="可不填，表示无助攻" />
                   </label>
                 </template>
   
@@ -137,6 +167,7 @@
   <script setup>
   import { ref, onMounted } from "vue";
   import axios from "axios";
+  import { computed } from 'vue';
   
   const matches = ref([]);
   const loading = ref(false);
@@ -146,11 +177,16 @@
   const eventForm = ref({
     type: "goal",
     period: "1H",
-    event_minute: 0,
+    main_minute: 1,
+    extra_minute: 0,
+    event_minute: 1, // 自动计算: main + extra
+    minute_note: "1+0",
     team_side: "home",
     scorer_id: null,
     scorer_name: "",
     card_type: "yellow",
+    assist_id: null,
+    assist_name: "",
     sub_in_name: "",
     sub_in_id: "",
     sub_out_name: "",
@@ -160,6 +196,7 @@
   const token = localStorage.getItem("token");
   
   onMounted(async () => {
+    updateFinalMinute(); // 保证初始值一致
     loading.value = true;
     try {
       const res = await axios.get("http://localhost:5000/api/match/today-matches", {
@@ -215,11 +252,16 @@
         match_id: matchId,
         period: form.period,
         event_minute: form.event_minute,
+        minute_note: form.minute_note,
         team_name: teamName,
         scorer_id: null,
         scorer_name: "",
         assist_id: null,
-        assist_name: null,
+        assist_name: "",
+        sub_in_id: null,
+        sub_out_id: null,
+        sub_in_name: "",
+        sub_out_name: "",
       };
   
       if (form.type === "goal") {
@@ -231,7 +273,13 @@
           form.team_side === "home"
             ? players.value.find((p) => p.id === form.scorer_id)?.name
             : form.scorer_name.trim();
-  
+
+        payload.assist_id = form.team_side === "home" ? form.assist_id : null;
+        payload.assist_name =
+          form.team_side === "home"
+            ? players.value.find((p) => p.id === form.assist_id)?.name
+            : form.assist_name.trim();
+
         await axios.post("http://localhost:5000/api/match/event/goal", payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -282,10 +330,15 @@
         type: "goal",
         period: "1H",
         event_minute: 0,
+        minute_note: "1+0",
         team_side: "home",
         scorer_id: null,
         scorer_name: "",
+        assist_id: null,
+        assist_name: "",
         card_type: "yellow",
+        sub_in_id: null,
+        sub_out_id: null,
         sub_in_name: "",
         sub_out_name: "",
       };
@@ -308,6 +361,52 @@
     const cleanPath = path.replace(/^\/+/, "");
     return path.startsWith("http") ? path : `http://localhost:5000/${cleanPath}`;
   };
+
+  const minuteRange = computed(() => {
+  switch (eventForm.value.period) {
+    case "1H": return { min: 1, max: 45 };
+    case "2H": return { min: 46, max: 90 };
+    case "ET1": return { min: 91, max: 105 };
+    case "ET2": return { min: 106, max: 120 };
+    default: return { min: 1, max: 120 };
+  }
+});
+
+const allowExtraTime = computed(() => {
+  const m = eventForm.value.main_minute;
+  return [45, 90, 105, 120].includes(m);
+});
+
+const handleMinuteChange = () => {
+  const { min, max } = minuteRange.value;
+  if (eventForm.value.main_minute < min) eventForm.value.main_minute = min;
+  if (eventForm.value.main_minute > max) eventForm.value.main_minute = max;
+
+  // 如果不是可补时时间，自动清零补时
+  if (!allowExtraTime.value) {
+    eventForm.value.extra_minute = 0;
+  }
+
+  updateFinalMinute();
+};
+
+const handleExtraTimeChange = () => {
+  if (!allowExtraTime.value) {
+    eventForm.value.extra_minute = 0;
+  } else if (eventForm.value.extra_minute > 15) {
+    eventForm.value.extra_minute = 15;
+  }
+
+  updateFinalMinute();
+};
+
+const updateFinalMinute = () => {
+  const main = eventForm.value.main_minute;
+  const extra = eventForm.value.extra_minute;
+  eventForm.value.event_minute = main + extra;
+  eventForm.value.minute_note = `${main}+${extra}`;
+};
+
   </script>
   
   <style scoped>
