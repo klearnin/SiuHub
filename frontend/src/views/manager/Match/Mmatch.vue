@@ -43,11 +43,12 @@
   
                 <label>
                   比赛阶段：
-                  <select v-model="eventForm.period">
+                  <select v-model="eventForm.period" @change="handlePeriodChange">
                     <option value="1H">上半场</option>
                     <option value="2H">下半场</option>
                     <option value="ET1">加时上半场</option>
                     <option value="ET2">加时下半场</option>
+                    <option value="PEN">点球大战</option>
                   </select>
                 </label>
   
@@ -59,6 +60,7 @@
                         :min="minuteRange.min"
                         :max="minuteRange.max"
                         @change="handleMinuteChange"
+                        :disabled="eventForm.period === 'PEN'"
                     />
                 </label>
 
@@ -84,6 +86,7 @@
   
                 <!-- 进球 -->
                 <template v-if="eventForm.type === 'goal'">
+                  <!-- 进球队员 -->
                   <label v-if="eventForm.team_side === 'home'">
                     进球队员：
                     <select v-model="eventForm.scorer_id">
@@ -95,16 +98,35 @@
                     <input type="text" v-model="eventForm.scorer_name" />
                   </label>
 
-                  <label v-if="eventForm.team_side === 'home'">
+                  <!-- 助攻队员（主队） -->
+                  <label v-if="eventForm.team_side === 'home' && eventForm.period !== 'PEN'">
                     助攻队员：
                     <select v-model="eventForm.assist_id">
-                      <option :value="null">无</option> <!-- 添加“无”选项 -->
+                      <option :value="null">无</option>
                       <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
                     </select>
                   </label>
-                  <label v-else>
+                  <label v-if="eventForm.team_side === 'home' && eventForm.period === 'PEN'">
+                    助攻队员：<span style="color: #888;">无（点球大战不设助攻）</span>
+                  </label>
+
+                  <!-- 助攻球员名称（客队） -->
+                  <label v-if="eventForm.team_side === 'away' && eventForm.period !== 'PEN'">
                     助攻球员名称：
                     <input type="text" v-model="eventForm.assist_name" placeholder="可不填，表示无助攻" />
+                  </label>
+                  <label v-if="eventForm.team_side === 'away' && eventForm.period === 'PEN'">
+                    助攻球员名称：<span style="color: #888;">无（点球大战不设助攻）</span>
+                  </label>
+
+                  <!-- 点球勾选 -->
+                  <label>
+                    <input
+                      type="checkbox"
+                      v-model="eventForm.is_penalty"
+                      :disabled="eventForm.period === 'PEN'"
+                    />
+                    是否点球
                   </label>
                 </template>
   
@@ -246,6 +268,7 @@
     sub_in_id: "",
     sub_out_name: "",
     sub_out_id: "",
+    is_penalty: false,
   });
   
   const token = localStorage.getItem("token");
@@ -317,12 +340,14 @@
         sub_out_id: null,
         sub_in_name: "",
         sub_out_name: "",
+        is_penalty: form.is_penalty,
       };
   
       if (form.type === "goal") {
         if (form.team_side === "home" && !form.scorer_id) return alert("请选择进球队员");
         if (form.team_side === "away" && !form.scorer_name.trim()) return alert("请输入球员名称");
   
+        payload.is_penalty = form.is_penalty;
         payload.scorer_id = form.team_side === "home" ? form.scorer_id : null;
         payload.scorer_name =
           form.team_side === "home"
@@ -396,6 +421,7 @@
         sub_out_id: null,
         sub_in_name: "",
         sub_out_name: "",
+        is_penalty: false,
       };
     } catch (err) {
       alert("事件录入失败，请稍后重试");
@@ -460,6 +486,18 @@ const updateFinalMinute = () => {
   const extra = eventForm.value.extra_minute;
   eventForm.value.event_minute = main + extra;
   eventForm.value.minute_note = `${main}+${extra}`;
+};
+
+const handlePeriodChange = () => {
+  if (eventForm.value.period === 'PEN') {
+    eventForm.value.main_minute = 150;
+    eventForm.value.extra_minute = 0;
+    eventForm.value.is_penalty = true;  // ✅ 自动勾选
+    updateFinalMinute();
+  } else {
+    // 可选：切换回来时取消勾选
+    eventForm.value.is_penalty = false;
+  }
 };
 
 const parseMinuteNote = (note) => {
