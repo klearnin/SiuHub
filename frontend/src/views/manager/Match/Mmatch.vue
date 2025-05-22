@@ -197,10 +197,10 @@
                         <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
                         <template v-if="row.event.is_penalty">（点球）</template>
                         </template>
-                        <template v-else-if="row.event.event_type === 'card'">
-                        <span v-if="row.event.card_type === 'red'">🟥</span>
-                        <span v-else>🟨</span>
-                        {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }}
+                        <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
+                          <span v-if="row.event.card_type === 'red'">🟥</span>
+                          <span v-else>🟨</span>
+                          {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.card_player }}
                         </template>
                         <template v-else-if="row.event.event_type === 'substitution'">
                         🔄 {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.sub_out_name }} ⬅️ {{ row.event.sub_in_name }}
