@@ -1,108 +1,163 @@
 <template>
-    <div class="coach-page">
-      <!-- 顶部导航栏 -->
-      <div class="nav-bar">
-        <router-link to="/forum" class="nav-item">论坛</router-link>
-        <router-link to="/team" class="nav-item">主队查看</router-link>
-        <router-link to="/Cschedule" class="nav-item">球队日程</router-link>
-  
-        <!-- 公告下拉 -->
-        <div 
-          class="nav-item dropdown-wrapper"
-          @mouseenter="showNoticeDropdown = true"
-          @mouseleave="showNoticeDropdown = false"
-        >
-          <div class="dropdown-trigger">
-            公告
+  <div class="coach-page">
+    <!-- 顶部导航栏 -->
+    <div class="nav-bar">
+      <router-link to="/forum" class="nav-item">论坛</router-link>
+      <router-link to="/team" class="nav-item">主队查看</router-link>
+      <router-link to="/Cschedule" class="nav-item">球队日程</router-link>
+
+      <!-- 公告下拉 -->
+      <div 
+        class="nav-item dropdown-wrapper"
+        @mouseenter="showNoticeDropdown = true"
+        @mouseleave="showNoticeDropdown = false"
+      >
+        <div class="dropdown-trigger">公告</div>
+
+        <transition name="fade-slide">
+          <div v-if="showNoticeDropdown" class="dropdown-menu">
+            <router-link to="/mnotice" class="dropdown-item">发布公告</router-link>
+            <router-link to="/mnotice_del" class="dropdown-item">管理公告</router-link>
           </div>
-  
-          <transition name="fade-slide">
-            <div v-if="showNoticeDropdown" class="dropdown-menu">
-              <router-link to="/mnotice" class="dropdown-item">发布公告</router-link>
-              <router-link to="/mnotice_del" class="dropdown-item">管理公告</router-link>
-            </div>
-          </transition>
-        </div>
-  
-        <router-link to="/tactics" class="nav-item">球队战术</router-link>
-  
-        <!-- ✅ 新增财政管理和球队历史 -->
-        <router-link to="/finance" class="nav-item">财政管理</router-link>
-        <router-link to="/history" class="nav-item">球队历史</router-link>
-  
+        </transition>
       </div>
-  
-      <!-- 右上角头像 -->
-      <div class="top-bar">
-        <div class="avatar-wrapper" @click="toggleDropdown">
-          <img :src="avatarUrl" alt="头像" class="avatar" />
-          <div v-if="dropdownVisible" class="dropdown">
-            <ul>
-              <li @click="logout">退出登录</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="match-today-wrapper" @click="goMatchToday">
-        今日比赛
-      </div>
-  
+
+      <router-link to="/tactics" class="nav-item">球队战术</router-link>
+      <router-link to="/finance" class="nav-item">财政管理</router-link>
+      <router-link to="/history" class="nav-item">球队历史</router-link>
     </div>
-  </template>
-  
-  <script setup>
-    import { ref, onMounted } from "vue";
-    import { useRouter } from "vue-router";
-    import axios from "axios";
-    import { ElMessage } from "element-plus";
-    
-    const router = useRouter();
-    const avatarUrl = ref(null);
-    const dropdownVisible = ref(false);
-    const showNoticeDropdown = ref(false);
-    
-    onMounted(() => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        const userType = payload.type;
-        console.log(`👮 页面内部检查身份: ${userType}`);
-        if (userType !== "manager") {
-          ElMessage.error("无权访问该页面");
-          router.replace("/login");
-        }
-      } else {
-        ElMessage.error("请先登录");
+
+    <!-- 右上角头像 -->
+    <div class="top-bar">
+      <div class="avatar-wrapper" @click="toggleDropdown">
+        <img :src="avatarUrl" alt="头像" class="avatar" />
+        <div v-if="dropdownVisible" class="dropdown">
+          <ul>
+            <li @click="logout">退出登录</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 今日比赛展示区 -->
+    <div class="today-match-section">
+      <h2>今日比赛</h2>
+
+      <div v-if="matches.length === 0" class="no-match">今天没有比赛安排。</div>
+
+      <ul class="match-list">
+        <li
+          v-for="match in matches"
+          :key="match.id"
+          class="match-item clickable"
+          @click="goMatchToday(match.id)"
+        >
+          <div class="match-line">
+            <span class="match-time">{{ formatTime(match.time) }}</span>
+            <img :src="fullImageUrl(match.homeLogo)" class="team-logo" alt="主队徽" />
+            <span class="team-name">{{ match.homeTeam }}</span>
+            <span class="vs">vs</span>
+            <span class="team-name">{{ match.awayTeam }}</span>
+            <img :src="fullImageUrl(match.awayLogo)" class="team-logo" alt="客队徽" />
+            <span class="match-venue">{{ match.venue }}</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
+
+<script setup>
+  import { ref, onMounted } from "vue";
+  import { useRouter } from "vue-router";
+  import axios from "axios";
+  import { ElMessage } from "element-plus";
+
+  const router = useRouter();
+  const avatarUrl = ref(null);
+  const dropdownVisible = ref(false);
+  const showNoticeDropdown = ref(false);
+
+  const matches = ref([]);
+
+  onMounted(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const userType = payload.type;
+      if (userType !== "manager") {
+        ElMessage.error("无权访问该页面");
         router.replace("/login");
       }
-    });
-    
-    onMounted(async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/user/my-avatar", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        avatarUrl.value = `http://localhost:5000${res.data.avatar}`;
-      } catch (err) {
-        console.error("获取头像失败", err);
-      }
-    });
-    
-    const toggleDropdown = () => {
-      dropdownVisible.value = !dropdownVisible.value;
-    };
-    
-    const logout = () => {
-      localStorage.removeItem("token");
-      router.push("/login");
-    };
+    } else {
+      ElMessage.error("请先登录");
+      router.replace("/login");
+    }
+  });
 
-    const goMatchToday = () => {
+  onMounted(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/user/my-avatar", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      avatarUrl.value = `http://localhost:5000${res.data.avatar}`;
+    } catch (err) {
+      console.error("获取头像失败", err);
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/match/today-matches", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      matches.value = res.data.data.map((match) => ({
+        id: match.id,
+        time: match.match_time,
+        homeTeam: match.team1_name || "未知主队",
+        awayTeam: match.team2_name || "未知客队",
+        homeLogo: match.team1_logo || "",
+        awayLogo: match.team2_logo || "",
+        venue: match.location || "未知场地",
+      }));
+    } catch (err) {
+      console.error("加载比赛信息失败", err);
+    }
+  });
+
+  const toggleDropdown = () => {
+    dropdownVisible.value = !dropdownVisible.value;
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
+  const formatTime = (timeStr) => {
+    if (typeof timeStr === "string" && /^\d{2}:\d{2}:\d{2}$/.test(timeStr)) {
+      const [hour, minute] = timeStr.split(":");
+      return `${hour}:${minute}`;
+    }
+    return "无效时间";
+  };
+
+  const fullImageUrl = (path) => {
+    if (!path) return "";
+    const cleanPath = path.replace(/^\/+/, "");
+    return path.startsWith("http") ? path : `http://localhost:5000/${cleanPath}`;
+  };
+
+  const goMatchToday = (id) => {
+    if (id) {
+      router.push(`/matchToday?id=${id}`);
+    } else {
       router.push("/matchToday");
-    };
-  
-  </script>
+    }
+  };
+
+</script>
   
   <style scoped>
   /* 完全沿用Chome.vue的样式，不变 */
@@ -293,5 +348,80 @@
   .match-today-wrapper:hover {
     background: #0097a7;
   }
-  </style>
-  
+    
+  .today-match-section {
+    max-width: 800px;
+    margin: 100px auto 40px;
+    padding: 30px 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    text-align: center;
+  }
+
+  .today-match-section h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0154a0;
+    margin-bottom: 20px;
+  }
+
+  .match-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .match-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .match-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .match-time {
+    font-weight: bold;
+    color: #555;
+    width: 60px;
+    text-align: right;
+  }
+
+  .match-venue {
+    font-size: 14px;
+    color: #999;
+    margin-left: auto;
+  }
+
+  .team-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .team-name {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .vs {
+    font-size: 14px;
+    color: #888;
+  }
+
+  .clickable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+  .clickable:hover {
+    background-color: #eef8ff;
+  }
+
+</style>  
