@@ -8,7 +8,7 @@ router.post('/create',auth,tacticsController.createTactic);
 router.get('/tlist', auth,tacticsController.getTactic);
 router.delete('/:id', auth, tacticsController.deleteTactic);
 router.put('/:id', auth, tacticsController.updateTactic);
-router.put('/:nextid', auth, tacticsController.setnext);
+router.put('/next/:id', auth, tacticsController.setnext);
 router.get('/next', auth, tacticsController.getnext);
 
 module.exports = router;

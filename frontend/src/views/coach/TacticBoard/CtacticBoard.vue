@@ -3,25 +3,28 @@
     <!-- 顶部控制栏 -->
     <div class="top-controls">
       <div class="control-group">
-
-        <label class="control-label">战术选择</label>
+        
+        <button class="primary-btn" @click="newTactic">
+             新建
+          </button>
+          <button class="primary-btn" @click="setnext">
+            设为下次战术
+          </button>
         <div class="control-items">
           <select class="styled-select" v-model="selectedTacticID" @change="setTactic">
             <option v-for="tactic in tactics" :value="tactic.id">{{tactic.tactic_name}}</option> 
-          </select>
-          
-          <button class="primary-btn" @click="newTactic">
-            <i class="icon-add"></i> 新建
-          </button>
-          <button class="success-btn" @click="saveTactic">
-            <i class="icon-save"></i> 保存
+          </select> 
+       
+         
+          <button class="save-btn" @click="saveTactic">
+             保存
           </button>
           <button class="warn-btn" @click="deleteTactic">
-            <i class="icon-delete"></i>删除
+           删除
           </button>
         
-          <button class="warn-btn" @click="back">
-            <i class="icon-back"></i> 返回
+          <button class="back-btn" @click="back">
+           返回
           </button>
         </div>
       </div>
@@ -35,7 +38,7 @@
           <h3 class="panel-title">战术设置</h3>
           <div class="form-group">
             <label class="form-label">战术风格</label>
-            <select class="styled-select" v-model="tactical_style" @change="setFormation">
+            <select class="styled-select" v-model="tactical_style" @change="1">
               <option value="防守反击">防守反击</option>
               <option value="高位压迫">高位压迫</option>
               <option value="控球">控球</option>
@@ -48,6 +51,8 @@
               <option value="442">4-4-2</option>
               <option value="433">4-3-3</option>
               <option value="352">3-5-2</option>
+              <option value="4321">4-3-2-1</option>
+              <option value="532">5-3-2</option>
             </select>
           </div>
         </div>
@@ -76,10 +81,12 @@
             v-for="player in players"
             :key="player.id"
             class="player"
+
             :style="{
               left: player.x + 'px', 
               top: player.y + 'px',
-              'background-color': getPlayerColor(player.id)
+              'background-color': getPlayerColor(player.id),
+              'background-image': `url(http://localhost:5000${player.avatar})`
             }"
             @mousedown="startDrag(player, $event)"
             @dblclick="editPlayer(player)"
@@ -103,7 +110,7 @@
             v-model="selectedPlayerId" 
             @change="updatePlayerInfo"
           >
-            <option value="">请选择球员</option>
+            
             <option  v-for="player in playerlist" :key="player.id" :value="player.id">
               {{ player.player_name }} ({{ player.player_number }})
             </option>
@@ -116,9 +123,7 @@
         </div>
         
         <div class="modal-actions">
-          <button class="primary-btn" @click="savePlayer">
-            <i class="icon-check"></i> 确认
-          </button>
+          
           <button class="cancel-btn" @click="cancelEdit">
             <i class="icon-close"></i> 取消
           </button>
@@ -152,12 +157,13 @@
   </div>
 </template>
 
+
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { id, ta } from 'element-plus/es/locale/index.mjs';
+
 
 
 const players = ref([
@@ -167,7 +173,8 @@ const players = ref([
     name: "",       // 字符串类型
     number: 0,       // 数字类型
     x: 0 ,
-    y:0
+    y:0,
+    avatar: ""      // 字符串类型
   }
 ]);
 players.value = [];
@@ -203,23 +210,61 @@ const tactical_style = ref('防守反击')
 const tactic_name=ref('')
 
 const formations = {
+  '433': [
+    { x: 52, y: 249 },
+    { x: 210, y: 58 },
+    { x: 156, y: 181 },
+    { x: 156, y: 322 },
+    { x: 188, y: 449 },
+    { x: 390, y: 233 },
+    { x: 295, y: 192 },
+    { x: 299, y: 297 },
+    { x: 447, y: 89 },
+    { x: 545, y: 229 },
+    { x: 462, y: 405 }
+  ],
+  '532': [
+    { x: 51, y: 252 },
+    { x: 175, y: 338 },
+    { x: 228, y: 14 },
+    { x: 169, y: 134 },
+    { x: 223, y: 467 },
+    { x: 459, y: 234 },
+    { x: 347, y: 316 },
+    { x: 581, y: 326 },
+    { x: 567, y: 119 },
+    { x: 175, y: 238 },
+    { x: 349, y: 157 }
+  ],
+  '4321':[ 
+    { x: 50, y: 223 },
+    { x: 147, y: 21 },
+    { x: 149, y: 170 },
+    { x: 145, y: 309 },
+    { x: 150, y: 458 },
+    { x: 401, y: 242},
+    { x: 296, y: 157 },
+    { x: 296, y: 326 },
+    { x: 490, y: 36},
+    { x: 584, y: 237 },
+    { x: 469, y: 434 }],
   '442': [
-    { x: 61, y: 275 },
-    { x: 209, y: 100 },
-    { x: 182, y: 220 },
-    { x: 173, y: 380 },
-    { x: 207, y: 499 },
-    { x: 384, y: 97 },
-    { x: 318, y: 212 },
-    { x: 318, y: 351 },
-    { x: 401, y: 484 },
-    { x: 511, y: 210 },
-    { x: 515, y: 336 }
+    { x: 57, y: 241 },
+    { x: 159, y: 335 },
+    { x: 186, y: 41 },
+    { x: 162, y: 166 },
+    { x: 186, y: 448 },
+    { x: 385, y: 63 },
+    { x: 308, y: 186 },
+    { x: 308, y: 303 },
+    { x: 383, y: 445 },
+    { x: 494, y: 170 },
+    { x: 490, y: 309 }
   ],
   '433': [
-    { x: 56, y: 275 },
+    { x: 50, y: 223 },
     { x: 210, y: 66 },
-    { x: 151, y: 221 },
+    { x: 150, y: 157 },
     { x: 150, y: 359 },
     { x: 221, y: 487 },
     { x: 264, y: 279 },
@@ -230,17 +275,17 @@ const formations = {
     { x: 482, y: 463 }
   ],
   '352': [
-    { x: 61, y: 275 },
-    { x: 180, y: 150 },
-    { x: 188, y: 280 },
-    { x: 180, y: 450 },
-    { x: 436, y: 59 },
-    { x: 426, y: 488 },
-    { x: 377, y: 196 },
-    { x: 297, y: 276 },
-    { x: 386, y: 364 },
-    { x: 550, y: 180 },
-    { x: 555, y: 357 }
+    { x: 55, y: 239 },
+    { x: 189, y: 97 },
+    { x: 180, y: 244 },
+    { x: 183, y: 383 },
+    { x: 379, y: 65 },
+    { x: 408, y: 421 },
+    { x: 300, y: 178 },
+    { x: 303, y: 304 },
+    { x: 414, y: 239 },
+    { x: 554, y: 168 },
+    { x: 557, y: 322 }
   ]
 }
 const formation = ref('442')
@@ -248,12 +293,41 @@ const formation = ref('442')
 onMounted(async () => {
   await fetchPlayerlist();
   await fetchTacticlist();
-  setFormation();
-  selectedTacticID.value=tactics.value[0].id;
+  await getNext();
+ 
+  selectedTacticID.value=next.value;
   await setTactic();
 })
 
-
+const next=ref(null);
+async function setnext() {
+  try {
+    const response=await axios.put(`http://localhost:5000/api/tactics/next/${selectedTacticID.value}`,{},{ 
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+       
+      }
+    }) ;ElMessage.success('设置下次战术成功');
+  }
+  
+  catch (error) {
+    ElMessage.error('设置下次战术失败');    
+  }
+  await getNext();
+}
+async function getNext() {
+  try {
+    const response= await axios.get("http://localhost:5000/api/tactics/next", { 
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    next.value=response.data.nexttac[0].next_id;
+  }catch (error) {
+    ElMessage.error('获取下次战术失败');
+  }
+  
+}
 async function fetchTacticlist() {
   try {
     const response = await axios.get("http://localhost:5000/api/tactics/tlist", { 
@@ -366,6 +440,7 @@ function setFormation() {
 
   players.value = formations[formation.value].map((pos, index) => ({
     id: index + 1,
+    avatar: playerlist.value[index]?.avatar || "", // 假设每个球员有一个 avat
     player_id: playerlist.value[index]?.id || 0,
     name: playerlist.value[index]?.player_name || "",
     number: playerlist.value[index]?.player_number || index + 1,
@@ -384,11 +459,13 @@ async function setTactic() {
 players.value = selectedTactic.players.map((p,index)=> ({
   id: index+1 ,
   player_id: p.player_id,
+  avatar: playerlist.value.find(pl => pl.id === p.player_id)?.avatar || "",
   name: playerlist.value.find(pl => pl.id === p.player_id)?.player_name || "",
   number: playerlist.value.find(pl => pl.id === p.player_id)?.player_number || p.id,
   x: p.Xvalue,
   y: p.Yvalue
 }))
+
   
 
   
@@ -425,7 +502,7 @@ function onDrag(event) {
     
     // 限制边界
     newX = Math.max(0, Math.min(950, newX))
-    newY = Math.max(0, Math.min(550, newY))
+    newY = Math.max(0, Math.min(500, newY))
     
     draggingPlayer.x = newX
     draggingPlayer.y = newY
@@ -456,12 +533,13 @@ function stopDrag(event) {
   
   // 确保位置在边界内
   draggingPlayer.x = Math.max(0, Math.min(950, draggingPlayer.x))
-  draggingPlayer.y = Math.max(0, Math.min(550, draggingPlayer.y))
+  draggingPlayer.y = Math.max(0, Math.min(500, draggingPlayer.y))
   
   draggingPlayer = null
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
 }
+
 // 编辑逻辑
 function editPlayer(player) {
   editingPlayer.value = player
@@ -472,17 +550,20 @@ function editPlayer(player) {
 
 function updatePlayerInfo() {
   if (!editingPlayer.value) return
-  
+ 
   const selectedPlayer = playerlist.value.find(
     p => p.id === selectedPlayerId.value
   )
-  
+ 
   if (selectedPlayer) {
     editingPlayer.value.name = selectedPlayer.player_name
     editingPlayer.value.number = selectedPlayer.player_number
     editingPlayer.value.player_id = selectedPlayer.id
+    editingPlayer.value.avatar = selectedPlayer.avatar
   }
+  savePlayer();
 }
+
 
 function savePlayer() {
   if (editingPlayer.value) {
@@ -502,6 +583,8 @@ function savePlayer() {
 }
 
 function cancelEdit() {
+
+
   editingPlayer.value = null
   selectedPlayerId.value = null
 }
@@ -632,363 +715,13 @@ body {
   width: 280px;
   padding: 20px;
   overflow-y: auto;
+
   background-color: var(--card-bg);
   border-right: 1px solid var(--border-color);
-}
-
-.field-container {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: auto;
-}
-
-/* 卡片样式 */
-.control-card {
-  background-color: var(--card-bg);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow);
-}
-
-.panel-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 16px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--primary-color);
-}
-
-/* 表单元素 */
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-label {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: #666;
-}
-
-.styled-select {
-  width: 10px;
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: rgb(129, 189, 221);
-  font-size: 14px;
-  transition: all 0.3s;
-}
-
-.styled-select:focus {
-  border-color: var(--primary-color);
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(89, 180, 95, 0.2);
-}
-
-.styled-select.small {
-  padding: 6px 10px;
-  font-size: 13px;
-}
-
-.styled-select.full-width {
-  width: 50%;
-}
-
-/* 按钮样式 */
-.primary-btn {
-  background-color: var(--primary-color);
-  color: rgb(130, 188, 243);
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: solid 1px rgb(113, 202, 243);
-  cursor: pointer;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.2s;
-}
-
-.success-btn {
-  background-color: var(--success-color);
-  color: rgb(126, 191, 232);
-  border: solid 1px rgb(113, 202, 243);
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.2s;
-}
-
-.warn-btn {
-  background-color: var(--warn-color);
-  color: rgb(113, 202, 243);
-  border: solid 1px rgb(113, 202, 243);
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.2s;
-}
-
-.cancel-btn {
-  background-color: #f0f0f0;
-  color: #666;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.2s;
-}
-
-button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-button i {
-  margin-right: 6px;
-  font-size: 14px;
-}
-
-.control-items {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-/* 球场样式 */
-.field {
-  position: relative;
-  width: 1000px;
-  height: 550px;
-  background: url('@/assets/football.svg') no-repeat center center;
-  background-size: cover;
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  border: 2px solid #fff;
-}
-
-/* 球员样式 */
-.player {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: move;
-  user-select: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
-  color: white;
-  font-weight: bold;
-}
-
-.player:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.player-number {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.player-name {
-  font-size: 12px;
-  line-height: 1.2;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
-}
-
-/* 角色分配 */
-.roles-card {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.role-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.role-label {
-  flex: 0 0 80px;
-  font-size: 13px;
-  color: #666;
-}
-
-/* 编辑弹窗 */
-.edit-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-  position: relative;
-  background-color: white;
-  border-radius: 8px;
-  padding: 24px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  animation: modalFadeIn 0.3s ease-out;
-}
-
-.modal-title {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: var(--primary-color);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 24px;
-}
-
-.number-display {
-  padding: 8px 12px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-/* 动画 */
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 响应式设计 */
-@media (max-width: 1200px) {
-  .main-content {
-    flex-direction: column;
-  }
+  border:solid rgb(134, 196, 215);
   
-  .left-panel {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-  }
-  
-  .field {
-    width: 100%;
-    height: 500px;
-  }
-}
-
-/* 图标字体 (使用Unicode或引入图标库) */
-.icon-add::before { content: "➕"; }
-.icon-save::before { content: "💾"; }
-.icon-delete::before { content: "🗑️"; }
-.icon-back::before { content: "🔙"; }
-.icon-check::before { content: "✓"; }
-.icon-close::before { content: "✕"; }
-</style>
-
-
-
-
-
-
-
-
-
-<style scoped>
-/* 基础样式 */
-:root {
-  --primary-color: #3498db;
-  --success-color: #2ecc71;
-  --warn-color: #e74c3c;
-  --bg-color: #7c96bc;
-  --card-bg: #c47878;
-  --text-color: #333;
-  --border-color: #e0e0e0;
-  --shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--text-color);
-  background-color: var(--bg-color);
-}
-
-/* 主布局 */
-.tactic-board {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color:#f9f9f9;
-}
-
-.top-controls {
-  padding: 12px 20px;
-  background-color: var(--card-bg);
-  box-shadow: var(--shadow);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-.left-panel {
-  width: 280px;
-  padding: 20px;
-  overflow-y: auto;
-  background-color: var(--card-bg);
-  border-right: 1px solid var(--border-color);
+  margin-bottom: 1%;
+  margin-left: 1%;
 }
 
 .field-container {
@@ -1058,14 +791,14 @@ body {
 /* 按钮样式 */
 .primary-btn {
   background-color: var(--primary-color);
-  color: rgb(130, 188, 243);
+  color: rgb(0, 0, 0);
   border: none;
-  padding: 8px 16px;
+  padding: 8px 15px;
   border-radius: 4px;
-  border: solid 1px rgb(113, 202, 243);
-  cursor: pointer;
+  border: solid 1px rgb(9, 78, 110);
+ 
   font-size: 14px;
-  display: inline-flex;
+ 
   align-items: center;
   transition: all 0.2s;
 }
@@ -1082,20 +815,49 @@ body {
   align-items: center;
   transition: all 0.2s;
 }
+.save-btn{
+  
 
+ width:75px;
+ height: 50px;
+  background-color: #5193d5;
+  padding: 5px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+   
+   
+}
+.back-btn{
+  background-color: #999;
+  width:75px;
+ height: 50px;
+
+  padding: 5px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+ 
+}
 .warn-btn {
-  background-color: var(--warn-color);
-  color: rgb(113, 202, 243);
-  border: solid 1px rgb(113, 202, 243);
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.2s;
+  background-color: #d53737;
+ 
+  width:75px;
+  height: 50px;
+ 
+  padding: 5px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.warn-btn:hover {
+  background-color: #cc0000;
 }
 
+.cancel-btn {
+  background-color: #999;
+  color: white;
+}
+.cancel-btn:hover {
+  background-color: #666;
+}
 .cancel-btn {
   background-color: #f0f0f0;
   color: #666;
@@ -1156,7 +918,9 @@ button i {
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   transition: transform 0.2s, box-shadow 0.2s;
   color: white;
-  font-weight: bold;
+  background-size: cover;      /* 确保图片填充整个圆形 */
+  background-position: center; /* 图片居中 */
+  background-repeat: no-repeat;
 }
 
 .player:hover {
@@ -1280,13 +1044,30 @@ button i {
   }
 }
 
-/* 图标字体 (使用Unicode或引入图标库) */
-.icon-add::before { content: "+"; }
-.icon-save::before { content: "💾"; }
-.icon-back::before { content: "←"; }
-.icon-check::before { content: "✓"; }
-.icon-close::before { content: "✕"; }
+
 </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

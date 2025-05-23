@@ -7,6 +7,7 @@ exports.getplayerlist = async (req, res, next) => {
       SELECT * FROM players where team_id = ${db.escape(user.team_id)}
     `;
     const result = await db.startQuery(sql);
+   
     res.json({ code: 0, msg: '获取成功', playerlist: result });
   } catch (err) {
     next(err);
@@ -216,13 +217,13 @@ exports.updateTactic = async (req, res, next) => {
 
 exports.setnext = async (req, res, next) => {
   try {
-    const nextId = req.params.nextid; // 从 URL 中获取 ID
+    const nextId = req.params.id; // 从 URL 中获取 ID
     const user = req.user;
 
     const nextSql = `
     INSERT INTO next_tactic (next_id, team_id)
     VALUES (${db.escape(nextId)}, ${db.escape(user.team_id)})
-    ON DUPLICATE KEY UPDATE next_id = VALUES(${db.escape(nextId)});
+    ON DUPLICATE KEY UPDATE next_id = VALUES(next_id)
     `;
 
     await db.startQuery(nextSql);
@@ -238,11 +239,12 @@ exports.getnext = async (req, res, next) => {
 
     const nextSql = `
       SELECT * FROM next_tactic
-      WHERE team_id = ${db.escape(user.team_id)})
+      WHERE team_id = ${db.escape(user.team_id)}
     `;
 
-    nexttac = db.startQuery(nextSql);
-    res.json({ code: 0, message: '设置成功', nexttac });
+    nexttac =await db.startQuery(nextSql);
+    
+    res.json({ code: 0, message: '获取成功', nexttac });
   } catch (err) {
     next(err);
   }

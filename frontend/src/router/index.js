@@ -15,7 +15,7 @@ import Fnotice from "../views/fans/Fnotice.vue";
 import Phome from "../views/player/Phome.vue";
 import Pnotice from "../views/player/Pnotice.vue";
 import Pschedule from "../views/player/Schedule/Pschedule.vue";
-
+import PtacticBoard from "../views/player/TacticBoard/PtacticBoard.vue";
 //导入教练界面
 import Chome from "../views/coach/Chome.vue";
 import Cnotice from "../views/coach/Notice/Cnotice.vue";
@@ -23,6 +23,7 @@ import Cschedule from "../views/coach/Schedule/Cschedule.vue";
 import Cnotice_del from "../views/coach/Notice/Cnotice_del.vue";
 import Ctest from "../views/coach/Ctest.vue";
 import CtacticBoard from "../views/coach/TacticBoard/CtacticBoard.vue";
+import CtacticCanvas from "../views/coach/TacticCanvas/CtacticCanvas.vue";
 
 
 //导入经理界面
@@ -53,6 +54,12 @@ const routes = [
   { path: '/chome/review', component: Review },
   { path: "/phome", component: Phome},
   { path: "/pnotice", component: Pnotice},
+  { path: "/ptacticboard", component: PtacticBoard},
+  {path: "/pschedule", component: Pschedule},
+  {path: "/ctacticcanvas", component: CtacticCanvas},
+
+
+
   { path: "/chome", component: Chome},
   { path: "/cnotice", component: Cnotice},
   { path: "/cschedule", component: Cschedule},
@@ -64,7 +71,7 @@ const routes = [
     { path: "/login", component: Login },
     {path: "/phome", component: Phome},
     {path: "/pnotice", component: Pnotice},
-    {path: "/pschedule", component: Pschedule},
+   
     {path: "/chome", component: Chome},
     {path: "/cnotice", component: Cnotice},
     {path: "/cschedule", component: Cschedule},
