@@ -52,14 +52,25 @@
           class="match-item clickable"
           @click="goMatchToday(match.id)"
         >
-          <div class="match-line">
-            <span class="match-time">{{ formatTime(match.time) }}</span>
-            <img :src="fullImageUrl(match.homeLogo)" class="team-logo" alt="主队徽" />
+          <div class="match-top-row">
+            <img :src="fullImageUrl(match.homeLogo)" class="team-logo-lg" alt="主队徽" />
             <span class="team-name">{{ match.homeTeam }}</span>
             <span class="vs">vs</span>
             <span class="team-name">{{ match.awayTeam }}</span>
-            <img :src="fullImageUrl(match.awayLogo)" class="team-logo" alt="客队徽" />
-            <span class="match-venue">{{ match.venue }}</span>
+            <template v-if="!errorLogos[`${match.id}-away`] && match.awayLogo">
+              <img
+                :src="fullImageUrl(match.awayLogo)"
+                class="team-logo-lg"
+                alt="客队徽"
+                @error="handleLogoError(match.id, 'away')"
+              />
+            </template>
+            <template v-else>
+              <div class="team-logo-placeholder">对手队徽</div>
+            </template>
+          </div>
+          <div class="match-bottom-row">
+            {{ formatTime(match.time) }} ｜ {{ match.venue }}
           </div>
         </li>
       </ul>
@@ -79,6 +90,13 @@
   const showNoticeDropdown = ref(false);
 
   const matches = ref([]);
+
+  const errorLogos = ref({});
+
+  const handleLogoError = (matchId, team) => {
+    errorLogos.value[`${matchId}-${team}`] = true;
+  };
+
 
   onMounted(() => {
     const token = localStorage.getItem("token");
@@ -422,6 +440,57 @@
 
   .clickable:hover {
     background-color: #eef8ff;
+  }
+
+  .match-item {
+    padding: 16px 12px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+  }
+
+  .match-top-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+
+  .match-bottom-row {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .team-logo-lg {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .team-name {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .vs {
+    font-size: 16px;
+    font-weight: bold;
+    color: #0154a0;
+  }
+
+  .team-logo-placeholder {
+    width: 80px;
+    height: 80px;
+    background-color: #f0f0f0; /* ✅ 更浅灰 */
+    border-radius: 50%;
+    color: #666;               /* 更柔和的文字色 */
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
 </style>  

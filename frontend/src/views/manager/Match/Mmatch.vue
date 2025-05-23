@@ -23,8 +23,18 @@
 
             <!-- 客队 -->
             <div class="team-block team-right">
-                <img :src="fullImageUrl(match.awayLogo)" class="team-logo-lg" alt="客队徽" />
-                <div class="team-name">{{ match.awayTeam }}</div>
+              <template v-if="!logoErrorMap[`${match.id}-away`] && match.awayLogo">
+                <img
+                  :src="fullImageUrl(match.awayLogo)"
+                  class="team-logo-lg"
+                  alt="客队徽"
+                  @error="handleLogoError(match.id, 'away')"
+                />
+              </template>
+              <template v-else>
+                <div class="team-logo-placeholder">对手队徽</div>
+              </template>
+              <div class="team-name">{{ match.awayTeam }}</div>
             </div>
             </div>
   
@@ -192,6 +202,7 @@
                 <div class="event-side left">
                     <template v-if="row.isHome">
                     <div class="event-content">
+                      <button class="delete-btn" @click="deleteEvent(match, row.event.id)">×</button>
                         <template v-if="row.event.event_type === 'goal'">
                         ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }} 
                         <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
@@ -214,15 +225,16 @@
                 <div class="event-side right">
                     <template v-if="row.isAway">
                     <div class="event-content">
+                      <button class="delete-btn" @click="deleteEvent(match, row.event.id)">×</button>
                         <template v-if="row.event.event_type === 'goal'">
                         ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }} 
                         <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
                         <template v-if="row.event.is_penalty">（点球）</template>
                         </template>
-                        <template v-else-if="row.event.event_type === 'card'">
+                        <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                         <span v-if="row.event.card_type === 'red'">🟥</span>
                         <span v-else>🟨</span>
-                        {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }}
+                          {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.card_player }}
                         </template>
                         <template v-else-if="row.event.event_type === 'substitution'">
                         🔄 {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.sub_out_name }} ⬅️ {{ row.event.sub_in_name }}
@@ -236,7 +248,9 @@
           </li>
         </ul>
       </div>
-  
+      <div class="back-button-wrapper">
+        <button class="back-button" @click="goBackToMhome">结束比赛录入</button>
+      </div>
       <div v-if="error" class="error">{{ error }}</div>
     </div>
   </template>
@@ -245,11 +259,22 @@
   import { ref, onMounted } from "vue";
   import axios from "axios";
   import { computed } from 'vue';
+  import { useRouter } from "vue-router";
+  const router = useRouter();
+
+  const goBackToMhome = () => {
+    router.push("/mhome"); 
+  };
   
   const matches = ref([]);
   const loading = ref(false);
   const error = ref("");
   const players = ref([]);
+  const logoErrorMap = ref({});
+
+  const handleLogoError = (matchId, team) => {
+    logoErrorMap.value[`${matchId}-${team}`] = true;
+  };
   
   const eventForm = ref({
     type: "goal",
@@ -548,6 +573,37 @@ const getUnifiedTimelineRows = (events, match) => {
   }));
 };
 
+const deleteEvent = async (match, eventId) => {
+  if (!confirm("确定要删除该事件吗？")) return;
+
+  try {
+    await axios.delete(`http://localhost:5000/api/match/event/${eventId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // 重新加载事件列表
+    const eventsRes = await axios.get("http://localhost:5000/api/match/events", {
+      params: { match_id: match.id },
+    });
+    match.events = eventsRes.data.data || [];
+
+    // 更新比分
+    const scoreRes = await axios.get("http://localhost:5000/api/match/final-score", {
+      params: { match_id: match.id },
+    });
+    const scoreData = scoreRes.data.data.score || {};
+    const homeScore = scoreData[match.homeTeam]?.goal || 0;
+    const awayScore = scoreData[match.awayTeam]?.goal || 0;
+    match.score = `${homeScore} - ${awayScore}`;
+
+    alert("事件已删除");
+  } catch (err) {
+    console.error("删除事件失败", err);
+    alert("删除失败，请稍后重试");
+  }
+};
+
+
   </script>
   
   <style scoped>
@@ -803,6 +859,56 @@ const getUnifiedTimelineRows = (events, match) => {
 .match-venue {
   font-size: 14px;
   color: #666;
+}
+
+.back-button-wrapper {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.back-button {
+  background-color: #0154a0;
+  color: white;
+  padding: 10px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s;
+}
+
+.back-button:hover {
+  background-color: #023e73;
+}
+
+  .team-logo-placeholder {
+    width: 68px;
+    height:68px;
+    background-color: #f0f0f0; /* ✅ 更浅灰 */
+    border-radius: 50%;
+    color: #666;               /* 更柔和的文字色 */
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .delete-btn {
+  background: transparent;
+  border: none;
+  color: #d9534f;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  float: right;
+  margin-left: 6px;
+  padding: 0;
+}
+
+.delete-btn:hover {
+  color: #b52b27;
 }
 
   </style>
