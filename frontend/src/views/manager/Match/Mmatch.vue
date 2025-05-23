@@ -65,28 +65,28 @@
                   </select>
                 </label>
   
-                <label>
-                    时间（分钟）：
-                    <input
-                        type="number"
-                        v-model.number="eventForm.main_minute"
-                        :min="minuteRange.min"
-                        :max="minuteRange.max"
-                        @change="handleMinuteChange"
-                        :disabled="eventForm.period === 'PEN'"
-                    />
+                <!-- 仅非点球大战时显示 -->
+                <label v-if="eventForm.period !== 'PEN'">
+                  时间（分钟）：
+                  <input
+                    type="number"
+                    v-model.number="eventForm.main_minute"
+                    :min="minuteRange.min"
+                    :max="minuteRange.max"
+                    @change="handleMinuteChange"
+                  />
                 </label>
 
-                <label>
-                    补时：
-                    <input
-                        type="number"
-                        v-model.number="eventForm.extra_minute"
-                        :disabled="!allowExtraTime"
-                        min="0"
-                        max="15"
-                        @change="handleExtraTimeChange"
-                    />
+                <label v-if="eventForm.period !== 'PEN'">
+                  补时：
+                  <input
+                    type="number"
+                    v-model.number="eventForm.extra_minute"
+                    :disabled="!allowExtraTime"
+                    min="0"
+                    max="15"
+                    @change="handleExtraTimeChange"
+                  />
                 </label>
 
                 <label>
@@ -236,10 +236,10 @@
                         <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
                         <template v-if="row.event.is_penalty">（点球）</template>
                         </template>
-                        <template v-else-if="row.event.event_type === 'penalty'">
-                        ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.player_name }}
-                        <template v-if="row.event.result === 'score'">（罚进）</template>
-                        <template v-else>（未进）</template>
+                        <template v-if="row.event.event_type === 'penalty'">
+                          ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.penalty_player }}
+                          <template v-if="row.event.penalty_result === 'score'">（罚进）</template>
+                          <template v-else>（未进）</template>
                         </template>
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                           <span v-if="row.event.card_type === 'red'">🟥</span>
@@ -264,10 +264,10 @@
                         <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
                         <template v-if="row.event.is_penalty">（点球）</template>
                         </template>
-                        <template v-else-if="row.event.event_type === 'penalty'">
-                        ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.player_name }}
-                        <template v-if="row.event.result === 'score'">（罚进）</template>
-                        <template v-else>（未进）</template>
+                        <template v-if="row.event.event_type === 'penalty'">
+                          ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.penalty_player }}
+                          <template v-if="row.event.penalty_result === 'score'">（罚进）</template>
+                          <template v-else>（未进）</template>
                         </template>
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                         <span v-if="row.event.card_type === 'red'">🟥</span>
@@ -372,8 +372,6 @@
         const scoreRes = await axios.get("http://localhost:5000/api/match/final-score", {
           params: { match_id: match.id },
         });
-
-        console.log("最终比分数据：", scoreRes.data.data);
 
         const scoreData = scoreRes.data.data.score || {};
         const homeScore = scoreData[match.homeTeam]?.goal || 0;
@@ -669,12 +667,15 @@ const getUnifiedTimelineRows = (events, match) => {
     return pa.extra - pb.extra;
   });
 
-  return all.map(e => ({
-    time: e.minute_note,
-    isHome: e.team_name === match.homeTeam,
-    isAway: e.team_name === match.awayTeam,
-    event: e,
-  }));
+  return all.map(e => {
+    console.log("事件详情：", e);  // ✅ 加在这里
+    return {
+      time: e.minute_note,
+      isHome: e.team_name === match.homeTeam,
+      isAway: e.team_name === match.awayTeam,
+      event: e,
+    };
+  });
 };
 
 const deleteEvent = async (match, eventId) => {
