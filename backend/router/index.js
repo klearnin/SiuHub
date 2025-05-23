@@ -12,6 +12,8 @@ router.use('/schedule', scheduleRouter);
 
 router.use("/forum", require("./forum"));
 router.use("/match", require("./match"));
+router.use("/honor", require("./honor"));
+router.use("/finance", require("./finance"));
 
 
 module.exports = router
