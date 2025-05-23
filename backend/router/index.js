@@ -14,6 +14,6 @@ router.use("/forum", require("./forum"));
 router.use("/match", require("./match"));
 router.use("/honor", require("./honor"));
 router.use("/finance", require("./finance"));
-
+router.use("/tactics", require("./tactics"));
 
 module.exports = router

@@ -5,7 +5,7 @@
       <router-link to="/forum" class="nav-item">论坛</router-link>
       <router-link to="/team" class="nav-item">主队查看</router-link>
       <router-link to="/Cschedule" class="nav-item">球队日程</router-link>
-
+      <router-link to="/ctacticcanvas" class="nav-item">战术画板</router-link>
       <!-- 公告下拉 -->
       <!-- 修改后 -->
       <div 
@@ -54,7 +54,8 @@
         <el-button @click="updateInviteCode">更新</el-button>
       </div>
     </el-dialog>
-    <div class="container">
+    
+    <!--转转转 <div class="container">
     <div class="item">
       <img src="../../assets/1.jpg" alt="" />
     </div>
@@ -67,7 +68,7 @@
     </div> <div class="item">
       <img src="../../assets/5.jpg" alt="" />
     </div>
-</div>
+</div>-->
   </div>
 </template>
 

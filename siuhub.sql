@@ -58,7 +58,19 @@ INSERT INTO users (
   'approved',                  -- 状态
   '/public/avatars/version.jpg'
 );
-
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_001',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678925',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
 
 CREATE TABLE teams (
   id VARCHAR(100) PRIMARY KEY COMMENT '球队ID',
@@ -317,3 +329,106 @@ CREATE TABLE finance_records (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
 );
+
+CREATE TABLE players (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  player_number INT NOT NULL,
+  player_name VARCHAR(100),
+  avatar VARCHAR(200) COMMENT '头像本地路径',
+  team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+  user_id VARCHAR(100),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('1','player_1','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('2','player_2','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('3','player_3','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('4','player_4','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('5','player_5','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('6','player_6','team_001','/public/avatars/1746619913987.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('7','player_7','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('8','player_8','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('9','player_9','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('10','player_10','team_001','/public/avatars/version.jpg');
+
+INSERT INTO players(player_number,player_name,team_id,avatar)
+VALUES('11','player_11','team_001','/public/avatars/version.jpg');
+
+CREATE TABLE tactics (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  tactic_name VARCHAR(100),
+  style VARCHAR(100),
+  team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tactic_player (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  Xvalue INT,
+  Yvalue INT,
+  tactic_id INT NOT NULL,
+  FOREIGN KEY (tactic_id) REFERENCES tactics(id) ON DELETE CASCADE,
+  player_id INT NOT NULL,
+  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tactic_characters(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  right_corner INT,
+  left_corner INT,
+  penalty_kicker INT,
+  short_freekick INT,
+  long_freekick INT,
+  captain INT,
+  FOREIGN KEY (right_corner) REFERENCES players(id) ON DELETE SET NULL,
+  FOREIGN KEY (left_corner) REFERENCES players(id) ON DELETE SET NULL,
+  FOREIGN KEY (penalty_kicker) REFERENCES players(id) ON DELETE SET NULL,
+  FOREIGN KEY (short_freekick) REFERENCES players(id) ON DELETE SET NULL,
+  FOREIGN KEY (long_freekick ) REFERENCES players(id) ON DELETE SET NULL,
+  FOREIGN KEY (captain) REFERENCES players(id) ON DELETE SET NULL,
+  tactic_id INT NOT NULL,
+  FOREIGN KEY (tactic_id) REFERENCES tactics(id) ON DELETE CASCADE
+);
+
+CREATE TABLE next_tactic(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  next_id INT,
+  FOREIGN KEY (next_id) REFERENCES tactics(id) ON DELETE CASCADE,
+  team_id VARCHAR(100) NOT NULL UNIQUE COMMENT '所属球队ID',
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
+
+INSERT INTO tactics(tactic_name,style,team_id)
+VALUES('test_1','防守反击','team_001');
+
+INSERT INTO tactic_player(Xvalue,Yvalue,tactic_id,player_id)
+VALUES('1','2','1','1');
+
+INSERT INTO tactic_player(Xvalue,Yvalue,tactic_id,player_id)
+VALUES('2','4','1','2');
+
+INSERT INTO tactic_characters(right_corner,left_corner,penalty_kicker,short_freekick,long_freekick,captain,tactic_id)
+VALUES(1,1,1,1,1,2,1);
+
+INSERT INTO next_tactic(next_id,team_id)
+VALUES('1','team_001');
