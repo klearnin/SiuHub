@@ -18,6 +18,9 @@
             <div class="match-center-info">
                 <div class="match-time">{{ formatTime(match.time) }}</div>
                 <div class="match-score">{{ match.score }}</div>
+                <div class="penalty-score" v-if="match.penaltyScore">
+                  点球比分：{{ match.penaltyScore }}
+                </div>
                 <div class="match-venue">{{ match.venue }}</div>
             </div>
 
@@ -95,8 +98,29 @@
                 </label>
   
                 <!-- 进球 -->
-                <template v-if="eventForm.type === 'goal'">
-                  <!-- 进球队员 -->
+                <!-- 仅点球大战时显示 -->
+                <template v-if="eventForm.type === 'goal' && eventForm.period === 'PEN'">
+                  <label v-if="eventForm.team_side === 'home'">
+                    罚球球员：
+                    <select v-model="eventForm.scorer_id">
+                      <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
+                    </select>
+                  </label>
+                  <label v-else>
+                    罚球球员名称：
+                    <input type="text" v-model="eventForm.scorer_name" />
+                  </label>
+
+                  <label>
+                    罚球结果：
+                    <select v-model="eventForm.penalty_result">
+                      <option value="score">罚进</option>
+                      <option value="miss">未进</option>
+                    </select>
+                  </label>
+                </template>
+
+                  <template v-if="eventForm.period !== 'PEN' && eventForm.type === 'goal'">
                   <label v-if="eventForm.team_side === 'home'">
                     进球队员：
                     <select v-model="eventForm.scorer_id">
@@ -108,36 +132,40 @@
                     <input type="text" v-model="eventForm.scorer_name" />
                   </label>
 
-                  <!-- 助攻队员（主队） -->
-                  <label v-if="eventForm.team_side === 'home' && eventForm.period !== 'PEN'">
+                <!-- 助攻队员（主队） -->
+                <template v-if="eventForm.team_side === 'home'">
+                  <label v-if="!eventForm.is_penalty">
                     助攻队员：
                     <select v-model="eventForm.assist_id">
                       <option :value="null">无</option>
                       <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
                     </select>
                   </label>
-                  <label v-if="eventForm.team_side === 'home' && eventForm.period === 'PEN'">
-                    助攻队员：<span style="color: #888;">无（点球大战不设助攻）</span>
+                  <label v-else>
+                    助攻队员：<span style="color: #888;">无（点球不设助攻）</span>
                   </label>
+                </template>
 
-                  <!-- 助攻球员名称（客队） -->
-                  <label v-if="eventForm.team_side === 'away' && eventForm.period !== 'PEN'">
+                <!-- 助攻球员名称（客队） -->
+                <template v-if="eventForm.team_side === 'away'">
+                  <label v-if="!eventForm.is_penalty">
                     助攻球员名称：
                     <input type="text" v-model="eventForm.assist_name" placeholder="可不填，表示无助攻" />
                   </label>
-                  <label v-if="eventForm.team_side === 'away' && eventForm.period === 'PEN'">
-                    助攻球员名称：<span style="color: #888;">无（点球大战不设助攻）</span>
+                  <label v-else>
+                    助攻球员名称：<span style="color: #888;">无（点球不设助攻）</span>
                   </label>
+                </template>
 
-                  <!-- 点球勾选 -->
-                  <label>
-                    <input
-                      type="checkbox"
-                      v-model="eventForm.is_penalty"
-                      :disabled="eventForm.period === 'PEN'"
-                    />
-                    是否点球
-                  </label>
+                <!-- 点球勾选 -->
+                <label>
+                  <input
+                    type="checkbox"
+                    v-model="eventForm.is_penalty"
+                    :disabled="eventForm.period === 'PEN'"
+                  />
+                  是否点球
+                </label>
                 </template>
   
                 <!-- 红黄牌 -->
@@ -208,6 +236,11 @@
                         <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
                         <template v-if="row.event.is_penalty">（点球）</template>
                         </template>
+                        <template v-else-if="row.event.event_type === 'penalty'">
+                        ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.player_name }}
+                        <template v-if="row.event.result === 'score'">（罚进）</template>
+                        <template v-else>（未进）</template>
+                        </template>
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                           <span v-if="row.event.card_type === 'red'">🟥</span>
                           <span v-else>🟨</span>
@@ -230,6 +263,11 @@
                         ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }} 
                         <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
                         <template v-if="row.event.is_penalty">（点球）</template>
+                        </template>
+                        <template v-else-if="row.event.event_type === 'penalty'">
+                        ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.player_name }}
+                        <template v-if="row.event.result === 'score'">（罚进）</template>
+                        <template v-else>（未进）</template>
                         </template>
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                         <span v-if="row.event.card_type === 'red'">🟥</span>
@@ -256,9 +294,10 @@
   </template>
   
   <script setup>
-  import { ref, onMounted } from "vue";
+  import { ref, onMounted, watch } from "vue";
   import axios from "axios";
   import { computed } from 'vue';
+  import { ElMessage, ElMessageBox } from 'element-plus';
   import { useRouter } from "vue-router";
   const router = useRouter();
 
@@ -294,6 +333,7 @@
     sub_out_name: "",
     sub_out_id: "",
     is_penalty: false,
+    penalty_result: "score",
   });
   
   const token = localStorage.getItem("token");
@@ -332,10 +372,23 @@
         const scoreRes = await axios.get("http://localhost:5000/api/match/final-score", {
           params: { match_id: match.id },
         });
+
+        console.log("最终比分数据：", scoreRes.data.data);
+
         const scoreData = scoreRes.data.data.score || {};
         const homeScore = scoreData[match.homeTeam]?.goal || 0;
         const awayScore = scoreData[match.awayTeam]?.goal || 0;
+        match.penaltyScore = scoreData.penalty || null;
         match.score = `${homeScore} - ${awayScore}`;
+        if (scoreRes.data.data.has_penalty_shootout) {
+          const homePenalty = scoreData[match.homeTeam]?.penalty ?? null;
+          const awayPenalty = scoreData[match.awayTeam]?.penalty ?? null;
+
+          if (homePenalty !== null && awayPenalty !== null) {
+            match.penaltyScore = `${homePenalty} - ${awayPenalty}`;
+          }
+        }
+
       }
     } catch (err) {
       error.value = "加载比赛信息失败，请稍后重试";
@@ -344,6 +397,14 @@
       loading.value = false;
     }
   });
+
+  watch(() => eventForm.value.is_penalty, (val) => {
+  if (val) {
+    eventForm.value.assist_id = null;
+    eventForm.value.assist_name = "";
+  }
+});
+
   
   const submitEvent = async (matchId) => {
     try {
@@ -368,9 +429,41 @@
         is_penalty: form.is_penalty,
       };
   
-      if (form.type === "goal") {
-        if (form.team_side === "home" && !form.scorer_id) return alert("请选择进球队员");
-        if (form.team_side === "away" && !form.scorer_name.trim()) return alert("请输入球员名称");
+      if (form.type === "goal" && form.period === "PEN") {
+        // 点球大战逻辑
+        if (form.team_side === "home" && !form.scorer_id) {
+          return ElMessage.warning("请选择罚球球员");
+        }
+        if (form.team_side === "away" && !form.scorer_name.trim()) {
+          return ElMessage.warning("请输入罚球球员名称");
+        }
+        if (!form.penalty_result) {
+          return ElMessage.warning("请选择罚球结果");
+        }
+
+        const penaltyPayload = {
+          match_id: matchId,
+          period: "PEN",
+          event_minute: 150,
+          minute_note: "点球大战",
+          team_name: teamName,
+          player_id: form.team_side === "home" ? form.scorer_id : null,
+          player_name: form.team_side === "home"
+            ? players.value.find((p) => p.id === form.scorer_id)?.name
+            : form.scorer_name.trim(),
+          result: form.penalty_result, // "score" or "miss"
+        };
+
+        await axios.post("http://localhost:5000/api/match/event/penalty", penaltyPayload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        ElMessage.success("点球事件添加成功");
+      }
+
+      if (form.type === "goal" && form.period != "PEN") {
+      if (form.team_side === "home" && !form.scorer_id) return ElMessage.warning("请选择进球队员");
+      if (form.team_side === "away" && !form.scorer_name.trim()) return ElMessage.warning("请输入球员名称");
   
         payload.is_penalty = form.is_penalty;
         payload.scorer_id = form.team_side === "home" ? form.scorer_id : null;
@@ -418,7 +511,10 @@
         });
       }
   
-      alert("事件录入成功！");
+      await ElMessageBox.alert(`事件录入成功！\n提交时间：${new Date().toLocaleString()}`, '提交成功', {
+        confirmButtonText: '确定',
+        type: 'success',
+      });
       const eventsRes = await axios.get("http://localhost:5000/api/match/events", {
         params: { match_id: matchId },
       });
@@ -447,9 +543,13 @@
         sub_in_name: "",
         sub_out_name: "",
         is_penalty: false,
+        penalty_result: "",
       };
     } catch (err) {
-      alert("事件录入失败，请稍后重试");
+      ElMessageBox.alert("事件录入失败，请稍后重试", "录入失败", {
+        type: "error",
+        confirmButtonText: "确定",
+      });
       console.error(err);
     }
   };
@@ -526,6 +626,9 @@ const handlePeriodChange = () => {
 };
 
 const parseMinuteNote = (note) => {
+  if (note === '点球大战') {
+    return { main: 999, extra: 0 }; // ✅ 永远排在最后
+  }
   const [mainStr, extraStr] = note.split('+');
   return {
     main: parseInt(mainStr || '0', 10),
@@ -550,9 +653,10 @@ const sortedEvents = (events, side, match) => {
 
 function formatMinuteNote(note) {
   if (!note) return '';
+  if (note === '点球大战') return '点球大战';  // ✅ 新增
   const parts = note.split('+');
   if (parts.length === 2 && parts[1] === '0') {
-    return parts[0];  // 只显示加号前面的数字
+    return parts[0];
   }
   return note;
 }
@@ -574,9 +678,13 @@ const getUnifiedTimelineRows = (events, match) => {
 };
 
 const deleteEvent = async (match, eventId) => {
-  if (!confirm("确定要删除该事件吗？")) return;
-
   try {
+    await ElMessageBox.confirm("确定要删除该事件吗？", "确认操作", {
+      confirmButtonText: "删除",
+      cancelButtonText: "取消",
+      type: "warning",
+    });
+
     await axios.delete(`http://localhost:5000/api/match/event/${eventId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -592,17 +700,22 @@ const deleteEvent = async (match, eventId) => {
       params: { match_id: match.id },
     });
     const scoreData = scoreRes.data.data.score || {};
-    const homeScore = scoreData[match.homeTeam]?.goal || 0;
-    const awayScore = scoreData[match.awayTeam]?.goal || 0;
-    match.score = `${homeScore} - ${awayScore}`;
+    match.score = `${scoreData[match.homeTeam]?.goal || 0} - ${scoreData[match.awayTeam]?.goal || 0}`;
 
-    alert("事件已删除");
+    await ElMessageBox.alert("事件已成功删除", "操作完成", {
+      type: "success",
+      confirmButtonText: "好的",
+    });
   } catch (err) {
-    console.error("删除事件失败", err);
-    alert("删除失败，请稍后重试");
+    if (err !== 'cancel') {
+      console.error("删除事件失败", err);
+      ElMessageBox.alert("删除失败，请稍后重试", "删除失败", {
+        type: "error",
+        confirmButtonText: "关闭",
+      });
+    }
   }
 };
-
 
   </script>
   
@@ -788,21 +901,31 @@ const deleteEvent = async (match, eventId) => {
 
 .event-time {
   width: 10%;
+  position: relative;
   text-align: center;
   font-weight: bold;
   color: #555;
-  position: relative;
+  padding: 0 10px; /* ⬅️ 增加整体空间 */
+}
+
+.event-time::before,
+.event-time::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 25%; /* ⬅️ 缩短线条长度 */
+  height: 2px;
+  background-color: #aaa;
 }
 
 .event-time::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background-color: #aaa;
-  transform: translateX(-50%);
+  right: 80%; /* ⬅️ 增加左边线与数字的间距 */
+  transform: translateY(-50%);
+}
+
+.event-time::after {
+  left: 80%; /* ⬅️ 增加右边线与数字的间距 */
+  transform: translateY(-50%);
 }
 
 .match-info-wrapper {
@@ -909,6 +1032,13 @@ const deleteEvent = async (match, eventId) => {
 
 .delete-btn:hover {
   color: #b52b27;
+}
+
+.penalty-score {
+  font-size: 12px;
+  color: #666;
+  margin-top: -6px;
+  margin-bottom: 8px;
 }
 
   </style>
