@@ -286,3 +286,34 @@ CREATE TABLE match_penalties (
 );
 
 
+-- 球队荣誉表
+CREATE TABLE team_honors (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  team_id VARCHAR(100) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  honor_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
+
+-- 个人荣誉表
+CREATE TABLE personal_honors (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id VARCHAR(100) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  honor_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 资金变更信息表
+CREATE TABLE finance_records (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  team_id VARCHAR(100) NOT NULL,
+  amount DECIMAL(12,2) NOT NULL COMMENT '变更金额，正数为收入，负数为支出',
+  reason TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);

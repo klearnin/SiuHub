@@ -3,7 +3,7 @@ const db = require("../database");
 // 获取今日比赛对阵信息
 exports.getTodayMatches = async (req, res, next) => {
   try {
-    const today = new Date().toISOString().split("T")[0]; // 形如 '2025-05-15'
+    const today = new Date().toISOString().split("T")[0];
 
     const matches = await db.startQuery(`
       SELECT 
@@ -11,14 +11,14 @@ exports.getTodayMatches = async (req, res, next) => {
         s.date AS match_date,
         m.match_time,
         m.location,
-        t1.name AS team1_name,
-        t2.name AS team2_name,
+        m.team1 AS team1_name,
+        m.team2 AS team2_name,
         t1.logo_path AS team1_logo,
         t2.logo_path AS team2_logo
       FROM match_schedule m
       JOIN schedule s ON m.schedule_id = s.id
-      JOIN teams t1 ON m.team1 = t1.name
-      JOIN teams t2 ON m.team2 = t2.name
+      LEFT JOIN teams t1 ON m.team1 = t1.name
+      LEFT JOIN teams t2 ON m.team2 = t2.name
       WHERE s.date = ?
       ORDER BY m.match_time ASC
     `, [today]);
@@ -28,6 +28,7 @@ exports.getTodayMatches = async (req, res, next) => {
     next(err);
   }
 };
+
 
 
 exports.addGoalEvent = async (req, res, next) => {
