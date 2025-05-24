@@ -354,7 +354,7 @@ CREATE TABLE finance_records (
 
 CREATE TABLE players (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  player_number INT NOT NULL,
+  player_number INT,
   player_name VARCHAR(100),
   avatar VARCHAR(200) COMMENT '头像本地路径',
   team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
@@ -379,7 +379,7 @@ INSERT INTO players(player_number,player_name,team_id,avatar)
 VALUES('5','player_5','team_001','/public/avatars/version.jpg');
 
 INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('6','player_6','team_001','/public/avatars/1746619913987.jpg');
+VALUES('6','player_6','team_001','/public/avatars/default.png');
 
 INSERT INTO players(player_number,player_name,team_id,avatar)
 VALUES('7','player_7','team_001','/public/avatars/version.jpg');
