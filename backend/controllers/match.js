@@ -19,7 +19,7 @@ exports.getTodayMatches = async (req, res, next) => {
       JOIN schedule s ON m.schedule_id = s.id
       LEFT JOIN teams t1 ON m.team1 = t1.name
       LEFT JOIN teams t2 ON m.team2 = t2.name
-      WHERE s.date = ?
+      WHERE s.date = ? AND s.type = 'match'
       ORDER BY m.match_time ASC
     `, [today]);
 
@@ -272,4 +272,30 @@ exports.getFinalMatchScore = async (req, res, next) => {
       next(err);
     }
 };
-  
+
+// 标记比赛为past_match
+exports.markMatchAsFinished = async (req, res, next) => {
+  try {
+    const { match_id } = req.params;
+
+    // 找到 match_schedule 对应的 schedule_id
+    const [match] = await db.startQuery(
+      `SELECT schedule_id FROM match_schedule WHERE id = ?`,
+      [match_id]
+    );
+
+    if (!match) {
+      return res.status(404).json({ msg: "未找到对应比赛记录" });
+    }
+
+    await db.startQuery(
+      `UPDATE schedule SET type = 'past_match' WHERE id = ?`,
+      [match.schedule_id]
+    );
+
+    res.json({ code: 0, msg: "比赛状态已更新为 past_match" });
+  } catch (err) {
+    next(err);
+  }
+};
+

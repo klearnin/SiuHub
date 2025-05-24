@@ -301,9 +301,37 @@
   import { useRouter } from "vue-router";
   const router = useRouter();
 
-  const goBackToMhome = () => {
-    router.push("/mhome"); 
-  };
+  const goBackToMhome = async () => {
+  try {
+    const match = matches.value[0];
+    if (!match) {
+      ElMessage.warning("无可结束的比赛");
+      return;
+    }
+
+    await ElMessageBox.confirm(
+      `确定要结束当前比赛录入吗？操作完成后该比赛将无法再次录入信息`,
+      '确认结束比赛',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+
+    await axios.patch(`http://localhost:5000/api/match/mark-finished/${match.id}`);
+
+    ElMessage.success("比赛已成功结束！");
+    router.push("/mhome");
+
+  } catch (err) {
+    if (err !== 'cancel') {
+      console.error("结束比赛失败", err);
+      ElMessage.error("结束比赛失败，请稍后重试");
+    }
+  }
+};
+
   
   const matches = ref([]);
   const loading = ref(false);

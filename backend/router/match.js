@@ -24,4 +24,7 @@ router.delete("/event/:event_id", matchController.deleteMatchEvent);
 // 获取最终比分（含点球，若有）
 router.get("/final-score", matchController.getFinalMatchScore);
 
+router.patch('/mark-finished/:match_id',  matchController.markMatchAsFinished);
+
+
 module.exports = router;

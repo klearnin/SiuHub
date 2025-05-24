@@ -48,6 +48,19 @@ INSERT INTO users (
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
+  'coach_002',         -- 用户 ID
+  '测试教练2',                 -- 昵称
+  '13345678912',              -- 手机号
+  'coach2@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'coach',                      -- 用户类型，可换成 'coach' 或其他
+  'team_002',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/default.png'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
   'manager_001',         -- 用户 ID
   '测试经理',                 -- 昵称
   '12345678904',              -- 手机号
@@ -91,6 +104,15 @@ INSERT INTO teams (
   '/public/team-logos/version.jpg',
   'invite001',
   'coach_001');
+INSERT INTO teams (
+  id, name, abbr, logo_path, invite_code, creator_id
+) VALUES (
+  'team_002',
+  '测试队伍2',
+  'TEST2',
+  '/public/team-logos/default.png',
+  'invite002',
+  'coach_002');
  
 
 
