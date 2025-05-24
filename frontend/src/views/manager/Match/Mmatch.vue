@@ -42,20 +42,21 @@
             </div>
   
             <!-- 事件录入表单 -->
-            <div class="event-form">
+            <div class="match-columns">
+              <div class="event-form">
               <h3>录入比赛事件</h3>
               <form @submit.prevent="submitEvent(match.id)">
                 <label>
-                  事件类型：
+                  <span class="label-text">事件类型：</span>
                   <select v-model="eventForm.type">
                     <option value="goal">进球</option>
                     <option value="card">红黄牌</option>
-                    <option value="substitution">换人</option>
+                    <option v-if="eventForm.period !== 'PEN'" value="substitution">换人</option>
                   </select>
                 </label>
   
                 <label>
-                  比赛阶段：
+                  <span class="label-text">比赛阶段：</span>
                   <select v-model="eventForm.period" @change="handlePeriodChange">
                     <option value="1H">上半场</option>
                     <option value="2H">下半场</option>
@@ -67,7 +68,7 @@
   
                 <!-- 仅非点球大战时显示 -->
                 <label v-if="eventForm.period !== 'PEN'">
-                  时间（分钟）：
+                  <span class="label-text">时间（分钟）：</span>
                   <input
                     type="number"
                     v-model.number="eventForm.main_minute"
@@ -78,7 +79,7 @@
                 </label>
 
                 <label v-if="eventForm.period !== 'PEN'">
-                  补时：
+                  <span class="label-text">补时：</span>
                   <input
                     type="number"
                     v-model.number="eventForm.extra_minute"
@@ -90,7 +91,7 @@
                 </label>
 
                 <label>
-                  所属球队：
+                  <span class="label-text">所属球队：</span>
                   <select v-model="eventForm.team_side">
                     <option value="home">本方</option>
                     <option value="away">对方</option>
@@ -101,18 +102,18 @@
                 <!-- 仅点球大战时显示 -->
                 <template v-if="eventForm.type === 'goal' && eventForm.period === 'PEN'">
                   <label v-if="eventForm.team_side === 'home'">
-                    罚球球员：
+                    <span class="label-text">罚球球员：</span>
                     <select v-model="eventForm.scorer_id">
                       <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
                     </select>
                   </label>
                   <label v-else>
-                    罚球球员名称：
+                    <span class="label-text">罚球球员名称：</span>
                     <input type="text" v-model="eventForm.scorer_name" />
                   </label>
 
                   <label>
-                    罚球结果：
+                    <span class="label-text">罚球结果：</span>
                     <select v-model="eventForm.penalty_result">
                       <option value="score">罚进</option>
                       <option value="miss">未进</option>
@@ -122,38 +123,39 @@
 
                   <template v-if="eventForm.period !== 'PEN' && eventForm.type === 'goal'">
                   <label v-if="eventForm.team_side === 'home'">
-                    进球队员：
+                    <span class="label-text">进球队员：</span>
                     <select v-model="eventForm.scorer_id">
                       <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
                     </select>
                   </label>
                   <label v-else>
-                    进球球员名称：
+                    <span class="label-text">进球球员名称：</span>
                     <input type="text" v-model="eventForm.scorer_name" />
                   </label>
 
                 <!-- 助攻队员（主队） -->
                 <template v-if="eventForm.team_side === 'home'">
                   <label v-if="!eventForm.is_penalty">
-                    助攻队员：
+                    <span class="label-text">助攻队员：</span>
                     <select v-model="eventForm.assist_id">
                       <option :value="null">无</option>
                       <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
                     </select>
                   </label>
                   <label v-else>
-                    助攻队员：<span style="color: #888;">无（点球不设助攻）</span>
+                    <span class="label-text">助攻队员：</span>
+                    <span style="color: #888;">无（点球不设助攻）</span>
                   </label>
                 </template>
 
                 <!-- 助攻球员名称（客队） -->
                 <template v-if="eventForm.team_side === 'away'">
                   <label v-if="!eventForm.is_penalty">
-                    助攻球员名称：
+                    <span class="label-text">助攻球员名称：</span>
                     <input type="text" v-model="eventForm.assist_name" placeholder="可不填，表示无助攻" />
                   </label>
                   <label v-else>
-                    助攻球员名称：<span style="color: #888;">无（点球不设助攻）</span>
+                    <span class="label-text">助攻球员名称：</span><span style="color: #888;">无（点球不设助攻）</span>
                   </label>
                 </template>
 
@@ -171,17 +173,17 @@
                 <!-- 红黄牌 -->
                 <template v-if="eventForm.type === 'card'">
                   <label v-if="eventForm.team_side === 'home'">
-                    球员：
+                    <span class="label-text">球员：</span>
                     <select v-model="eventForm.scorer_id">
                       <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
                     </select>
                   </label>
                   <label v-else>
-                    球员名称：
+                    <span class="label-text">球员名称：</span>
                     <input type="text" v-model="eventForm.scorer_name" />
                   </label>
                   <label>
-                    红黄牌类型：
+                    <span class="label-text">红黄牌类型：</span>
                     <select v-model="eventForm.card_type">
                       <option value="yellow">黄牌</option>
                       <option value="red">红牌</option>
@@ -192,24 +194,24 @@
                 <!-- 换人 -->
                 <template v-if="eventForm.type === 'substitution'">
                   <label v-if="eventForm.team_side === 'home'">
-                    换上球员：
+                    <span class="label-text">换上球员：</span>
                     <select v-model="eventForm.sub_in_id">
                       <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
                     </select>
                   </label>
                   <label v-else>
-                    换上球员：
+                    <span class="label-text">换上球员：</span>
                     <input type="text" v-model="eventForm.sub_in_name" />
                   </label>
   
                   <label v-if="eventForm.team_side === 'home'">
-                    换下球员：
+                    <span class="label-text">换下球员：</span>
                     <select v-model="eventForm.sub_out_id">
                       <option v-for="player in players" :key="player.id" :value="player.id">{{ player.name }}</option>
                     </select>
                   </label>
                   <label v-else>
-                    换下球员：
+                    <span class="label-text">换下球员：</span>
                     <input type="text" v-model="eventForm.sub_out_name" />
                   </label>
                 </template>
@@ -281,6 +283,7 @@
                     </template>
                 </div>
                 </div>
+            </div>
             </div>
             </div>
           </li>
@@ -404,17 +407,23 @@
         const scoreData = scoreRes.data.data.score || {};
         const homeScore = scoreData[match.homeTeam]?.goal || 0;
         const awayScore = scoreData[match.awayTeam]?.goal || 0;
-        match.penaltyScore = scoreData.penalty || null;
+        
         match.score = `${homeScore} - ${awayScore}`;
-        if (scoreRes.data.data.has_penalty_shootout) {
-          const homePenalty = scoreData[match.homeTeam]?.penalty ?? null;
-          const awayPenalty = scoreData[match.awayTeam]?.penalty ?? null;
 
-          if (homePenalty !== null && awayPenalty !== null) {
-            match.penaltyScore = `${homePenalty} - ${awayPenalty}`;
-          }
+        const homePenalty = scoreData[match.homeTeam]?.penalty;
+        const awayPenalty = scoreData[match.awayTeam]?.penalty;
+
+        if (homePenalty !== undefined || awayPenalty !== undefined) {
+          match.penaltyScore = `${homePenalty ?? 0} - ${awayPenalty ?? 0}`;
+        } else {
+          match.penaltyScore = null;
         }
 
+        if (homePenalty !== undefined && awayPenalty !== undefined) {
+          match.penaltyScore = `${homePenalty} - ${awayPenalty}`;
+        } else {
+          match.penaltyScore = null;
+        }
       }
     } catch (err) {
       error.value = "加载比赛信息失败，请稍后重试";
@@ -485,6 +494,20 @@
         });
 
         ElMessage.success("点球事件添加成功");
+                // ✅ 手动更新点球比分
+        const penaltyScoreRes = await axios.get("http://localhost:5000/api/match/final-score", {
+          params: { match_id: match.id },
+        });
+        const scoreData = penaltyScoreRes.data.data.score || {};
+        const homePenalty = scoreData[match.homeTeam]?.penalty;
+        const awayPenalty = scoreData[match.awayTeam]?.penalty;
+
+        if (homePenalty !== undefined || awayPenalty !== undefined) {
+          const home = homePenalty !== undefined ? homePenalty : 0;
+          const away = awayPenalty !== undefined ? awayPenalty : 0;
+          match.penaltyScore = `${home} - ${away}`;
+        }
+
       }
 
       if (form.type === "goal" && form.period != "PEN") {
@@ -643,10 +666,15 @@ const handlePeriodChange = () => {
   if (eventForm.value.period === 'PEN') {
     eventForm.value.main_minute = 150;
     eventForm.value.extra_minute = 0;
-    eventForm.value.is_penalty = true;  // ✅ 自动勾选
+    eventForm.value.is_penalty = true;
+
+    // ✅ 禁止换人：自动切换掉换人类型
+    if (eventForm.value.type === 'substitution') {
+      eventForm.value.type = 'goal'; // 或改为 'card'，视你默认想切成哪个
+    }
+
     updateFinalMinute();
   } else {
-    // 可选：切换回来时取消勾选
     eventForm.value.is_penalty = false;
   }
 };
@@ -730,6 +758,16 @@ const deleteEvent = async (match, eventId) => {
     });
     const scoreData = scoreRes.data.data.score || {};
     match.score = `${scoreData[match.homeTeam]?.goal || 0} - ${scoreData[match.awayTeam]?.goal || 0}`;
+    const homePenalty = scoreData[match.homeTeam]?.penalty;
+    const awayPenalty = scoreData[match.awayTeam]?.penalty;
+
+    if (homePenalty !== undefined || awayPenalty !== undefined) {
+      const home = homePenalty !== undefined ? homePenalty : 0;
+      const away = awayPenalty !== undefined ? awayPenalty : 0;
+      match.penaltyScore = `${home} - ${away}`;
+    } else {
+      match.penaltyScore = null; // 如果都删完了，清空
+    }
 
     await ElMessageBox.alert("事件已成功删除", "操作完成", {
       type: "success",
@@ -749,14 +787,11 @@ const deleteEvent = async (match, eventId) => {
   </script>
   
   <style scoped>
-  .match-today-page {
-    max-width: 700px;
-    margin: 30px auto;
-    padding: 20px;
-    background: #f5f7fa;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
+.match-today-page {
+  max-width: 100%;
+  padding: 30px 40px;
+  background: #f5f7fa;
+}
   
   h2 {
     text-align: center;
@@ -803,9 +838,35 @@ const deleteEvent = async (match, eventId) => {
     margin: 0 5px;
   }
   
-  .event-form {
-    margin-top: 20px;
-  }
+.match-columns {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 20px;
+  gap: 24px;
+}
+
+.event-form {
+  width: 35%;
+  min-width: 320px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.event-list {
+  width: 65%;
+  min-width: 400px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
   
   .event-form label {
     display: block;
@@ -833,11 +894,7 @@ const deleteEvent = async (match, eventId) => {
   button[type="submit"]:hover {
     background-color: #023e73;
   }
-  
-  .event-list {
-    margin-top: 15px;
-  }
-  
+    
   .event-list ul {
     padding-left: 15px;
   }
@@ -1068,6 +1125,63 @@ const deleteEvent = async (match, eventId) => {
   color: #666;
   margin-top: -6px;
   margin-bottom: 8px;
+}
+
+.event-form label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.event-form .label-text {
+  display: inline-block;
+  width: 120px; /* 控制标签统一宽度，保证右侧输入对齐 */
+  margin-right: 8px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.event-form select,
+.event-form input[type="text"],
+.event-form input[type="number"] {
+  width: 150px; /* 控制所有输入框宽度一致 */
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.event-form label span:first-child {
+  min-width: 80px;
+  display: inline-block;
+}
+
+.match-detail-columns {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* 左边：表单区域 */
+.event-form {
+  flex: 1;
+  min-width: 300px;
+  max-width: 360px;
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+/* 右边：事件时间轴 */
+.event-list {
+  flex: 2;
+  min-width: 340px;
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
 }
 
   </style>
