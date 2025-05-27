@@ -118,7 +118,7 @@ exports.getScheduleByDate = async (req, res) => {
       }
        else if (schedule.type === 'match' || schedule.type === 'past_match') {
         const [match] = await startQuery(`
-          SELECT id, location, match_time, team1, team2
+          SELECT id AS match_id, location, match_time, team1, team2
           FROM match_schedule
           WHERE schedule_id = ${escape(schedule.id)}
         `);
@@ -141,14 +141,14 @@ exports.getScheduleByDate = async (req, res) => {
                    ORDER BY 
                      FIELD(e.period, '1H','2H','ET1','ET2','PEN'),
                      e.event_minute ASC
-                 `, [match.id]);
+                 `, [match.match_id]);
 
                 const goals = await startQuery(`
                   SELECT team_name, COUNT(*) AS goal_count
                   FROM match_event_log
                   WHERE match_id = ? AND event_type = 'goal'
                   GROUP BY team_name
-                `, [match.id]);
+                `, [match.match_id]);
             
                 // 点球大战进球（如果有）
                 const penalties = await startQuery(`
@@ -157,7 +157,7 @@ exports.getScheduleByDate = async (req, res) => {
                   JOIN match_penalties p ON l.id = p.event_id
                   WHERE l.match_id = ? AND l.period = 'PEN' AND p.result = 'score'
                   GROUP BY l.team_name
-                `, [match.id]);
+                `, [match.match_id]);
             
                 const finalScore = {};
                 let hasPenaltyShootout = penalties.length > 0;
@@ -236,7 +236,7 @@ exports.deleteSchedule = async (req, res) => {
   }
 };
 
-
+//有问题别用用要改
 exports.getScheduleById = async (req, res) => {
   try {
     const { id } = req.params;
