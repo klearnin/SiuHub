@@ -16,6 +16,7 @@
     "ant-design-vue": "^4.2.6",
     "axios": "^1.8.3",
     "drauu": "^0.4.3",
+    "echarts": "^5.6.0",
     "element-plus": "^2.9.8",
     "interactjs": "^1.10.27",
     "paper": "^0.12.18",

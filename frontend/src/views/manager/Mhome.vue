@@ -75,6 +75,12 @@
         </li>
       </ul>
     </div>
+
+    <!-- 财政管理跳转卡片 -->
+    <div class="finance-manage-wrapper" @click="goFinance">
+      财政管理
+    </div>
+
   </div>
 </template>
 
@@ -174,6 +180,11 @@
       router.push("/matchToday");
     }
   };
+
+  const goFinance = () => {
+    router.push("/mfinance");
+  };
+
 
 </script>
   
@@ -492,5 +503,27 @@
     align-items: center;
     justify-content: center;
   }
+
+  .finance-manage-wrapper {
+    width: 200px;
+    height: 80px;
+    line-height: 80px;
+    background: #4caf50;
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.6);
+    text-align: center;
+    cursor: pointer;
+    margin: 20px auto;
+    user-select: none;
+    transition: background-color 0.3s;
+  }
+
+  .finance-manage-wrapper:hover {
+    background: #388e3c;
+  }
+
 
 </style>  

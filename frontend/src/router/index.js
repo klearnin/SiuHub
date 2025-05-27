@@ -31,6 +31,7 @@ import Mhome from "../views/manager/Mhome.vue";
 import Mnotice from "../views/manager/Notice/Mnotice.vue";
 import Mnotice_del from "../views/manager/Notice/Mnotice_del.vue";
 import Mmatch from "../views/manager/Match/Mmatch.vue";
+import Mfinance from "../views/manager/Finance/Mfinance.vue";
 
 //导入队医界面
 import Dhome from "../views/medic/Dhome.vue";
@@ -51,6 +52,7 @@ const routes = [
   { path: '/mnotice', component: Mnotice },
   { path: '/mnotice_del', component: Mnotice_del }, 
   { path: '/matchToday', component: Mmatch },
+  { path: '/mfinance', component: Mfinance },
   { path: '/dhome', component: Dhome },
   { path: '/dnotice', component: Dnotice },
   { path: '/dnotice_del', component: Dnotice_del }, 
