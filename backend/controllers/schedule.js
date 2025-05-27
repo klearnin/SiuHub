@@ -174,6 +174,12 @@ exports.getScheduleByDate = async (req, res) => {
                     finalScore[p.team_name].penalty = p.penalty_score;
                   }
                 }
+                if(!finalScore[match.team1]){
+                  finalScore[match.team1] = { goal: 0, penalty: 0 };
+                }
+                if(!finalScore[match.team2]){
+                  finalScore[match.team2] = { goal: 0, penalty: 0 };
+                }
                 const scoredata= {
                   score: finalScore,
                   has_penalty_shootout: hasPenaltyShootout  // 如果hasPenaltyShootout为false，则不用显示点球比分
