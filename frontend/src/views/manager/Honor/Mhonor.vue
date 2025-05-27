@@ -165,8 +165,9 @@ const submitHonor = async () => {
 
     // 确保 honor_date 是字符串格式
     if (payload.honor_date instanceof Date) {
-    payload.honor_date = payload.honor_date.toISOString().slice(0, 10)
-    } 
+      const d = payload.honor_date
+      payload.honor_date = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
+    }
     else if (typeof payload.honor_date === 'string') {
         payload.honor_date = payload.honor_date.slice(0, 10)
     }
@@ -233,9 +234,15 @@ const submitEdit = async () => {
     return
     }
 
+const honorDate = editForm.value.honor_date
+
 const payload = {
   ...editForm.value,
-  honor_date: editForm.value.honor_date?.slice(0, 10)
+  honor_date: honorDate instanceof Date
+  ? `${honorDate.getFullYear()}-${(honorDate.getMonth()+1).toString().padStart(2, '0')}-${honorDate.getDate().toString().padStart(2, '0')}`
+  : typeof honorDate === 'string'
+    ? honorDate.slice(0, 10)
+    : ''
 }
 
 if (payload.type === 'personal' && !payload.user_id) {

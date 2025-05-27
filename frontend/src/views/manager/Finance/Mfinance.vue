@@ -236,7 +236,11 @@ const formatDate = (isoTime) => {
 
 const deleteRecord = async () => {
   try {
-    await ElMessageBox.confirm('确认删除该记录？', '提示', { type: 'warning' })
+    await ElMessageBox.confirm('确认删除该记录？', '提示', {
+  type: 'warning',
+  confirmButtonText: '确定',
+  cancelButtonText: '取消'
+})
     await axios.delete(`http://localhost:5000/api/finance/${selected.value.id}`, { headers })
     ElMessage.success('删除成功')
     dialogVisible.value = false
