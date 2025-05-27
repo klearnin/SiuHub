@@ -175,7 +175,7 @@ exports.getTeamPersonalHonors = async (req, res, next) => {
       const { team_id } = req.user;
   
       const result = await db.startQuery(`
-        SELECT u.id AS user_id, u.name AS user_name, ph.title, ph.description, ph.honor_date
+        SELECT ph.id AS id, u.id AS user_id, u.name AS user_name, ph.title, ph.description, ph.honor_date
         FROM personal_honors ph
         JOIN users u ON ph.user_id = u.id
         WHERE u.team_id = ?
