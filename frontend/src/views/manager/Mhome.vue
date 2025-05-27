@@ -23,8 +23,7 @@
       </div>
 
       <router-link to="/tactics" class="nav-item">球队战术</router-link>
-      <router-link to="/finance" class="nav-item">财政管理</router-link>
-      <router-link to="/history" class="nav-item">球队历史</router-link>
+      <router-link to="/mhonor" class="nav-item">球队荣誉</router-link>
     </div>
 
     <!-- 右上角头像 -->
@@ -76,11 +75,11 @@
       </ul>
     </div>
 
-    <!-- 财政管理跳转卡片 -->
-    <div class="finance-manage-wrapper" @click="goFinance">
-      财政管理
+    <!-- 财政展示区，风格与比赛模块一致 -->
+    <div class="finance-section clickable-finance" @click="goFinance">
+      <h2>财政管理</h2>
+      <LineChart :data="trendData" />
     </div>
-
   </div>
 </template>
 
@@ -89,6 +88,7 @@
   import { useRouter } from "vue-router";
   import axios from "axios";
   import { ElMessage } from "element-plus";
+  import LineChart from "@/components/FinanceLineChart.vue";
 
   const router = useRouter();
   const avatarUrl = ref(null);
@@ -96,7 +96,7 @@
   const showNoticeDropdown = ref(false);
 
   const matches = ref([]);
-
+  const trendData = ref([]);
   const errorLogos = ref({});
 
   const handleLogoError = (matchId, team) => {
@@ -147,6 +147,18 @@
       }));
     } catch (err) {
       console.error("加载比赛信息失败", err);
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/finance/trend", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      trendData.value = res.data.data.slice(-8);
+
+      console.log("趋势数据：", trendData.value);
+    } catch (err) {
+      console.error("加载财政趋势失败", err);
     }
   });
 
@@ -525,5 +537,31 @@
     background: #388e3c;
   }
 
+.clickable-finance {
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+
+.clickable-finance:hover {
+  box-shadow: 0 0 12px rgba(0, 188, 212, 0.4);
+}
+
+.finance-section {
+  max-width: 800px;
+  margin: 40px auto 100px; /* ✅ 顶部靠近上方模块，底部保留空间 */
+  padding: 30px 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: box-shadow 0.3s;
+}
+
+.finance-section h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #0154a0;
+  margin-bottom: 20px;
+}
 
 </style>  
