@@ -42,7 +42,7 @@
             <div style="margin-bottom: 16px;">
             当前剩余资金：<strong>{{ balance }} 元</strong>
             </div>
-            <el-table :data="records" style="width: 100%;" @row-click="handleRowClick">
+              <el-table :data="paginatedRecords" style="width: 100%;" @row-click="handleRowClick">
                 <el-table-column prop="amount" label="金额" width="100" />
                 <el-table-column prop="reason" label="原因" />
                 <el-table-column label="时间" width="180">
@@ -51,6 +51,15 @@
                     </template>
                 </el-table-column>
             </el-table>
+            <el-pagination
+              style="margin-top: 16px; text-align: right"
+              background
+              layout="prev, pager, next"
+              :page-size="pageSize"
+              :current-page="currentPage"
+              :total="records.length"
+              @current-change="handlePageChange"
+            />
         </div>
     </div>
 
@@ -92,7 +101,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from "vue-router";
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -252,6 +261,20 @@ const deleteRecord = async () => {
     }
   }
 }
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const paginatedRecords = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return records.value.slice(start, end)
+})
+
+const handlePageChange = (val) => {
+  currentPage.value = val
+}
+
 </script>
 
 <style scoped>
