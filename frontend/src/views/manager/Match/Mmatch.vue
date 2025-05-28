@@ -231,57 +231,94 @@
                 >
                 <div class="event-side left">
                     <template v-if="row.isHome">
-                    <div class="event-content">
-                      <button class="delete-btn" @click="deleteEvent(match, row.event.id)">×</button>
-                        <template v-if="row.event.event_type === 'goal'">
-                        ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }} 
-                        <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
-                        <template v-if="row.event.is_penalty">（点球）</template>
+ <div class="event-content">
+                        <button class="delete-btn" @click="deleteEvent(match, row.event.id)">×</button>
+
+                        <!-- 非点球进球事件 -->
+                        <template v-if="row.event.event_type === 'goal' && !row.event.is_penalty">
+                            ⚽ {{ row.event.scorer_name }}
+                          <div v-if="row.event.assist_name && row.event.period !== 'PEN'" class="assist-line">
+                            🎯 {{ row.event.assist_name }}
+                          </div>
                         </template>
-                        <template v-if="row.event.event_type === 'penalty'">
-                          ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.penalty_player }}
+
+                        <!-- 点球进球 -->
+                        <template v-else-if="row.event.event_type === 'goal' && row.event.is_penalty">
+                            ⚽ {{ row.event.scorer_name }} 
+                            <span class="goal-penalty">（点球）</span>
+                        </template>
+
+                        <!-- 点球大战 -->
+                        <template v-else-if="row.event.event_type === 'penalty'">
+                          ⚽
+                          <template v-if="row.event.penalty_result === 'score'">✅</template>
+                          <template v-else>❌</template>
+                           {{ row.event.penalty_player }}
                           <template v-if="row.event.penalty_result === 'score'">（罚进）</template>
-                          <template v-else>（未进）</template>
+                          <template v-else><span class="goal-penalty">（罚失）</span></template>
                         </template>
+
+                        <!-- 红黄牌 -->
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                           <span v-if="row.event.card_type === 'red'">🟥</span>
                           <span v-else>🟨</span>
-                          {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.card_player }}
+                          {{ row.event.card_player }}
                         </template>
+
+                        <!-- 换人 -->
                         <template v-else-if="row.event.event_type === 'substitution'">
-                        🔄 {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.sub_out_name }} ⬅️ {{ row.event.sub_in_name }}
+                            🔄 {{ row.event.sub_in_name }}
+                            <div class="assist-line">🔻 {{ row.event.sub_out_name }}</div>
                         </template>
-                    </div>
+                      </div>                    
                     </template>
                 </div>
 
                 <div class="event-time">{{ formatMinuteNote(row.time) }}</div>
-
-                <div class="event-side right">
+                  <div class="event-side right">
                     <template v-if="row.isAway">
-                    <div class="event-content">
-                      <button class="delete-btn" @click="deleteEvent(match, row.event.id)">×</button>
-                        <template v-if="row.event.event_type === 'goal'">
-                        ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.scorer_name }} 
-                        <template v-if="row.event.assist_name">（助攻：{{ row.event.assist_name }}）</template>
-                        <template v-if="row.event.is_penalty">（点球）</template>
+                      <div class="event-content">
+                        <button class="delete-btn" @click="deleteEvent(match, row.event.id)">×</button>
+
+                        <!-- 非点球进球事件 -->
+                        <template v-if="row.event.event_type === 'goal' && !row.event.is_penalty">
+                            ⚽ {{ row.event.scorer_name }}
+                          <div v-if="row.event.assist_name && row.event.period !== 'PEN'" class="assist-line">
+                            🎯 {{ row.event.assist_name }}
+                          </div>
                         </template>
-                        <template v-if="row.event.event_type === 'penalty'">
-                          ⚽ {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.penalty_player }}
+
+                        <!-- 点球进球 -->
+                        <template v-else-if="row.event.event_type === 'goal' && row.event.is_penalty">
+                            ⚽ {{ row.event.scorer_name }} 
+                            <span class="goal-penalty">（点球）</span>
+                        </template>
+
+                        <!-- 点球大战 -->
+                        <template v-else-if="row.event.event_type === 'penalty'">
+                          ⚽
+                          <template v-if="row.event.penalty_result === 'score'">✅</template>
+                          <template v-else>❌</template>
+                           {{ row.event.penalty_player }}
                           <template v-if="row.event.penalty_result === 'score'">（罚进）</template>
-                          <template v-else>（未进）</template>
+                          <template v-else><span class="goal-penalty">（罚失）</span></template>
                         </template>
+
+                        <!-- 红黄牌 -->
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
-                        <span v-if="row.event.card_type === 'red'">🟥</span>
-                        <span v-else>🟨</span>
-                          {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.card_player }}
+                          <span v-if="row.event.card_type === 'red'">🟥</span>
+                          <span v-else>🟨</span>
+                          {{ row.event.card_player }}
                         </template>
+
+                        <!-- 换人 -->
                         <template v-else-if="row.event.event_type === 'substitution'">
-                        🔄 {{ formatMinuteNote(row.event.minute_note) }} - {{ row.event.sub_out_name }} ⬅️ {{ row.event.sub_in_name }}
+                            🔄 {{ row.event.sub_in_name }}
+                            <div class="assist-line">🔻 {{ row.event.sub_out_name }}</div>
                         </template>
-                    </div>
+                      </div>
                     </template>
-                </div>
+                  </div>
                 </div>
             </div>
             </div>
@@ -442,6 +479,8 @@
 
   
   const submitEvent = async (matchId) => {
+    console.log("是否点球（is_penalty）:", eventForm.value.is_penalty);
+
     try {
       const form = eventForm.value;
       const match = matches.value.find((m) => m.id === matchId);
@@ -567,6 +606,8 @@
       const eventsRes = await axios.get("http://localhost:5000/api/match/events", {
         params: { match_id: matchId },
       });
+      console.log("事件接口返回的数据：", eventsRes.data);
+
       match.events = eventsRes.data.data || [];
   
       const scoreRes = await axios.get("http://localhost:5000/api/match/final-score", {
@@ -1182,6 +1223,55 @@ const deleteEvent = async (match, eventId) => {
   padding: 16px;
   border-radius: 8px;
   border: 1px solid #ddd;
+}
+
+.assist-line {
+  color: #888;
+}
+
+.goal-line {
+  display: flex;
+  align-items: center;
+  gap: px;
+  font-size: 16px;
+  font-weight: 500;
+  flex-wrap: wrap;
+}
+
+.goal-icon {
+  font-size: 18px;
+}
+
+.goal-name {
+  font-weight: bold;
+}
+
+.goal-penalty {
+  color: #999;
+  font-size: 15px;
+}
+
+.assist-line {
+  font-size: 14px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.goal-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sub-in-line {
+  white-space: nowrap;
+  display: inline-block;
+  font-size: 15px;
+  vertical-align: middle;
+}
+.sub-out-line {
+  font-size: 14px;
+  margin-top: 2px;
 }
 
   </style>

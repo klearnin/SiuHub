@@ -181,7 +181,7 @@ exports.getMatchEvents = async (req, res, next) => {
   
       const result = await db.startQuery(`
         SELECT e.id, e.period, e.event_minute, e.minute_note, e.event_type, e.team_name,
-          g.scorer_name, g.assist_name,
+          g.scorer_name, g.assist_name, g.is_penalty,
           s.sub_in_name, s.sub_out_name,
           c.player_name AS card_player, c.card_type,
           p.player_name AS penalty_player, p.result AS penalty_result
