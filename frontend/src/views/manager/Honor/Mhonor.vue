@@ -106,7 +106,7 @@
             <el-button @click="viewDialogVisible = false">关闭</el-button>
             <el-button v-if="!editMode" type="warning" @click="enterEditMode" style="margin-left: 8px;">修改</el-button>
             <el-button v-else type="warning" @click="submitEdit" style="margin-left: 8px;">保存</el-button>
-            <el-button type="danger" @click="deleteHonor" style="margin-left: 8px;">删除</el-button>
+            <el-button v-if="!editMode" type="danger" @click="deleteHonor" style="margin-left: 8px;">删除</el-button>
         </template>
     </el-dialog>
 
@@ -116,7 +116,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage,ElMessageBox } from 'element-plus'
 import axios from 'axios'
 
 const router = useRouter()
@@ -215,7 +215,7 @@ const handleHonorClick = (item, type) => {
     type,
     title: item.title,
     description: item.description,
-    honor_date: item.honor_date,
+    honor_date: new Date(item.honor_date),
     user_id: item.user_id || '',
     user_name: item.user_name || ''
   }
@@ -271,13 +271,20 @@ const deleteHonor = async () => {
     ElMessage.error('无法删除：荣誉ID缺失')
     return
     }
-
+    await ElMessageBox.confirm('确认删除该记录？', '提示', {
+      type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+    })
     await axios.delete(`http://localhost:5000/api/honor/${selectedHonor.value.type}/${selectedHonor.value.id}`, { headers })
     ElMessage.success('删除成功')
     viewDialogVisible.value = false
     fetchHonors()
   } catch (err) {
+    if(err!=='cancel'){
+     console.error("删除错误：", err.response?.data || err)
     ElMessage.error('删除失败')
+    }
   }
 }
 

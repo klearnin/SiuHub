@@ -83,7 +83,7 @@
         <el-button v-else type="warning" @click="submitEdit" style="margin-left: 8px;">
             保存
         </el-button>
-        <el-button type="danger" @click="deleteRecord" style="margin-left: 8px">
+        <el-button v-if="!editMode" type="danger" @click="deleteRecord" style="margin-left: 8px">
             删除记录
         </el-button>
         </template>
@@ -245,6 +245,7 @@ const deleteRecord = async () => {
     ElMessage.success('删除成功')
     dialogVisible.value = false
     fetchFinance()
+    await fetchTrend()
   } catch (err) {
     if (err !== 'cancel') {
       ElMessage.error('删除失败')
