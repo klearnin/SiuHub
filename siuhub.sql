@@ -354,13 +354,17 @@ CREATE TABLE finance_records (
 
 CREATE TABLE players (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  player_number INT NOT NULL,
+  player_number INT,
   player_name VARCHAR(100),
   avatar VARCHAR(200) COMMENT '头像本地路径',
   team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
   FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
   user_id VARCHAR(100),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  dominant_foot ENUM('左脚', '右脚'),
+  height INT COMMENT'cm',
+  weight INT COMMENT'kg',
+  age INT
 );
 
 INSERT INTO players(player_number,player_name,team_id,avatar)
