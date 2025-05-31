@@ -231,44 +231,58 @@
                 >
                 <div class="event-side left">
                     <template v-if="row.isHome">
- <div class="event-content">
+                      <div class="event-content">
                         <button class="delete-btn" @click="deleteEvent(match, row.event.id)">×</button>
 
                         <!-- 非点球进球事件 -->
                         <template v-if="row.event.event_type === 'goal' && !row.event.is_penalty">
-                            ⚽ {{ row.event.scorer_name }}
-                          <div v-if="row.event.assist_name && row.event.period !== 'PEN'" class="assist-line">
-                            🎯 {{ row.event.assist_name }}
+                          <div class="event-inner">
+                            <div class="event-line">
+                              <span class="event-name">{{ row.event.scorer_name }}</span>
+                              <span class="event-icon">⚽</span>
+                            </div>
+                            <div v-if="row.event.assist_name && row.event.period !== 'PEN'" class="event-line assist-line">
+                              <span class="event-name">{{ row.event.assist_name }}</span>
+                              <span class="event-icon">🎯</span>
+                            </div>
                           </div>
                         </template>
 
                         <!-- 点球进球 -->
                         <template v-else-if="row.event.event_type === 'goal' && row.event.is_penalty">
-                            ⚽ {{ row.event.scorer_name }} 
-                            <span class="goal-penalty">（点球）</span>
+                            {{ row.event.scorer_name }} 
+                            <span class="goal-penalty">（点球） ⚽</span>
                         </template>
 
                         <!-- 点球大战 -->
                         <template v-else-if="row.event.event_type === 'penalty'">
-                          ⚽
-                          <template v-if="row.event.penalty_result === 'score'">✅</template>
-                          <template v-else>❌</template>
                            {{ row.event.penalty_player }}
                           <template v-if="row.event.penalty_result === 'score'">（罚进）</template>
                           <template v-else><span class="goal-penalty">（罚失）</span></template>
+                          ⚽
+                          <template v-if="row.event.penalty_result === 'score'">✅</template>
+                          <template v-else>❌</template>
+
                         </template>
 
                         <!-- 红黄牌 -->
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
+                          {{ row.event.card_player }}
                           <span v-if="row.event.card_type === 'red'">🟥</span>
                           <span v-else>🟨</span>
-                          {{ row.event.card_player }}
                         </template>
 
-                        <!-- 换人 -->
                         <template v-else-if="row.event.event_type === 'substitution'">
-                            🔄 {{ row.event.sub_in_name }}
-                            <div class="assist-line">🔻 {{ row.event.sub_out_name }}</div>
+                          <div class="event-inner">
+                            <div class="event-line">
+                              <span class="event-name">{{ row.event.sub_in_name }}</span>
+                              <span class="event-icon">🔄</span>
+                            </div>
+                            <div class="event-line assist-line">
+                              <span class="event-name">{{ row.event.sub_out_name }}</span>
+                              <span class="event-icon">🔻</span>
+                            </div>
+                          </div>
                         </template>
                       </div>                    
                     </template>
@@ -992,11 +1006,13 @@ const deleteEvent = async (match, eventId) => {
 }
 
 .event-content {
+  padding: 1px 8px !important; /* ✅ 减少上下内边距 */
   display: inline-block;
   max-width: 90%;
   background-color: #eef2f7;
-  padding: 6px 10px;
-  border-radius: 5px;
+  border-radius: 4px;
+  line-height: 1.2;
+  vertical-align: middle;
 }
 
 .event-timeline-rows {
@@ -1225,10 +1241,6 @@ const deleteEvent = async (match, eventId) => {
   border: 1px solid #ddd;
 }
 
-.assist-line {
-  color: #888;
-}
-
 .goal-line {
   display: flex;
   align-items: center;
@@ -1272,6 +1284,72 @@ const deleteEvent = async (match, eventId) => {
 .sub-out-line {
   font-size: 14px;
   margin-top: 2px;
+}
+
+.event-inner-left {
+  text-align: left;
+}
+
+.event-line {
+  display: flex;
+  align-items: center;  /* ✅ 居中对齐，避免“靠上” */
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+  gap: 4px;
+}
+.event-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.event-name {
+  text-align: left;
+  font-size: 15px;
+  color: #333;
+  flex: 1;
+  line-height: 1;   /* ✅ 确保紧凑 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.event-inner {
+  gap:4px !important;
+}
+
+.event-line {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+  gap: 4px !important;
+}
+
+.assist-line {
+  margin-top: 0 !important;
+  font-size: 15px !important;
+  color: #666 !important;
+}
+
+.event-name {
+  font-size: 15px !important;
+}
+
+.event-content {
+  padding: 4px 8px !important;
+  background-color: #eef2f7 !important;
 }
 
   </style>
