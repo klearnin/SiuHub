@@ -9,7 +9,7 @@
       >
         {{ mode.label }}
       </button>
-      <button @click="back">返回</button>
+     
       <div class="tool-group">
         <input type="color" v-model="brushColor" @input="updateBrush">
         <input 
@@ -32,6 +32,7 @@
         <button @click="undo">↩️ 撤销</button>
         <button @click="redo">↪️ 重做</button>
         <button @click="clearAll">🗑️ 清空</button>
+        <button @click="back">返回</button>
       </div>
     </div>
     <div></div>
