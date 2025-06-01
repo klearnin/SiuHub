@@ -153,11 +153,13 @@ exports.getTopScorers = async (req, res, next) => {
     const goals = await db.startQuery(`
       SELECT g.scorer_id, g.scorer_name,
              COUNT(*) AS total_goals,
-             SUM(CASE WHEN g.is_penalty THEN 1 ELSE 0 END) AS penalty_goals
+             SUM(CASE WHEN g.is_penalty THEN 1 ELSE 0 END) AS penalty_goals,
+             u.avatar AS scorer_avatar
       FROM match_goals g
       JOIN match_event_log e ON g.event_id = e.id
+      JOIN users u ON g.scorer_id = u.id
       WHERE e.team_name = (SELECT name FROM teams WHERE id = ?)
-      GROUP BY g.scorer_id, g.scorer_name
+      GROUP BY g.scorer_id, g.scorer_name, u.avatar
       ORDER BY total_goals DESC
     `, [team_id]);
 
@@ -167,18 +169,21 @@ exports.getTopScorers = async (req, res, next) => {
   }
 };
 
+
 // 4. 获取助攻榜
 exports.getTopAssists = async (req, res, next) => {
   try {
     const { team_id } = req.user;
     const assists = await db.startQuery(`
       SELECT g.assist_id, g.assist_name,
-             COUNT(*) AS total_assists
+             COUNT(*) AS total_assists,
+             u.avatar AS assist_avatar
       FROM match_goals g
       JOIN match_event_log e ON g.event_id = e.id
+      JOIN users u ON g.assist_id = u.id
       WHERE e.team_name = (SELECT name FROM teams WHERE id = ?)
             AND g.assist_id IS NOT NULL
-      GROUP BY g.assist_id, g.assist_name
+      GROUP BY g.assist_id, g.assist_name, u.avatar
       ORDER BY total_assists DESC
     `, [team_id]);
 
@@ -187,6 +192,7 @@ exports.getTopAssists = async (req, res, next) => {
     next(err);
   }
 };
+
 
 // 获取某场比赛的完整信息（包括比分）
 exports.getMatchDetail = async (req, res, next) => {
