@@ -1,8 +1,10 @@
 <template>
+  
     <div class="team-management-container">
       <div class="team-info-section">
+       
         <h2>球队信息</h2>
-        <button @click=back>返回</button>
+       
         <div class="team-details">
           <div class="team-logo">
             <img :src="teamLogo" alt="球队Logo" class="logo-image" >
@@ -43,7 +45,11 @@
             </div>
           </div>
         </div>
+        <div class="btn-group">
+          <button class="back-btn"@click=back>返回</button>
         <button class="save-btn" @click="saveTeamInfo">保存球队信息</button>
+       
+        </div>
       </div>
   
       <div class="personnel-management-section">
@@ -59,7 +65,7 @@
               {{ tab.label }}
             </button>
           </div>
-          <button class="add-btn" @click="showAddPersonModal">+ 添加人员</button>
+          <div></div>
         </div>
   
         <div class="personnel-list">
@@ -71,13 +77,14 @@
                 <th>号码</th>
                 <th>身高(cm)</th>
                 <th>体重(kg)</th>
+                <th>惯用脚</th>
                 <th>健康状态</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="player in players" :key="player.id">
-                <td>{{ player.player_name }}</td>
+                <td>{{ player.name }}</td>
                 <td>
                   <input 
                     type="number" 
@@ -89,6 +96,12 @@
                 </td>
                 <td><input class="wheight" v-model="player.height" @change=""></td>
                 <td><input class="wheight" v-model="player.weight"></td>
+                <td>
+                  <select v-model="player.dominant_foot" class="foot-select">
+                    <option value="左脚">左脚</option>
+                    <option value="右脚">右脚</option>
+                  </select>
+                </td>
                 <td>
                   <select v-model="player.healthStatus" class="health-select">
                     <option value="healthy">健康</option>
@@ -107,18 +120,18 @@
           <!-- 经理列表 -->
           <table v-if="activeTab === 'managers'" class="personnel-table">
             <thead>
-              <tr>
+              <tr class="head">
                 <th>姓名</th>
-                <th>职位</th>
+                
                 <th>联系方式</th>
-                <th>操作</th>
+                <th style="margin-right: auto;">操作</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="manager in managers" :key="manager.id">
                 <td>{{ manager.name }}</td>
-                <td>{{ manager.position }}</td>
-                <td>{{ manager.contact }}</td>
+               
+                <td>{{ manager.phone }}</td>
                 <td>
                   <button class="remove-btn" @click="removePerson('managers', manager.id)">移除</button>
                 </td>
@@ -245,293 +258,271 @@
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
               }
             });
-            this.users = response.data.playerlist;
-            //this.players=this.users.find(user => user.type === 'player')?.players || [];
-            this.players = Object.assign([], this.users); 
-            this.managers=this.users.find(user => user.type === 'manager')?.managers || [];
-            this.doctors=this.users.find(user => user.type === 'doctor')?.doctors || [];
+            this.users = response.data.userlist;
+            this.players=this.users.filter(user => user.type === 'player') || [];
+           
+            this.managers=this.users.filter(user => user.type === 'manager')|| [];
+            this.doctors=this.users.filter(user => user.type === 'doctor') || [];
           } catch (error) {
             console.error('获取球员列表失败:', error);
             ElMessage.error('获取球员列表失败');
-          }
-         
+          } 
     },
-    async saveTeamInfo(){
-      for (const player of this.players) {
-       
-        try {
-      
-        const res=await axios.put(`http://localhost:5000/api/player/${player.id}`)
-        } catch (error) {
-          console.error('保存球队信息失败:', error);
-          ElMessage.error('保存球队信息失败');
+    async saveTeamInfo() {
+  try {
+    for (const player of this.players) {
+      // 确保所有必填字段存在且有效
+      const playerData = {
+        player_number: Number(player.player_number),  // 必须转换为数字
+        height: Number(player.height),        // 必须且介于100-250
+        weight: Number(player.weight),        // 必须
+        dominant_foot: player.dominant_foot , 
+        age: player.age ? Number(player.age) : null     // 可选字段
+      };
+
+      // 调试：打印实际发送的数据
+      console.log('正在发送的数据:', playerData);
+
+      const res = await axios.put(
+        `http://localhost:5000/api/player/${player.id}`,
+        playerData,
+        {
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
           }
-      }
-     
-      }
+        }
+      );
+    }ElMessage.success('保存成功');
+  } 
+  catch (error) {
+    // 显示后端返回的具体错误信息
+    const errorMsg = error.response?.data?.msg || error.message;
+    ElMessage.error(`保存失败: ${errorMsg}`);
+    console.error('完整错误响应:', error.response?.data);
+  }
+}
     }
 }
   </script>
   
   <style scoped>
   .team-management-container {
-    display: flex;
-    min-height: 100vh;
-    font-family: 'Arial', sans-serif;
-  }
+  display: flex;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  padding: 20px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.team-info-section {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.personnel-management-section {
+  flex: 2;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.team-details {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.team-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 160px;
+  width: 160px;
+}
+
+.logo-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #dcdfe6;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.team-meta .form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #409eff;
+}
+
+textarea.form-control {
+  min-height: 80px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  padding: 15px;
+  background: #fafafa;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #409eff;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #888;
+}
+
+.save-btn {
+  width: 40%;
+  background-color: #67c23a;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+ 
+}
+.btn-group {
+  display: flex;
+  justify-content: space-around;
+}
+.back-btn{
+  width: 40%;
+  background-color: #45b9eb;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s;
   
-  .team-info-section {
-    flex: 1;
-    padding: 20px;
-   
-    background-color: #f5f5f5;
-    border-right: 1px solid #ddd;
-    width:400px;
-  }
+}
+
+.save-btn:hover {
+  background-color: #5daf34;
+}
+
+.personnel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.tabs button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background-color: #ebeef5;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.tabs button.active {
+  background-color: #409eff;
+  color: white;
+}
+
+.personnel-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.personnel-table th, .personnel-table td {
+  padding: 12px;
+  border-bottom: 1px solid #ebeef5;
+  text-align: center;
+}
+
+.personnel-table thead {
+  background-color: #f5f7fa;
+}
+
+.personnel-table tbody tr:hover {
+  background-color: #f0f9ff;
+}
+
+.number-input,
+.wheight{
+  width: 60px;
+  height:40px;
+  border-radius: 10px;
+}
+.foot-select{
+  height:40px;
+  border-radius: 10px;
+}
+.health-select {
+  padding: 6px 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 10px;
+  height:40px;
   
-  .personnel-management-section {
-    flex: 2;
-    padding: 20px;
-    background-color: #fff;
-  }
-  
-  .team-details {
-    display: flex;
-    margin-bottom: 20px;
-  }
-  
-  .team-logo {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-right: 20px;
-    height:300px;
-  }
-  
-  .logo-image {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 10px;
-    border: 2px solid #ddd;
-  }
-  
-  .logo-placeholder {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background-color: #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    color: #666;
-    font-size: 14px;
-  }
-  
-  .team-meta {
-    flex: 2;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-  
-  .form-control {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-  }
-  
-  textarea.form-control {
-    min-height: 100px;
-  }
-  
-  .stats {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #e9e9e9;
-    border-radius: 4px;
-  }
-  
-  .stat-item {
-    text-align: center;
-  }
-  
-  .stat-value {
-    display: block;
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .stat-label {
-    font-size: 14px;
-    color: #666;
-  }
-  
-  .save-btn, .upload-btn, .add-btn {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-bottom: auto;
-  }
-  
-  .save-btn {
-    background-color: #4CAF50;
-    color: white;
-    width: 100%;
-  }
-  
-  .upload-btn {
-    background-color: #2196F3;
-    color: white;
-    margin-top: 10px;
-  }
-  
-  .add-btn {
-    background-color: #FF9800;
-    color: white;
-  }
-  
-  .personnel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .tabs {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .tabs button {
-    padding: 8px 15px;
-    border: none;
-    background-color: #e0e0e0;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .tabs button.active {
-    background-color: #2196F3;
-    color: white;
-  }
-  
-  .personnel-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .personnel-table th, .personnel-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .personnel-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-  }
-  
-  .number-input {
-    width: 60px;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  .health-select {
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  .remove-btn {
-    padding: 5px 10px;
-   
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 400px;
-    max-width: 90%;
-  }
-  
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .cancel-btn {
-    padding: 8px 15px;
-    background-color: #e0e0e0;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .confirm-btn {
-    padding: 8px 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  @media (max-width: 768px) {
-    .team-management-container {
-      flex-direction: column;
-    }
-    
-    .team-details {
-      flex-direction: column;
-    }
-    
-    .team-logo {
-      margin-right: 0;
-      margin-bottom: 20px;
-    }
-  }
-   .wheight{
-    width:60px;
-   }
-  </style>
+  box-sizing: border-box;
+}
+
+.remove-btn {
+  background-color: #f56c6c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.remove-btn:hover {
+  background-color: #dd6161;
+}
+
+   </style>

@@ -367,8 +367,8 @@ CREATE TABLE players (
   age INT
 );
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('1','player_1','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('1','player_1','team_001','/public/avatars/version.jpg','player_001');
 
 INSERT INTO players(player_number,player_name,team_id,avatar)
 VALUES('2','player_2','team_001','/public/avatars/version.jpg');
