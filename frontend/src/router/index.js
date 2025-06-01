@@ -24,7 +24,7 @@ import Cnotice_del from "../views/coach/Notice/Cnotice_del.vue";
 import Ctest from "../views/coach/Ctest.vue";
 import CtacticBoard from "../views/coach/TacticBoard/CtacticBoard.vue";
 import CtacticCanvas from "../views/coach/TacticCanvas/CtacticCanvas.vue";
-
+import ManageTeam from "../views/coach/ManageTeam/ManageTeam.vue";
 
 //导入经理界面
 import Mhome from "../views/manager/Mhome.vue";
@@ -64,6 +64,7 @@ const routes = [
   { path: "/ptacticboard", component: PtacticBoard},
   {path: "/pschedule", component: Pschedule},
   {path: "/ctacticcanvas", component: CtacticCanvas},
+  {path: "/cmanageTeam", component: ManageTeam},
 
 
 
