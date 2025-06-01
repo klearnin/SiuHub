@@ -29,6 +29,7 @@
               <label>球队简介</label>
               <textarea v-model="team_description" class="form-control"></textarea>
             </div>
+            <strong>人员统计</strong>
             <div class="stats">
               <div class="stat-item">
                 <span class="stat-value">{{ players.length }}</span>
@@ -386,7 +387,7 @@ textarea.form-control {
 .stats {
   display: flex;
   justify-content: space-around;
-  margin-top: 20px;
+  margin-top: 10px;
   padding: 15px;
   background: #fafafa;
   border-radius: 8px;
