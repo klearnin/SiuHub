@@ -65,3 +65,15 @@ exports.updateplayer = async (req, res, next) => {
   }
 };
 
+exports.deleteuser = async (req, res,next) => {
+  try {
+    const userId = req.params.id;
+    const user = req.user;
+    // 删除 user 表的记录（外键自动删除子表）
+    await startQuery(`DELETE FROM users WHERE id = ${db.escape(userId)} AND team_id = ${db.escape(user.team_id)}`);
+
+    res.json({ code: 0, message: '用户删除成功' });
+  } catch (err) {
+    next(err);
+  }
+};
