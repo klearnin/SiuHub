@@ -66,14 +66,14 @@
               <p class="match-info">
                 <img v-if="teamLogo" :src="teamLogo" alt="主队队徽" class="team-logo-small" />
                   <span class="team">{{ teamname  }}</span>
-                <div class="match_center">
+                <span class="match_center">
                   <span class="">{{ matchTime }}</span>
                   <span class="score">{{ Object.values(scoredata.score)[0].goal }} - {{ Object.values(scoredata.score)[1].goal }}</span>
                     <span v-if="scoredata.has_penalty_shootout" class="score-penalty">
                       点球：{{ Object.values(scoredata.score)[0].penalty }} - {{ Object.values(scoredata.score)[1].penalty }}
                     </span>
                   <!-- <span> {{ matchLocation}}</span>--> 
-                </div>
+                </span>
                   <span class="team">{{ team2 || '对手未设定' }}</span>
                   <img v-if="team2Logo" :src="team2Logo" alt="客队队徽" class="team-logo-small" />
                 </p>

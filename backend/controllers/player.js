@@ -14,7 +14,7 @@ exports.getplayerlist = async (req, res, next) => {
   }
 };
 
-const db = require("../database");
+
 
 exports.updateplayer = async (req, res, next) => {
   try {

@@ -5,42 +5,39 @@
         <button @click=back>返回</button>
         <div class="team-details">
           <div class="team-logo">
-            <img :src="team.logo" alt="球队Logo" class="logo-image" v-if="team.logo">
-            <div class="logo-placeholder" v-else>暂无Logo</div>
-            <button class="upload-btn">上传Logo</button>
+            <img :src="teamLogo" alt="球队Logo" class="logo-image" >
+           
+           
           </div>
           <div class="team-meta">
             <div class="form-group">
               <label>球队名称</label>
-              <input type="text" v-model="team.name" class="form-control">
+              <input type="text" v-model="teamname" class="form-control">
             </div>
             <div class="form-group">
               <label>成立年份</label>
-              <input type="number" v-model="team.foundedYear" class="form-control">
+              <input type="number" v-model="teamyear" class="form-control">
             </div>
             <div class="form-group">
               <label>主场</label>
-              <input type="text" v-model="team.homeStadium" class="form-control">
+              <input type="text" v-model="homeStadium" class="form-control">
             </div>
-            <div class="form-group">
-              <label>主教练</label>
-              <input type="text" v-model="team.headCoach" class="form-control">
-            </div>
+           
             <div class="form-group">
               <label>球队简介</label>
-              <textarea v-model="team.description" class="form-control"></textarea>
+              <textarea v-model="team_description" class="form-control"></textarea>
             </div>
             <div class="stats">
               <div class="stat-item">
-                <span class="stat-value">{{ team.players.length }}</span>
+                <span class="stat-value">{{ players.length }}</span>
                 <span class="stat-label">球员</span>
               </div>
               <div class="stat-item">
-                <span class="stat-value">{{ team.staff.managers.length }}</span>
+                <span class="stat-value">{{ managers.length }}</span>
                 <span class="stat-label">经理</span>
               </div>
               <div class="stat-item">
-                <span class="stat-value">{{ team.staff.doctors.length }}</span>
+                <span class="stat-value">{{ doctors.length }}</span>
                 <span class="stat-label">队医</span>
               </div>
             </div>
@@ -72,24 +69,26 @@
               <tr>
                 <th>姓名</th>
                 <th>号码</th>
-                <th>位置</th>
+                <th>身高(cm)</th>
+                <th>体重(kg)</th>
                 <th>健康状态</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="player in team.players" :key="player.id">
-                <td>{{ player.name }}</td>
+              <tr v-for="player in players" :key="player.id">
+                <td>{{ player.player_name }}</td>
                 <td>
                   <input 
                     type="number" 
-                    v-model="player.number" 
+                    v-model="player.player_number" 
                     min="1" 
                     max="99"
                     class="number-input"
                   >
                 </td>
-                <td>{{ player.position }}</td>
+                <td><input class="wheight" v-model="player.height" @change=""></td>
+                <td><input class="wheight" v-model="player.weight"></td>
                 <td>
                   <select v-model="player.healthStatus" class="health-select">
                     <option value="healthy">健康</option>
@@ -99,6 +98,7 @@
                 </td>
                 <td>
                   <button class="remove-btn" @click="removePerson('players', player.id)">移除</button>
+                 
                 </td>
               </tr>
             </tbody>
@@ -115,7 +115,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="manager in team.staff.managers" :key="manager.id">
+              <tr v-for="manager in managers" :key="manager.id">
                 <td>{{ manager.name }}</td>
                 <td>{{ manager.position }}</td>
                 <td>{{ manager.contact }}</td>
@@ -137,7 +137,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="doctor in team.staff.doctors" :key="doctor.id">
+              <tr v-for="doctor in doctors" :key="doctor.id">
                 <td>{{ doctor.name }}</td>
                 <td>{{ doctor.specialty }}</td>
                 <td>{{ doctor.qualification }}</td>
@@ -149,194 +149,128 @@
           </table>
         </div>
       </div>
-  
-      <!-- 添加人员模态框 -->
-      <div v-if="showModal" class="modal-overlay">
-        <div class="modal-content">
-          <h3>添加{{ modalTitle }}</h3>
-          <form @submit.prevent="addPerson">
-            <div class="form-group">
-              <label>姓名</label>
-              <input type="text" v-model="newPerson.name" required class="form-control">
-            </div>
-            
-            <div v-if="activeTab === 'players'" class="form-group">
-              <label>号码</label>
-              <input type="number" v-model="newPerson.number" min="1" max="99" required class="form-control">
-            </div>
-            
-            <div v-if="activeTab === 'players'" class="form-group">
-              <label>位置</label>
-              <input type="text" v-model="newPerson.position" required class="form-control">
-            </div>
-            
-            <div v-if="activeTab === 'managers'" class="form-group">
-              <label>职位</label>
-              <input type="text" v-model="newPerson.position" required class="form-control">
-            </div>
-            
-            <div v-if="activeTab === 'managers'" class="form-group">
-              <label>联系方式</label>
-              <input type="text" v-model="newPerson.contact" required class="form-control">
-            </div>
-            
-            <div v-if="activeTab === 'doctors'" class="form-group">
-              <label>专业领域</label>
-              <input type="text" v-model="newPerson.specialty" required class="form-control">
-            </div>
-            
-            <div v-if="activeTab === 'doctors'" class="form-group">
-              <label>资质</label>
-              <input type="text" v-model="newPerson.qualification" required class="form-control">
-            </div>
-            
-            <div class="modal-actions">
-              <button type="button" class="cancel-btn" @click="closeModal">取消</button>
-              <button type="submit" class="confirm-btn">确认添加</button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
   </template>
   
   <script>
   import { ref, computed } from 'vue';
+  import { onMounted } from 'vue';
   import { useRouter } from 'vue-router';
- export default { 
-    setup() {
-       const router = useRouter();
-       const team = ref({
-        name: '梦幻足球队',
-        logo: '',
-        foundedYear: 1990,
-        homeStadium: '梦想球场',
-        headCoach: '张教练',
-        description: '一支充满激情和梦想的足球队，致力于培养年轻球员和取得优异成绩。',
-        players: [
-          { id: 1, name: '张三', number: 10, position: '前锋', healthStatus: 'healthy' },
-          { id: 2, name: '李四', number: 7, position: '中场', healthStatus: 'injured' },
-          { id: 3, name: '王五', number: 1, position: '守门员', healthStatus: 'healthy' },
-          { id: 4, name: '赵六', number: 5, position: '后卫', healthStatus: 'recovering' },
-        ],
-        staff: {
-          managers: [
-            { id: 1, name: '钱经理', position: '总经理', contact: '13800138000' },
-            { id: 2, name: '孙经理', position: '运营经理', contact: '13900139000' },
-          ],
-          doctors: [
-            { id: 1, name: '周医生', specialty: '运动损伤', qualification: '医学博士' },
-            { id: 2, name: '吴医生', specialty: '康复治疗', qualification: '物理治疗师' },
-          ]
-        }
-      });
-  
-      const tabs = [
-        { id: 'players', label: '球员' },
-        { id: 'managers', label: '经理' },
-        { id: 'doctors', label: '队医' }
-      ];
-  
-      const activeTab = ref('players');
-      const showModal = ref(false);
-      const newPerson = ref({
-        name: '',
-        number: null,
-        position: '',
-        healthStatus: 'healthy',
-        contact: '',
-        specialty: '',
-        qualification: ''
-      });
-  
-      const modalTitle = computed(() => {
-        switch (activeTab.value) {
-          case 'players': return '球员';
-          case 'managers': return '经理';
-          case 'doctors': return '队医';
-          default: return '人员';
-        }
-      });
+  import axios from 'axios';
+  import { ElMessage } from 'element-plus';
 
+ 
+ export default { 
+  data() {
+    return {
+    users:[], 
+    players:[],
+    managers:[],
+    doctors:[],
+    tabs: [
+      { id: 'players', label: '球员' },
+      { id: 'managers', label: '经理' },
+      { id: 'doctors', label: '队医' },
+    ],
+    activeTab: 'players',
+    teamLogo:null,
+    teamname:null, 
+    teamyear:null,
+    homeStadium:null,
+    headCoach:null,
+    team_description:null,
+
+    }
+  },
     
-  
-      function showAddPersonModal() {
-        // 重置表单
-        newPerson.value = {
-          name: '',
-          number: null,
-          position: '',
-          healthStatus: 'healthy',
-          contact: '',
-          specialty: '',
-          qualification: ''
-        };
-        showModal.value = true;
-      }
-  
-      function closeModal() {
-        showModal.value = false;
-      }
-  
-      function addPerson() {
-        const person = { ...newPerson.value, id: Date.now() };
-        
-        switch (activeTab.value) {
-          case 'players':
-            team.value.players.push(person);
-            break;
-          case 'managers':
-            team.value.staff.managers.push(person);
-            break;
-          case 'doctors':
-            team.value.staff.doctors.push(person);
-            break;
-        };
-        closeModal();
-      }
-  
-      function removePerson(type, id) {
-        if (confirm('确定要移除此人员吗？')) {
-          switch (type) {
-            case 'players':
-              team.value.players = team.value.players.filter(p => p.id !== id);
-              break;
-            case 'managers':
-              team.value.staff.managers = team.value.staff.managers.filter(m => m.id !== id);
-              break;
-            case 'doctors':
-              team.value.staff.doctors = team.value.staff.doctors.filter(d => d.id !== id);
-              break;
-          }
-         
-        }
-      }
-  
-      function saveTeamInfo() {
-        alert('球队信息已保存');
-        // 这里可以添加发送到后端的逻辑
-      }
-  
-      return {
-        team,
-        tabs,
-        activeTab,
-        showModal,
-        newPerson,
-        modalTitle,
-        showAddPersonModal,
-        closeModal,
-        addPerson,
-        removePerson,
-        saveTeamInfo
-      };
+  created() {
+      this.fetchTeamInfo();
+      this.fetchUserList();
     },
+  setup() {
+    const router = useRouter();
+    onMounted(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.type !== "coach") {
+          ElMessage.error("无权访问该页面");
+          router.replace("/login");
+        }
+      } else {
+        ElMessage.error("请先登录");
+        router.replace("/login");
+      }
+    });
+
+    return { router };
+  },
+     
+   
     methods:{
     back(){
           this.$router.push('/chome');
         },
+        
+
+        async fetchTeamInfo() {
+            try {
+                  const res = await axios.get("http://localhost:5000/api/schedule/team", { 
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                  });
+                  
+                  // 检查响应数据是否存在
+                  if (res.data && res.data.teamname && res.data.teamname.length > 0) {
+                    this.teamname = res.data.teamname[0].name;
+                    
+                    // 获取主队队徽
+                    if (res.data.teamlist && res.data.teamlist.length > 0) {
+                      const myTeam = res.data.teamlist.find(team => team.name === this.teamname);
+                      if (myTeam && myTeam.logo_path) {
+                        this.teamLogo = `http://localhost:5000${myTeam.logo_path}`;
+                      }
+                    }   
+                    
+                   
+                  }
+                } catch (error) {
+                  console.error('获取球信息失败:', error);
+                  ElMessage.error('获取球队信息失败');
+                }  
+          },
+    async fetchUserList(){
+      try {
+            const response = await axios.get("http://localhost:5000/api/player/list", { 
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              }
+            });
+            this.users = response.data.playerlist;
+            //this.players=this.users.find(user => user.type === 'player')?.players || [];
+            this.players = Object.assign([], this.users); 
+            this.managers=this.users.find(user => user.type === 'manager')?.managers || [];
+            this.doctors=this.users.find(user => user.type === 'doctor')?.doctors || [];
+          } catch (error) {
+            console.error('获取球员列表失败:', error);
+            ElMessage.error('获取球员列表失败');
+          }
+         
+    },
+    async saveTeamInfo(){
+      for (const player of this.players) {
+       
+        try {
+      
+        const res=await axios.put(`http://localhost:5000/api/player/${player.id}`)
+        } catch (error) {
+          console.error('保存球队信息失败:', error);
+          ElMessage.error('保存球队信息失败');
+          }
+      }
+     
+      }
     }
-};
+}
   </script>
   
   <style scoped>
@@ -349,8 +283,10 @@
   .team-info-section {
     flex: 1;
     padding: 20px;
+   
     background-color: #f5f5f5;
     border-right: 1px solid #ddd;
+    width:400px;
   }
   
   .personnel-management-section {
@@ -370,6 +306,7 @@
     flex-direction: column;
     align-items: center;
     margin-right: 20px;
+    height:300px;
   }
   
   .logo-image {
@@ -451,6 +388,7 @@
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+    margin-bottom: auto;
   }
   
   .save-btn {
@@ -526,6 +464,7 @@
   
   .remove-btn {
     padding: 5px 10px;
+   
     background-color: #f44336;
     color: white;
     border: none;
@@ -592,4 +531,7 @@
       margin-bottom: 20px;
     }
   }
+   .wheight{
+    width:60px;
+   }
   </style>
