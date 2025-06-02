@@ -222,14 +222,14 @@
   
             <!-- 事件列表 -->
             <div class="event-list" v-if="match.events.length">
-            <h3>比赛事件</h3>
-            <div class="event-timeline-rows">
+              <h3>比赛事件</h3>
+              <div class="event-timeline-rows">
                 <div
-                class="event-row"
-                v-for="(row, index) in getUnifiedTimelineRows(match.events, match)"
-                :key="index"
+                  class="event-row"
+                  v-for="(row, index) in getUnifiedTimelineRows(match.events, match)"
+                  :key="index"
                 >
-                <div class="event-side left">
+                  <div class="event-side left">
                     <template v-if="row.isHome">
                       <div class="event-content">
                         <button class="delete-btn" @click="deleteEvent(match, row.event.id)">×</button>
@@ -239,56 +239,62 @@
                           <div class="event-inner">
                             <div class="event-line">
                               <span class="event-name">{{ row.event.scorer_name }}</span>
-                              <span class="event-icon">⚽</span>
+                              <img src="/public/picture/jinqiu.png" class="event-icon" />
                             </div>
-                            <div v-if="row.event.assist_name && row.event.period !== 'PEN'" class="event-line assist-line">
+                            <div
+                              v-if="row.event.assist_name && row.event.period !== 'PEN'"
+                              class="event-line assist-line"
+                            >
                               <span class="event-name">{{ row.event.assist_name }}</span>
-                              <span class="event-icon">🎯</span>
+                              <img src="/public/picture/zhugong.png" class="event-icon" />
                             </div>
                           </div>
                         </template>
 
                         <!-- 点球进球 -->
                         <template v-else-if="row.event.event_type === 'goal' && row.event.is_penalty">
-                            {{ row.event.scorer_name }} 
-                            <span class="goal-penalty">（点球） ⚽</span>
+                          {{ row.event.scorer_name }}
+                          <img src="/public/picture/jinqiu.png" class="event-icon" />
+                          <span class="goal-penalty">（点球）</span>
                         </template>
 
                         <!-- 点球大战 -->
                         <template v-else-if="row.event.event_type === 'penalty'">
-                           {{ row.event.penalty_player }}
-                          <template v-if="row.event.penalty_result === 'score'">（罚进）</template>
-                          <template v-else><span class="goal-penalty">（罚失）</span></template>
-                          ⚽
-                          <template v-if="row.event.penalty_result === 'score'">✅</template>
-                          <template v-else>❌</template>
-
+                          {{ row.event.penalty_player }}
+                          <img :src="row.event.penalty_result === 'score' ? '/public/picture/jinqiu.png' : '/public/picture/diuqiu.png'" class="event-icon" />
+                          <template v-if="row.event.penalty_result === 'score'"></template>
+                          <template v-else><span class="goal-penalty"></span></template>
                         </template>
 
                         <!-- 红黄牌 -->
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                           {{ row.event.card_player }}
-                          <span v-if="row.event.card_type === 'red'">🟥</span>
-                          <span v-else>🟨</span>
+                          <img
+                            :src="row.event.card_type === 'red' ? '/public/picture/hongpai.png' : '/public/picture/huangpai.png'"
+                            class="event-icon"
+                          />
                         </template>
 
+                        <!-- 换人 -->
                         <template v-else-if="row.event.event_type === 'substitution'">
                           <div class="event-inner">
                             <div class="event-line">
                               <span class="event-name">{{ row.event.sub_in_name }}</span>
-                              <span class="event-icon">🔄</span>
+                              <img src="/public/picture/shang.png" class="event-icon" />
                             </div>
                             <div class="event-line assist-line">
                               <span class="event-name">{{ row.event.sub_out_name }}</span>
-                              <span class="event-icon">🔻</span>
+                              <img src="/public/picture/xia.png" class="event-icon" />
                             </div>
                           </div>
                         </template>
-                      </div>                    
+                      </div>
                     </template>
-                </div>
+                  </div>
 
-                <div class="event-time">{{ formatMinuteNote(row.time) }}</div>
+
+                  <div class="event-time">{{ formatMinuteNote(row.time) }}</div>
+
                   <div class="event-side right">
                     <template v-if="row.isAway">
                       <div class="event-content">
@@ -296,46 +302,56 @@
 
                         <!-- 非点球进球事件 -->
                         <template v-if="row.event.event_type === 'goal' && !row.event.is_penalty">
-                            ⚽ {{ row.event.scorer_name }}
-                          <div v-if="row.event.assist_name && row.event.period !== 'PEN'" class="assist-line">
-                            🎯 {{ row.event.assist_name }}
+                          <img src="/public/picture/jinqiu.png" class="event-icon" />
+                          {{ row.event.scorer_name }}
+                          <div
+                            v-if="row.event.assist_name && row.event.period !== 'PEN'"
+                            class="assist-line"
+                          >
+                            <img src="/public/picture/zhugong.png" class="event-icon" />
+                            {{ row.event.assist_name }}
                           </div>
                         </template>
 
                         <!-- 点球进球 -->
                         <template v-else-if="row.event.event_type === 'goal' && row.event.is_penalty">
-                            ⚽ {{ row.event.scorer_name }} 
-                            <span class="goal-penalty">（点球）</span>
+                          <img src="/public/picture/jinqiu.png" class="event-icon" />
+                          {{ row.event.scorer_name }} <span class="goal-penalty">（点球）</span>
                         </template>
 
                         <!-- 点球大战 -->
                         <template v-else-if="row.event.event_type === 'penalty'">
-                          ⚽
-                          <template v-if="row.event.penalty_result === 'score'">✅</template>
-                          <template v-else>❌</template>
-                           {{ row.event.penalty_player }}
-                          <template v-if="row.event.penalty_result === 'score'">（罚进）</template>
-                          <template v-else><span class="goal-penalty">（罚失）</span></template>
+                          <img :src="row.event.penalty_result === 'score' ? '/public/picture/jinqiu.png' : '/public/picture/diuqiu.png'" class="event-icon" />
+                          {{ row.event.penalty_player }}
+                          <template v-if="row.event.penalty_result === 'score'"></template>
+                          <template v-else><span class="goal-penalty"></span></template>
                         </template>
 
                         <!-- 红黄牌 -->
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
-                          <span v-if="row.event.card_type === 'red'">🟥</span>
-                          <span v-else>🟨</span>
+                          <img
+                            :src="row.event.card_type === 'red' ? '/public/picture/hongpai.png' : '/public/picture/huangpai.png'"
+                            class="event-icon"
+                          />
                           {{ row.event.card_player }}
                         </template>
 
                         <!-- 换人 -->
                         <template v-else-if="row.event.event_type === 'substitution'">
-                            🔄 {{ row.event.sub_in_name }}
-                            <div class="assist-line">🔻 {{ row.event.sub_out_name }}</div>
+                          <img src="/public/picture/shang.png" class="event-icon" />
+                          {{ row.event.sub_in_name }}
+                          <div class="assist-line">
+                            <img src="/public/picture/xia.png" class="event-icon" />
+                            {{ row.event.sub_out_name }}
+                          </div>
                         </template>
                       </div>
                     </template>
                   </div>
                 </div>
+              </div>
             </div>
-            </div>
+
             </div>
           </li>
         </ul>
@@ -1293,6 +1309,7 @@ const deleteEvent = async (match, eventId) => {
 .event-line {
   display: flex;
   align-items: center;  /* ✅ 居中对齐，避免“靠上” */
+  justify-content: flex-end; /* ✅ 将主队行内内容整体靠右 */
   line-height: 1.2;
   margin: 0;
   padding: 0;
@@ -1307,6 +1324,7 @@ const deleteEvent = async (match, eventId) => {
 .event-name {
   text-align: left;
   font-size: 15px;
+  text-align: right !important; /* ✅ 右对齐 */
   color: #333;
   flex: 1;
   line-height: 1;   /* ✅ 确保紧凑 */
