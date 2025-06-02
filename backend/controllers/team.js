@@ -95,7 +95,7 @@ exports.getTeamMatches = async (req, res, next) => {
 
     const matches = await db.startQuery(`
       SELECT s.id AS schedule_id, s.date, s.type, m.id AS match_id,
-             m.location, m.match_time, m.team1, m.team2,
+             m.location, CONCAT(s.date, ' ', m.match_time) AS datetime, m.team1, m.team2,
              t1.logo_path AS team1_logo, t2.logo_path AS team2_logo
       FROM schedule s
       JOIN match_schedule m ON s.id = m.schedule_id

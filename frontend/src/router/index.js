@@ -10,6 +10,7 @@ import ForumDetail from "../views/forumDetail.vue";
 //导入球迷界面
 import Fhome from "../views/fans/Fhome.vue";
 import Fnotice from "../views/fans/Fnotice.vue";
+import Stats from "../views/fans/TeamStats.vue";
 
 //导入球员界面
 import Phome from "../views/player/Phome.vue";
@@ -49,6 +50,7 @@ const routes = [
   { path: '/forum/:id', component: ForumDetail },
   { path: '/fhome', component: Fhome },
   { path: '/fnotice', component: Fnotice },
+  { path: '/teamstats', component: Stats },
   { path: '/mhome', component: Mhome },
   { path: '/mnotice', component: Mnotice },
   { path: '/mnotice_del', component: Mnotice_del }, 
