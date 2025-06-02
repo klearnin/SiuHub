@@ -118,7 +118,7 @@ exports.getScheduleByDate = async (req, res) => {
       }
        else if (schedule.type === 'match' || schedule.type === 'past_match') {
         const [match] = await startQuery(`
-          SELECT location, match_time, team1, team2
+          SELECT id AS match_id, location, match_time, team1, team2
           FROM match_schedule
           WHERE schedule_id = ${escape(schedule.id)}
         `);
@@ -126,11 +126,66 @@ exports.getScheduleByDate = async (req, res) => {
           Object.assign(detail, match);
 
           if (schedule.type === 'past_match') {
-            const events = await startQuery(`
-              SELECT * FROM match_event
-              WHERE match_schedule_id = ${escape(match.id)}
-            `);
-            detail.events = events;
+                 const events = await startQuery(`
+                   SELECT e.id, e.period, e.event_minute, e.minute_note, e.event_type, e.team_name,
+                     g.scorer_name, g.assist_name,
+                     s.sub_in_name, s.sub_out_name,
+                     c.player_name AS card_player, c.card_type,
+                     p.player_name AS penalty_player, p.result AS penalty_result
+                   FROM match_event_log e
+                   LEFT JOIN match_goals g ON e.id = g.event_id
+                   LEFT JOIN match_substitutions s ON e.id = s.event_id
+                   LEFT JOIN match_cards c ON e.id = c.event_id
+                   LEFT JOIN match_penalties p ON e.id = p.event_id
+                   WHERE e.match_id = ?
+                   ORDER BY 
+                     FIELD(e.period, '1H','2H','ET1','ET2','PEN'),
+                     e.event_minute ASC
+                 `, [match.match_id]);
+
+                const goals = await startQuery(`
+                  SELECT team_name, COUNT(*) AS goal_count
+                  FROM match_event_log
+                  WHERE match_id = ? AND event_type = 'goal'
+                  GROUP BY team_name
+                `, [match.match_id]);
+            
+                // 点球大战进球（如果有）
+                const penalties = await startQuery(`
+                  SELECT team_name, COUNT(*) AS penalty_score
+                  FROM match_event_log l
+                  JOIN match_penalties p ON l.id = p.event_id
+                  WHERE l.match_id = ? AND l.period = 'PEN' AND p.result = 'score'
+                  GROUP BY l.team_name
+                `, [match.match_id]);
+            
+                const finalScore = {};
+                let hasPenaltyShootout = penalties.length > 0;
+            
+                // 初始化比分结构
+                for (const g of goals) {
+                  finalScore[g.team_name] = { goal: g.goal_count, penalty: 0 };
+                }
+            
+                for (const p of penalties) {
+                  if (!finalScore[p.team_name]) {
+                    finalScore[p.team_name] = { goal: 0, penalty: p.penalty_score };
+                  } else {
+                    finalScore[p.team_name].penalty = p.penalty_score;
+                  }
+                }
+                if(!finalScore[match.team1]){
+                  finalScore[match.team1] = { goal: 0, penalty: 0 };
+                }
+                if(!finalScore[match.team2]){
+                  finalScore[match.team2] = { goal: 0, penalty: 0 };
+                }
+                const scoredata= {
+                  score: finalScore,
+                  has_penalty_shootout: hasPenaltyShootout  // 如果hasPenaltyShootout为false，则不用显示点球比分
+                }
+                detail.events = events;
+                detail.scoredata=scoredata;
           }
         }
       }
@@ -148,15 +203,30 @@ exports.getScheduleByDate = async (req, res) => {
 
 exports.getMatchEvents = async (req, res) => {
   try {
-    const matchScheduleId = req.params.id;
-
-    const matchInfo = await startQuery(`SELECT * FROM match_schedule WHERE id = ${escape(matchScheduleId)}`);
-    const events = await startQuery(`SELECT * FROM match_event WHERE match_schedule_id = ${escape(matchScheduleId)}`);
-
-    res.json({ match: matchInfo[0], events });
-  } catch (err) {
-    res.status(500).json({ error: '获取比赛详情失败' });
-  }
+        const  schedule_id  = req.params.id;
+        const matchInfo = await startQuery(`SELECT * FROM match_schedule WHERE id = ${escape(schedule_id)}`);
+        const match_id = matchInfo.id;
+        const events = await startQuery(`
+          SELECT e.id, e.period, e.event_minute, e.minute_note, e.event_type, e.team_name,
+            g.scorer_name, g.assist_name,
+            s.sub_in_name, s.sub_out_name,
+            c.player_name AS card_player, c.card_type,
+            p.player_name AS penalty_player, p.result AS penalty_result
+          FROM match_event_log e
+          LEFT JOIN match_goals g ON e.id = g.event_id
+          LEFT JOIN match_substitutions s ON e.id = s.event_id
+          LEFT JOIN match_cards c ON e.id = c.event_id
+          LEFT JOIN match_penalties p ON e.id = p.event_id
+          WHERE e.match_id = ?
+          ORDER BY 
+            FIELD(e.period, '1H','2H','ET1','ET2','PEN'),
+            e.event_minute ASC
+        `, [match_id]);
+    
+        res.json({ match: matchInfo[0], events });
+      } catch (err) {
+        next(err);
+      }
 };
 
 exports.deleteSchedule = async (req, res) => {
@@ -172,7 +242,7 @@ exports.deleteSchedule = async (req, res) => {
   }
 };
 
-
+//有问题别用用要改
 exports.getScheduleById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -206,9 +276,61 @@ exports.getScheduleById = async (req, res) => {
         Object.assign(detail, match);
 
         if (schedule.type === 'past_match') {
-          const events = await startQuery(`SELECT * FROM match_event WHERE match_schedule_id = ${escape(match.id)}`);
-          detail.events = events;
-        }
+                 const events = await startQuery(`
+                   SELECT e.id, e.period, e.event_minute, e.minute_note, e.event_type, e.team_name,
+                     g.scorer_name, g.assist_name,
+                     s.sub_in_name, s.sub_out_name,
+                     c.player_name AS card_player, c.card_type,
+                     p.player_name AS penalty_player, p.result AS penalty_result
+                   FROM match_event_log e
+                   LEFT JOIN match_goals g ON e.id = g.event_id
+                   LEFT JOIN match_substitutions s ON e.id = s.event_id
+                   LEFT JOIN match_cards c ON e.id = c.event_id
+                   LEFT JOIN match_penalties p ON e.id = p.event_id
+                   WHERE e.match_id = ?
+                   ORDER BY 
+                     FIELD(e.period, '1H','2H','ET1','ET2','PEN'),
+                     e.event_minute ASC
+                 `, [match.id]);
+
+                const goals = await startQuery(`
+                  SELECT team_name, COUNT(*) AS goal_count
+                  FROM match_event_log
+                  WHERE match_id = ? AND event_type = 'goal'
+                  GROUP BY team_name
+                `, [match.id]);
+            
+                // 点球大战进球（如果有）
+                const penalties = await startQuery(`
+                  SELECT team_name, COUNT(*) AS penalty_score
+                  FROM match_event_log l
+                  JOIN match_penalties p ON l.id = p.event_id
+                  WHERE l.match_id = ? AND l.period = 'PEN' AND p.result = 'score'
+                  GROUP BY l.team_name
+                `, [match.id]);
+            
+                const finalScore = {};
+                let hasPenaltyShootout = penalties.length > 0;
+            
+                // 初始化比分结构
+                for (const g of goals) {
+                  finalScore[g.team_name] = { goal: g.goal_count, penalty: 0 };
+                }
+            
+                for (const p of penalties) {
+                  if (!finalScore[p.team_name]) {
+                    finalScore[p.team_name] = { goal: 0, penalty: p.penalty_score };
+                  } else {
+                    finalScore[p.team_name].penalty = p.penalty_score;
+                  }
+                }
+                const scoredata= {
+                  score: finalScore,
+                  has_penalty_shootout: hasPenaltyShootout  // 如果hasPenaltyShootout为false，则不用显示点球比分
+                }
+                detail.events = events;
+                detail.scoredata=scoredata;
+          }
       }
     }
 

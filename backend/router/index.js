@@ -16,5 +16,6 @@ router.use("/honor", require("./honor"));
 router.use("/finance", require("./finance"));
 router.use("/tactics", require("./tactics"));
 router.use("/team", require("./team"));
+router.use("/player", require("./player"));
 
 module.exports = router

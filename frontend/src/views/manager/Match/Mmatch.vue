@@ -239,14 +239,14 @@
                           <div class="event-inner">
                             <div class="event-line">
                               <span class="event-name">{{ row.event.scorer_name }}</span>
-                              <img src="/public/picture/jinqiu.png" class="event-icon" />
+                              <img src="/picture/jinqiu.png" class="event-icon" />
                             </div>
                             <div
                               v-if="row.event.assist_name && row.event.period !== 'PEN'"
                               class="event-line assist-line"
                             >
                               <span class="event-name">{{ row.event.assist_name }}</span>
-                              <img src="/public/picture/zhugong.png" class="event-icon" />
+                              <img src="/picture/zhugong.png" class="event-icon" />
                             </div>
                           </div>
                         </template>
@@ -254,14 +254,14 @@
                         <!-- 点球进球 -->
                         <template v-else-if="row.event.event_type === 'goal' && row.event.is_penalty">
                           {{ row.event.scorer_name }}
-                          <img src="/public/picture/jinqiu.png" class="event-icon" />
+                          <img src="/picture/jinqiu.png" class="event-icon" />
                           <span class="goal-penalty">（点球）</span>
                         </template>
 
                         <!-- 点球大战 -->
                         <template v-else-if="row.event.event_type === 'penalty'">
                           {{ row.event.penalty_player }}
-                          <img :src="row.event.penalty_result === 'score' ? '/public/picture/jinqiu.png' : '/public/picture/diuqiu.png'" class="event-icon" />
+                          <img :src="row.event.penalty_result === 'score' ? '/picture/jinqiu.png' : '/picture/diuqiu.png'" class="event-icon" />
                           <template v-if="row.event.penalty_result === 'score'"></template>
                           <template v-else><span class="goal-penalty"></span></template>
                         </template>
@@ -270,7 +270,7 @@
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                           {{ row.event.card_player }}
                           <img
-                            :src="row.event.card_type === 'red' ? '/public/picture/hongpai.png' : '/public/picture/huangpai.png'"
+                            :src="row.event.card_type === 'red' ? '/picture/hongpai.png' : '/picture/huangpai.png'"
                             class="event-icon"
                           />
                         </template>
@@ -280,11 +280,11 @@
                           <div class="event-inner">
                             <div class="event-line">
                               <span class="event-name">{{ row.event.sub_in_name }}</span>
-                              <img src="/public/picture/shang.png" class="event-icon" />
+                              <img src="/picture/shang.png" class="event-icon" />
                             </div>
                             <div class="event-line assist-line">
                               <span class="event-name">{{ row.event.sub_out_name }}</span>
-                              <img src="/public/picture/xia.png" class="event-icon" />
+                              <img src="/picture/xia.png" class="event-icon" />
                             </div>
                           </div>
                         </template>
@@ -302,26 +302,26 @@
 
                         <!-- 非点球进球事件 -->
                         <template v-if="row.event.event_type === 'goal' && !row.event.is_penalty">
-                          <img src="/public/picture/jinqiu.png" class="event-icon" />
+                          <img src="/picture/jinqiu.png" class="event-icon" />
                           {{ row.event.scorer_name }}
                           <div
                             v-if="row.event.assist_name && row.event.period !== 'PEN'"
                             class="assist-line"
                           >
-                            <img src="/public/picture/zhugong.png" class="event-icon" />
+                            <img src="/picture/zhugong.png" class="event-icon" />
                             {{ row.event.assist_name }}
                           </div>
                         </template>
 
                         <!-- 点球进球 -->
                         <template v-else-if="row.event.event_type === 'goal' && row.event.is_penalty">
-                          <img src="/public/picture/jinqiu.png" class="event-icon" />
+                          <img src="/picture/jinqiu.png" class="event-icon" />
                           {{ row.event.scorer_name }} <span class="goal-penalty">（点球）</span>
                         </template>
 
                         <!-- 点球大战 -->
                         <template v-else-if="row.event.event_type === 'penalty'">
-                          <img :src="row.event.penalty_result === 'score' ? '/public/picture/jinqiu.png' : '/public/picture/diuqiu.png'" class="event-icon" />
+                          <img :src="row.event.penalty_result === 'score' ? '/picture/jinqiu.png' : '/picture/diuqiu.png'" class="event-icon" />
                           {{ row.event.penalty_player }}
                           <template v-if="row.event.penalty_result === 'score'"></template>
                           <template v-else><span class="goal-penalty"></span></template>
@@ -330,7 +330,7 @@
                         <!-- 红黄牌 -->
                         <template v-else-if="['red_card', 'yellow_card'].includes(row.event.event_type)">
                           <img
-                            :src="row.event.card_type === 'red' ? '/public/picture/hongpai.png' : '/public/picture/huangpai.png'"
+                            :src="row.event.card_type === 'red' ? '/picture/hongpai.png' : '/picture/huangpai.png'"
                             class="event-icon"
                           />
                           {{ row.event.card_player }}
@@ -338,10 +338,10 @@
 
                         <!-- 换人 -->
                         <template v-else-if="row.event.event_type === 'substitution'">
-                          <img src="/public/picture/shang.png" class="event-icon" />
+                          <img src="/picture/shang.png" class="event-icon" />
                           {{ row.event.sub_in_name }}
                           <div class="assist-line">
-                            <img src="/public/picture/xia.png" class="event-icon" />
+                            <img src="/picture/xia.png" class="event-icon" />
                             {{ row.event.sub_out_name }}
                           </div>
                         </template>

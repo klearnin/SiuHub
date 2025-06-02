@@ -3,7 +3,8 @@ const db = require("../database");
 // 获取今日比赛对阵信息
 exports.getTodayMatches = async (req, res, next) => {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split("T")[0];
+
 
     const matches = await db.startQuery(`
       SELECT 

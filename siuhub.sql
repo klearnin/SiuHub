@@ -360,11 +360,15 @@ CREATE TABLE players (
   team_id VARCHAR(100) NOT NULL COMMENT '所属球队ID',
   FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
   user_id VARCHAR(100),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  dominant_foot ENUM('左脚', '右脚'),
+  height INT COMMENT'cm',
+  weight INT COMMENT'kg',
+  age INT
 );
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('1','player_1','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('1','player_1','team_001','/public/avatars/version.jpg','player_001');
 
 INSERT INTO players(player_number,player_name,team_id,avatar)
 VALUES('2','player_2','team_001','/public/avatars/version.jpg');
