@@ -85,6 +85,20 @@ INSERT INTO users (
   '/public/avatars/version.jpg'
 );
 
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'medic_001',         -- 用户 ID
+  '测试队医',                 -- 昵称
+  '12345678905',              -- 手机号
+  'medic@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'medic',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+
 CREATE TABLE teams (
   id VARCHAR(100) PRIMARY KEY COMMENT '球队ID',
   name VARCHAR(100) NOT NULL UNIQUE COMMENT '球队名称',

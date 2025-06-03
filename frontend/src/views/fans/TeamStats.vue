@@ -16,7 +16,20 @@
             <p><strong>简称：</strong>{{ teamInfo.abbr }}</p>
           </div>
         </div>
-
+        <div class="status-bar-section">
+          <div class="status-bar-row">
+            <span class="status-bar-label">近五场比赛状态：</span>
+            <div class="status-bars">
+              <div
+                v-for="(match, idx) in recentMatchStatus"
+                :key="idx"
+                class="status-bar"
+                :class="getBarClass(match.score_difference)"
+                :style="getBarStyle(match.score_difference)"
+              ></div>
+            </div>
+          </div>
+        </div>
         <div class="match-schedule">
           <div class="section-title">赛程</div>
           <el-table :data="schedules" border style="width: 100%">
@@ -189,6 +202,29 @@ const formatLogo = (path) => {
   return path?.startsWith('/public') ? `http://localhost:5000${path}` : path
 }
 
+const recentMatchStatus = ref([])
+
+const fetchRecentMatchStatus = async () => {
+  try {
+    const res = await axios.get('http://localhost:5000/api/team/team-match-scores', { headers })
+    recentMatchStatus.value = res.data.data || []
+  } catch (err) {
+    ElMessage.error('加载比赛状态失败')
+  }
+}
+
+const getBarClass = (diff) => {
+  if (diff > 0) return 'win'
+  if (diff < 0) return 'lose'
+  return 'draw'
+}
+
+const getBarStyle = (diff) => {
+  const maxHeight = 50
+  const unit = 10
+  const height = Math.min(Math.abs(diff) * unit, maxHeight)
+  return { '--bar-height': `${height}px` }
+}
 
 const goBack = () => {
   const payload = JSON.parse(atob(token.split('.')[1]))
@@ -217,6 +253,7 @@ onMounted(async () => {
   await fetchTeamInfo()
   await fetchSchedules()
   fetchStats()
+  fetchRecentMatchStatus()
 })
 </script>
 
@@ -281,4 +318,88 @@ onMounted(async () => {
   color: #0154a0;
   margin-bottom: 10px;
 }
+.status-bar-section {
+  margin: -8px 0 48px 20px; /* ✅ 往上挪一点 + 左对齐 */
+}
+
+.status-bar-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.status-bar-wrapper {
+  display: flex;
+  justify-content: center;    /* ✅ 水平居中 */
+  align-items: center;        /* ✅ 垂直居中 */
+  height: 80px;               /* ✅ 控制上下间距 */
+  margin: 10px 0;
+}
+
+.status-bars {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  justify-content: flex-start;
+  margin-top: 10px;
+  margin-left: 120px;
+  height: 30px;
+  
+}
+
+.status-bar-row {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px; /* ✅ 控制字与条之间的间距 */
+  padding-left: 20px;
+  margin-bottom: 4px;
+}
+
+.status-bar {
+  width: 12px;
+  border-radius: 2px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.status-bar.win::before {
+  content: '';
+  width: 100%;
+  background-color: #67c23a;
+  border-radius: 2px;
+  height: var(--bar-height);
+}
+
+.status-bar.win {
+  background-color: #67c23a;
+}
+
+.status-bar.lose {
+  background-color: #f56c6c;
+  transform: translateY(100%) scaleY(-1);
+  transform-origin: top;
+}
+
+.status-bar.lose::before {
+  content: '';
+  width: 100%;
+  background-color: #f56c6c;
+  border-radius: 2px;
+  height: var(--bar-height);
+  position: absolute;
+  bottom: 0;
+}
+
+.status-bar.draw::before {
+  content: '';
+  width: 100%;
+  height: 2px;
+  background-color: #909399;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 </style>

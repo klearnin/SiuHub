@@ -39,6 +39,7 @@ import Mhonor from "../views/manager/Honor/Mhonor.vue";
 import Dhome from "../views/medic/Dhome.vue";
 import Dnotice from "../views/medic/Notice/Dnotice.vue";
 import Dnotice_del from "../views/medic/Notice/Dnotice_del.vue";
+import Dinjury from "../views/medic/injury.vue";
 
 import { pa } from "element-plus/es/locales.mjs";
 import path from "path";
@@ -60,13 +61,14 @@ const routes = [
   { path: '/dhome', component: Dhome },
   { path: '/dnotice', component: Dnotice },
   { path: '/dnotice_del', component: Dnotice_del }, 
+  { path: '/injury', component: Dinjury },
   { path: '/chome/review', component: Review },
   { path: "/phome", component: Phome},
   { path: "/pnotice", component: Pnotice},
   { path: "/ptacticboard", component: PtacticBoard},
-  {path: "/pschedule", component: Pschedule},
-  {path: "/ctacticcanvas", component: CtacticCanvas},
-  {path: "/cmanageTeam", component: ManageTeam},
+  { path: "/pschedule", component: Pschedule},
+  { path: "/ctacticcanvas", component: CtacticCanvas},
+  { path: "/cmanageTeam", component: ManageTeam},
 
 
 
