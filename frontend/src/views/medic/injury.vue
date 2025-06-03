@@ -180,7 +180,11 @@ const editInjury = (injury) => {
 }
 
 const deleteInjury = async (id) => {
-  await ElMessageBox.confirm('确认删除该记录？', '警告', { type: 'warning' })
+  await ElMessageBox.confirm('确认删除该记录？', '警告', {
+    type: 'warning',
+    confirmButtonText: '删除',
+    cancelButtonText: '取消'
+  })
   await axios.delete(`http://localhost:5000/api/injury/delete/${id}`, { headers })
   ElMessage.success('删除成功')
   dialogVisible.value = false
