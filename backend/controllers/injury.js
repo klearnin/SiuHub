@@ -81,13 +81,13 @@ exports.updateInjury = async (req, res, next) => {
 
     const playerId = injury.player_id;
 
-    // 判断更新后是否为“仍未恢复”
+    // 判断更新后这条记录是否为“仍未恢复”
     const [isUnrecovered] = await db.startQuery(`
       SELECT CURDATE() < DATE_ADD(?, INTERVAL ? DAY) AS unrecovered
     `, [injury_date, recovery_days]);
 
     if (isUnrecovered.unrecovered) {
-      // 查询是否存在其他进行中的伤病记录（不包括当前这个）
+      // 查询是否存在其他进行中的伤病记录（不包括当前这条）
       const [conflict] = await db.startQuery(`
         SELECT COUNT(*) AS count FROM injuries
         WHERE player_id = ? AND id != ?
@@ -101,19 +101,26 @@ exports.updateInjury = async (req, res, next) => {
         });
       }
 
-      // ✅ 没有其他冲突伤病，可以设为受伤
+      // ✅ 可以将球员状态设为受伤
       await db.startQuery(`UPDATE players SET health = 'injured' WHERE id = ?`, [playerId]);
-    } else {
-      // ✅ 已恢复，设为健康
-      await db.startQuery(`UPDATE players SET health = 'healthy' WHERE id = ?`, [playerId]);
     }
 
-    // 执行更新
+    // 更新伤病记录
     await db.startQuery(`
       UPDATE injuries
       SET injury_name = ?, description = ?, recovery_days = ?, injury_date = ?
       WHERE id = ?
     `, [injury_name, description, recovery_days, injury_date, id]);
+
+    // ✅ 再次检查是否所有伤病都已经恢复，决定是否设为健康
+    const [ongoing] = await db.startQuery(`
+      SELECT COUNT(*) AS count FROM injuries
+      WHERE player_id = ? AND DATE_ADD(injury_date, INTERVAL recovery_days DAY) > CURDATE()
+    `, [playerId]);
+
+    if (ongoing.count === 0) {
+      await db.startQuery(`UPDATE players SET health = 'healthy' WHERE id = ?`, [playerId]);
+    }
 
     res.json({ code: 0, msg: "伤病信息更新成功" });
   } catch (err) {
@@ -123,12 +130,13 @@ exports.updateInjury = async (req, res, next) => {
 
 
 
+
 // 删除伤病信息
 exports.deleteInjury = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // 先获取该伤病记录对应的球员 ID
+    // 获取该伤病记录对应的球员 ID
     const [injury] = await db.startQuery(
       `SELECT player_id FROM injuries WHERE id = ?`,
       [id]
@@ -143,18 +151,15 @@ exports.deleteInjury = async (req, res, next) => {
     // 删除伤病记录
     await db.startQuery(`DELETE FROM injuries WHERE id = ?`, [id]);
 
-    // 检查该球员是否还有其他伤病
-    const [otherInjuries] = await db.startQuery(
-      `SELECT COUNT(*) AS count FROM injuries WHERE player_id = ?`,
-      [playerId]
-    );
+    // 检查该球员是否还有“进行中的伤病”
+    const [ongoing] = await db.startQuery(`
+      SELECT COUNT(*) AS count FROM injuries
+      WHERE player_id = ?
+        AND DATE_ADD(injury_date, INTERVAL recovery_days DAY) > CURDATE()
+    `, [playerId]);
 
-    if (otherInjuries.count === 0) {
-      // 没有其他伤病，更新为健康
-      await db.startQuery(
-        `UPDATE players SET health = 'healthy' WHERE id = ?`,
-        [playerId]
-      );
+    if (ongoing.count === 0) {
+      await db.startQuery(`UPDATE players SET health = 'healthy' WHERE id = ?`, [playerId]);
     }
 
     res.json({ code: 0, msg: "伤病记录删除成功" });
@@ -162,6 +167,7 @@ exports.deleteInjury = async (req, res, next) => {
     next(err);
   }
 };
+
 
 // 查看某球员的过往伤病史
 exports.getPlayerInjuries = async (req, res, next) => {
