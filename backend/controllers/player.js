@@ -55,7 +55,8 @@ exports.updateplayer = async (req, res, next) => {
       height: Number(req.body.height),
       weight: Number(req.body.weight),
       dominant_foot: req.body.dominant_foot || null,
-      age: req.body.age ? Number(req.body.age) : null
+      age: req.body.age ? Number(req.body.age) : null,
+      health: req.body.health||null
     };
 
     // 3. 验证数值范围
@@ -82,7 +83,8 @@ exports.updateplayer = async (req, res, next) => {
         dominant_foot = ?,
         height = ?,
         weight = ?,
-        age = ?
+        age = ?,
+        health = ?
       WHERE id = ?
     `;
     await db.startQuery(updateSql, [
@@ -91,6 +93,7 @@ exports.updateplayer = async (req, res, next) => {
       playerData.height,
       playerData.weight,
       playerData.age,
+      playerData.health,
       playerId
     ]);
 
@@ -102,5 +105,18 @@ exports.updateplayer = async (req, res, next) => {
       msg: '服务器内部错误',
       debug: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
+  }
+};
+
+exports.deleteuser = async (req, res,next) => {
+  try {
+    const userId = req.params.id;
+    const user = req.user;
+    // 删除 user 表的记录（外键自动删除子表）
+    await db.startQuery(`DELETE FROM users WHERE id = ${db.escape(userId)} AND team_id = ${db.escape(user.team_id)}`);
+
+    res.json({ code: 0, message: '用户删除成功' });
+  } catch (err) {
+    next(err);
   }
 };

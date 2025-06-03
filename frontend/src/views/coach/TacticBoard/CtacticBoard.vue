@@ -58,20 +58,20 @@
         </div>
 
         <div class="control-card roles-card">
-  <h3 class="panel-title">角色分配</h3>
-  <template v-for="[role] in Object.entries(characters)" 
-    :key="role"  >
-    <div class="role-item" v-if="role !== 'id' && role !== 'tactic_id'">
-    <label class="role-label">{{ roleTranslations[role] || role }}</label>
-    <!-- 使用 roleTranslations[role] 显示中文，如果没有映射则显示原英文 -->
-    <select class="styled-select small" v-model="characters[role]">
-      <option v-for="(player, index) in players" :value="player.id" :key="index">
-        {{ player.name }} ({{ player.number }})
-      </option>
-    </select>
-   </div>
-  </template>
-</div>
+          <h3 class="panel-title">角色分配</h3>
+          <template v-for="[role] in Object.entries(characters)" 
+            :key="role"  >
+            <div class="role-item" v-if="role !== 'id' && role !== 'tactic_id'">
+            <label class="role-label">{{ roleTranslations[role] || role }}</label>
+            <!-- 使用 roleTranslations[role] 显示中文，如果没有映射则显示原英文 -->
+            <select class="styled-select small" v-model="characters[role]">
+              <option v-for="(player, index) in players" :value="player.id" :key="index">
+                {{ player.name }} ({{ player.number }})
+              </option>
+            </select>
+          </div>
+          </template>
+        </div>
       </div>
 
       <!-- 球场区域 -->
@@ -111,8 +111,10 @@
             @change="updatePlayerInfo"
           >
             
-            <option  v-for="player in playerlist" :key="player.id" :value="player.id">
+            <option  v-for="player in playerlist" :key="player.id" :value="player.id" >
               {{ player.player_name }} ({{ player.player_number }})
+              
+              <span class="health" v-if="player.health==='injured'" >——————受伤</span>
             </option>
           </select>
         </div>
@@ -146,10 +148,10 @@
         </div>
         <div class="modal-actions">
           <button class="primary-btn" @click="closeNewTacticDialog">
-            <i class="icon-check"></i> 确认
+            <i class="icon-check"></i>确认
           </button>
           <button class="cancel-btn" @click="showNewTacticDialog = false">
-            <i class="icon-close"></i> 取消
+            <i class="icon-close"></i>取消
           </button>
         </div>
       </div>
@@ -348,7 +350,7 @@ async function fetchPlayerlist() {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
-    playerlist.value = response.data.playerlist;
+    playerlist.value = response.data.userlist;
   } catch (error) {
     console.error('获取球员列表失败:', error);
     ElMessage.error('获取球员列表失败');
@@ -437,7 +439,7 @@ async function saveTactic(){
 
 function setFormation() {
   if (!playerlist.value) return;
-
+  
   players.value = formations[formation.value].map((pos, index) => ({
     id: index + 1,
     avatar: playerlist.value[index]?.avatar || "", // 假设每个球员有一个 avat
@@ -456,7 +458,7 @@ async function setTactic() {
   tactical_style.value = selectedTactic.style;
   tactic_name.value = selectedTactic.tactic_name  ;
   characters.value = selectedTactic.characters || characters.value; 
-players.value = selectedTactic.players.map((p,index)=> ({
+  players.value = selectedTactic.players.map((p,index)=> ({
   id: index+1 ,
   player_id: p.player_id,
   avatar: playerlist.value.find(pl => pl.id === p.player_id)?.avatar || "",
@@ -466,9 +468,6 @@ players.value = selectedTactic.players.map((p,index)=> ({
   y: p.Yvalue
 }))
 
-  
-
-  
 }
 
 
@@ -554,7 +553,10 @@ function updatePlayerInfo() {
   const selectedPlayer = playerlist.value.find(
     p => p.id === selectedPlayerId.value
   )
- 
+  if(selectedPlayer.health==='injured'){
+    ElMessage.warning('该球员已受伤，无法上场');
+    return;
+  }
   if (selectedPlayer) {
     editingPlayer.value.name = selectedPlayer.player_name
     editingPlayer.value.number = selectedPlayer.player_number
@@ -795,7 +797,7 @@ body {
   border: none;
   padding: 8px 15px;
   border-radius: 4px;
-  border: solid 1px rgb(9, 78, 110);
+  border: solid 1px rgb(0, 0, 0);
  
   font-size: 14px;
  
@@ -1044,31 +1046,10 @@ button i {
   }
 }
 
-
+.health{
+  margin-right: auto;
+  color: #67C23A;
+}
 </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

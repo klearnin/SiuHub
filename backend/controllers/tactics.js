@@ -2,13 +2,46 @@ const db = require("../database");
 
 exports.getplayerlist = async (req, res, next) => {
   try {
-    const user = req.user;
+    const user_team = req.user;
     const sql = `
-      SELECT * FROM players where team_id = ${db.escape(user.team_id)}
+      SELECT * FROM users where team_id = ${db.escape(user_team.team_id)}
     `;
-    const result = await db.startQuery(sql);
+    const userListRaw = await db.startQuery(sql);
+    const userList = userListRaw.map(user => {
+    const { id, ...rest } = user;
+    return { uid: id, ...rest };
+    });
+    const detailedList = [];
+    for (const user of userList) {
+      delete user.password;
+      if (user.type=='player'){
+        const detail = { ...user };
+        const [player] = await db.startQuery(`
+          SELECT * FROM players where user_id = ${db.escape(user.uid)} and health = 'healthy'
+        `);
+        if (player) {
+          Object.assign(detail, player);
+          detailedList.push(detail);
+        }
+        
+      }
+    }
+    for (const user of userList) {
+      delete user.password;
+      if (user.type=='player'){
+        const detail = { ...user };
+        const [player] = await db.startQuery(`
+          SELECT * FROM players where user_id = ${db.escape(user.uid)} and health = 'injured'
+        `);
+        if (player) {
+          Object.assign(detail, player);
+          detailedList.push(detail); 
+        }
+       
+      }
    
-    res.json({ code: 0, msg: '获取成功', playerlist: result });
+    }
+    res.json({ code: 0, msg: '获取成功', userlist: detailedList });
   } catch (err) {
     next(err);
   }

@@ -98,6 +98,149 @@ INSERT INTO users (
   'approved',                  -- 状态
   '/public/avatars/version.jpg'
 );
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_002',         -- 用户 ID
+  '测试球员2',                 -- 昵称
+  '13345678926',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_003',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678927',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_004',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678928',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_005',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678929',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_006',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678930',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_007',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678931',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_008',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678932',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_009',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678933',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_010',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678934',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_011',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678935',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
+INSERT INTO users (
+  id, name, phone, email, password, type, team_id, status, avatar
+) VALUES (
+  'player_012',         -- 用户 ID
+  '测试球员',                 -- 昵称
+  '13345678936',              -- 手机号
+  'coach@example.com',         -- 邮箱
+  MD5('123456'),              -- 密码（加密后）
+  'player',                      -- 用户类型，可换成 'coach' 或其他
+  'team_001',                       -- 无需 team_id
+  'approved',                  -- 状态
+  '/public/avatars/version.jpg'
+);
 
 CREATE TABLE teams (
   id VARCHAR(100) PRIMARY KEY COMMENT '球队ID',
@@ -376,6 +519,7 @@ CREATE TABLE players (
   user_id VARCHAR(100),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   dominant_foot ENUM('左脚', '右脚'),
+  health ENUM('healthy', 'injured') DEFAULT 'healthy' COMMENT '健康状态',
   height INT COMMENT'cm',
   weight INT COMMENT'kg',
   health ENUM('healthy', 'injured') DEFAULT 'healthy' COMMENT '健康状态',
@@ -385,35 +529,38 @@ CREATE TABLE players (
 INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
 VALUES('1','player_1','team_001','/public/avatars/version.jpg','player_001');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('2','player_2','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('2','player_2','team_001','/public/avatars/version.jpg','player_002');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('3','player_3','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('3','player_3','team_001','/public/avatars/version.jpg','player_003');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('4','player_4','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('4','player_4','team_001','/public/avatars/version.jpg','player_004');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('5','player_5','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('5','player_5','team_001','/public/avatars/version.jpg','player_005');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('6','player_6','team_001','/public/avatars/default.png');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('6','player_6','team_001','/public/avatars/1746619913987.jpg','player_006');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('7','player_7','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('7','player_7','team_001','/public/avatars/version.jpg','player_007');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('8','player_8','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('8','player_8','team_001','/public/avatars/version.jpg','player_008');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('9','player_9','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('9','player_9','team_001','/public/avatars/version.jpg','player_009');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('10','player_10','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('10','player_10','team_001','/public/avatars/version.jpg','player_010');
 
-INSERT INTO players(player_number,player_name,team_id,avatar)
-VALUES('11','player_11','team_001','/public/avatars/version.jpg');
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('11','player_11','team_001','/public/avatars/version.jpg','player_011');
+
+INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
+VALUES('12','player_12','team_001','/public/avatars/version.jpg','player_012');
 
 CREATE TABLE tactics (
   id INT PRIMARY KEY AUTO_INCREMENT,
