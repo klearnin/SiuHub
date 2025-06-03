@@ -24,6 +24,18 @@
           </template>
         </el-table-column>
         <el-table-column prop="injury_name" label="当前伤病" />
+        <el-table-column label="操作" width="120">
+          <template #default="{ row }">
+            <el-button
+              size="small"
+              type="success"
+              @click.stop="recoverPlayer(row.id)"
+              v-if="row.health === 'injured'"
+            >
+              康复
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
 
@@ -190,6 +202,31 @@ const deleteInjury = async (id) => {
   dialogVisible.value = false
   fetchPlayers()
 }
+
+const recoverPlayer = async (playerId) => {
+  console.log("正在尝试康复球员 ID:", playerId)
+
+  try {
+    await ElMessageBox.confirm(
+      '确认将该球员标记为健康吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+
+    await axios.patch(`http://localhost:5000/api/injury/recover/${playerId}`, { headers });
+    ElMessage.success("球员已标记为康复");
+    fetchPlayers(); // 刷新数据
+  } catch (err) {
+    // 如果用户取消了，不报错；只有真正出错时才报错
+    if (err !== 'cancel') {
+      ElMessage.error("康复操作失败");
+    }
+  }
+};
 
 const submitForm = async () => {
   const data = { ...form.value }
