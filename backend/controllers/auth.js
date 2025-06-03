@@ -273,6 +273,20 @@ exports.reviewJoinRequest = async (req, res, next) => {
         WHERE id = ${db.escape(userId)}
       `;
       await db.startQuery(updateSql);
+      // 如果是球员，插入到 players 表中
+      const user = userRes[0];
+      if (user.type === 'player') {
+        const insertPlayerSql = `
+          INSERT INTO players (player_name, avatar, team_id, user_id, player_number)
+          VALUES (?, ?, ?, ?, NULL)
+        `;
+        await db.startQuery(insertPlayerSql, [
+          user.name,
+          user.avatar,
+          user.team_id,
+          user.id
+        ]);
+      }
       return res.status(200).json({ message: "已通过审核" });
     } else {
       const deleteSql = `

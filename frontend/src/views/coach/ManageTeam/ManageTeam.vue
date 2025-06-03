@@ -3,33 +3,15 @@
     <div class="team-management-container">
       <div class="team-info-section">
        
-        <h2>球队信息</h2>
+      
        
         <div class="team-details">
           <div class="team-logo">
             <img :src="teamLogo" alt="球队Logo" class="logo-image" >
-           
-           
           </div>
           <div class="team-meta">
-            <div class="form-group">
-              <label>球队名称</label>
-              <input type="text" v-model="teamname" class="form-control">
-            </div>
-            <div class="form-group">
-              <label>成立年份</label>
-              <input type="number" v-model="teamyear" class="form-control">
-            </div>
-            <div class="form-group">
-              <label>主场</label>
-              <input type="text" v-model="homeStadium" class="form-control">
-            </div>
-           
-            <div class="form-group">
-              <label>球队简介</label>
-              <textarea v-model="team_description" class="form-control"></textarea>
-            </div>
-            <strong>人员统计</strong>
+            
+            <strong style="padding-top: 20px;font-size: 25px;">人员统计</strong>
             <div class="stats">
               <div class="stat-item">
                 <span class="stat-value">{{ players.length }}</span>
@@ -104,14 +86,14 @@
                   </select>
                 </td>
                 <td>
-                  <select v-model="player.healthStatus" class="health-select">
+                  <select v-model="player.health" class="health-select">
                     <option value="healthy">健康</option>
                     <option value="injured">受伤</option>
-                    <option value="recovering">恢复中</option>
+                    
                   </select>
                 </td>
                 <td>
-                  <button class="remove-btn" @click="removePerson('players', player.id)">移除</button>
+                  <button class="remove-btn" @click="removePerson(player.uid)">移除</button>
                  
                 </td>
               </tr>
@@ -134,7 +116,7 @@
                
                 <td>{{ manager.phone }}</td>
                 <td>
-                  <button class="remove-btn" @click="removePerson('managers', manager.id)">移除</button>
+                  <button class="remove-btn" @click="removePerson(manager.uid)">移除</button>
                 </td>
               </tr>
             </tbody>
@@ -145,18 +127,17 @@
             <thead>
               <tr>
                 <th>姓名</th>
-                <th>专业领域</th>
-                <th>资质</th>
-                <th>操作</th>
+                <th>联系方式</th>
+                <th style="margin-right: auto;">操作</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="doctor in doctors" :key="doctor.id">
                 <td>{{ doctor.name }}</td>
-                <td>{{ doctor.specialty }}</td>
-                <td>{{ doctor.qualification }}</td>
+                <td>{{ doctor.phone }}</td>
+               
                 <td>
-                  <button class="remove-btn" @click="removePerson('doctors', doctor.id)">移除</button>
+                  <button class="remove-btn" @click="removePerson(doctor.uid)">移除</button>
                 </td>
               </tr>
             </tbody>
@@ -171,8 +152,8 @@
   import { onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import axios from 'axios';
-  import { ElMessage } from 'element-plus';
-
+  
+  import { ElMessage, ElMessageBox } from 'element-plus';
  
  export default { 
   data() {
@@ -269,17 +250,40 @@
             ElMessage.error('获取球员列表失败');
           } 
     },
+    async removePerson(uid) {
+      try {
+
+        await ElMessageBox.confirm('确定删除该人员吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        });
+       const res=await axios.delete(`http://localhost:5000/api/player/${uid}`, { 
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+       
+        if (res.data.code === 0) { ElMessage.success('移除成功');}
+      } catch (error) {
+        if (error !== 'cancel') {console.error('移除人员失败:', error);
+        ElMessage.error('移除人员失败');
+      }}
+      this.fetchUserList();
+    },
     async saveTeamInfo() {
-  try {
-    for (const player of this.players) {
-      // 确保所有必填字段存在且有效
-      const playerData = {
-        player_number: Number(player.player_number),  // 必须转换为数字
-        height: Number(player.height),        // 必须且介于100-250
-        weight: Number(player.weight),        // 必须
-        dominant_foot: player.dominant_foot , 
-        age: player.age ? Number(player.age) : null     // 可选字段
-      };
+      try {
+        for (const player of this.players) {
+          // 确保所有必填字段存在且有效
+          const playerData = {
+            player_number: Number(player.player_number),  // 必须转换为数字
+            height: Number(player.height),        // 必须且介于100-250
+            weight: Number(player.weight),        // 必须
+            dominant_foot: player.dominant_foot , 
+            age: player.age ? Number(player.age) : null ,    // 可选字段
+            health: player.health,
+          };
 
       // 调试：打印实际发送的数据
       console.log('正在发送的数据:', playerData);
@@ -335,21 +339,21 @@
 
 .team-details {
   display: flex;
-  gap: 20px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
 .team-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 160px;
-  width: 160px;
+  padding-top: 15px;
+  height: 250px;
+  width: 250px;
 }
 
 .logo-image {
-  width: 120px;
-  height: 120px;
+  width: 250px;
+  height: 250px;
   object-fit: cover;
   border-radius: 50%;
   border: 3px solid #dcdfe6;
@@ -357,7 +361,9 @@
 }
 
 .team-meta .form-group {
+  width: 1000px;
   margin-bottom: 15px;
+  padding-top: 100px;
 }
 
 .form-group label {
@@ -391,11 +397,13 @@ textarea.form-control {
   padding: 15px;
   background: #fafafa;
   border-radius: 8px;
+  border:solid 2px #1b90d4;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .stat-item {
   text-align: center;
+  padding: 15px;
 }
 
 .stat-value {
@@ -439,9 +447,11 @@ textarea.form-control {
   transition: background-color 0.3s;
   
 }
-
+.back-btn:hover{
+  background-color: #2f73a4;
+}
 .save-btn:hover {
-  background-color: #5daf34;
+  background-color: #529b2d;
 }
 
 .personnel-header {
@@ -498,10 +508,15 @@ textarea.form-control {
   width: 60px;
   height:40px;
   border-radius: 10px;
+  border: 1px solid #dcdfe6;
 }
 .foot-select{
-  height:40px;
+  padding: 6px 8px;
+  border: 1px solid #dcdfe6;
   border-radius: 10px;
+  height:40px;
+  
+  box-sizing: border-box;
 }
 .health-select {
   padding: 6px 8px;
@@ -524,6 +539,13 @@ textarea.form-control {
 
 .remove-btn:hover {
   background-color: #dd6161;
+}
+.team-meta{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
    </style>
