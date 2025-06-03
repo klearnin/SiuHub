@@ -8,25 +8,84 @@
     <div v-if="loading" class="loading">正在加载球员伤病数据...</div>
 
     <div v-else class="event-list">
+      <el-button type="primary" @click="openAddDialog" class="mb-4">添加伤病记录</el-button>
       <el-table :data="players" style="width: 100%" @row-click="handleRowClick">
+        <el-table-column label="头像" width="80">
+          <template #default="{ row }">
+            <el-avatar :src="row.avatar" shape="circle" size="medium" />
+          </template>
+        </el-table-column>
         <el-table-column prop="player_name" label="球员" />
-        <el-table-column prop="injury_days" label="伤病天数" width="120" />
+        <el-table-column prop="health" label="健康状态" width="120">
+          <template #default="{ row }">
+            <el-tag :type="row.health === 'healthy' ? 'success' : 'danger'">
+              {{ row.health === 'healthy' ? '健康' : '受伤' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="injury_name" label="当前伤病" />
       </el-table>
     </div>
 
-    <el-dialog v-model="dialogVisible" title="修改伤病信息" width="400px">
-      <el-form label-width="80px">
+    <!-- 伤病详情&编辑 -->
+    <el-dialog v-model="dialogVisible" width="500px">
+      <template #title>
+        <span style="color: #0154a0; font-size: 20px; font-weight: bold;">球员详情</span>
+      </template>
+      <div class="text-center mb-4">
+        <el-avatar :src="formatAvatar(selectedPlayer.avatar)" size="large" />
+      </div>
+
+      <el-descriptions :column="1" border class="mb-4">
+        <el-descriptions-item label="姓名">{{ selectedPlayer.player_name }}</el-descriptions-item>
+        <el-descriptions-item label="身高">{{ selectedPlayer.height }} cm</el-descriptions-item>
+        <el-descriptions-item label="体重">{{ selectedPlayer.weight }} kg</el-descriptions-item>
+        <el-descriptions-item label="健康状态">
+          <el-tag :type="selectedPlayer.health === 'healthy' ? 'success' : 'danger'">
+            {{ selectedPlayer.health === 'healthy' ? '健康' : '受伤' }}
+          </el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
+
+      <h4 style="color: #0154a0; font-size: 18px; font-weight: bold; margin-top: 20px;">
+        伤病记录
+      </h4>
+      <el-timeline v-if="history.length">
+        <el-timeline-item v-for="injury in history" :key="injury.id" :timestamp="formatDate(injury.injury_date)">
+          <p><strong>伤病：</strong>{{ injury.injury_name }}</p>
+          <p><strong>描述：</strong>{{ injury.description }}</p>
+          <p><strong>恢复期：</strong>{{ injury.recovery_days }} 天</p>
+          <el-button size="small" type="primary" @click="editInjury(injury)">修改</el-button>
+          <el-button size="small" type="danger" @click="deleteInjury(injury.id)">删除</el-button>
+        </el-timeline-item>
+      </el-timeline>
+      <p v-else class="text-gray-500">暂无历史记录</p>
+    </el-dialog>
+
+    <!-- 添加/编辑 -->
+    <el-dialog v-model="formVisible" :title="form.id ? '修改伤病' : '添加伤病'" width="450px">
+      <el-form :model="form" label-width="100px">
         <el-form-item label="球员">
-          <el-input v-model="selectedPlayer.player_name" disabled />
+          <el-select v-model="form.player_id" :disabled="form.id" placeholder="选择球员">
+            <el-option v-for="p in players" :key="p.id" :label="p.player_name" :value="p.id" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="伤病天数">
-          <el-input-number v-model="selectedPlayer.injury_days" :min="0" />
+        <el-form-item label="伤病名称">
+          <el-input v-model="form.injury_name" />
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="form.description" type="textarea" />
+        </el-form-item>
+        <el-form-item label="受伤日期">
+          <el-date-picker v-model="form.injury_date" type="date" disabled/>
+        </el-form-item>
+        <el-form-item label="恢复天数">
+          <el-input-number v-model="form.recovery_days" :min="1" />
         </el-form-item>
       </el-form>
-
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveInjury">保存</el-button>
+        <el-button @click="formVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">提交</el-button>
       </template>
     </el-dialog>
   </div>
@@ -35,49 +94,130 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const token = localStorage.getItem('token')
 const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
-const loading = ref(true)
 const players = ref([])
+const loading = ref(true)
 const dialogVisible = ref(false)
+const formVisible = ref(false)
 const selectedPlayer = ref({})
+const history = ref([])
+
+const form = ref({
+  id: null,
+  player_id: '',
+  injury_name: '',
+  description: '',
+  injury_date: '',
+  recovery_days: 7
+})
+
+const formatDate = (d) => {
+  if (!d) return ''
+  const date = new Date(d)
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
 
 const fetchPlayers = async () => {
   try {
-    const res = await axios.get('http://localhost:5000/api/injury/list', { headers })
-    players.value = res.data.data || []
-  } catch (err) {
-    ElMessage.error('加载球员伤病数据失败')
+    const res = await axios.get('http://localhost:5000/api/injury/players-with-health', { headers })
+    players.value = (res.data.data || []).map(player => ({
+      ...player,
+      avatar: player.avatar ? `http://localhost:5000${player.avatar}` : ''
+    }))
+  } catch {
+    ElMessage.error('加载失败')
   } finally {
     loading.value = false
   }
 }
 
-const handleRowClick = (row) => {
-  selectedPlayer.value = { ...row }
+const formatAvatar = (path) => {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  return `http://localhost:5000${path}`
+}
+const handleRowClick = async (row) => {
+  const [profileRes, injuryRes] = await Promise.all([
+    axios.get(`http://localhost:5000/api/injury/player/${row.id}`, { headers }),
+    axios.get(`http://localhost:5000/api/injury/history/${row.id}`, { headers })
+  ])
+  selectedPlayer.value = {
+    ...profileRes.data.data,
+    avatar: formatAvatar(profileRes.data.data.avatar)
+  }
+  history.value = injuryRes.data.data
   dialogVisible.value = true
 }
 
-const saveInjury = async () => {
+const openAddDialog = () => {
+  const today = new Date()
+  form.value = {
+    id: null,
+    player_id: '',
+    injury_name: '',
+    description: '',
+    injury_date: today,
+    recovery_days: 7
+  }
+  formVisible.value = true
+}
+
+const editInjury = (injury) => {
+  form.value = {
+    ...injury,
+    injury_date: new Date(injury.injury_date) // 保证展示格式正确
+  }
+  formVisible.value = true
+}
+
+const deleteInjury = async (id) => {
+  await ElMessageBox.confirm('确认删除该记录？', '警告', { type: 'warning' })
+  await axios.delete(`http://localhost:5000/api/injury/delete/${id}`, { headers })
+  ElMessage.success('删除成功')
+  dialogVisible.value = false
+  fetchPlayers()
+}
+
+const submitForm = async () => {
+  const data = { ...form.value }
+
+  // ✅ 格式化日期
+  data.injury_date = formatDate(data.injury_date)
+
   try {
-    await axios.put(`http://localhost:5000/api/injury/update/${selectedPlayer.value.id}`, {
-      injury_days: selectedPlayer.value.injury_days
-    }, { headers })
-    ElMessage.success('更新成功')
+    if (form.value.id) {
+      await axios.put(`http://localhost:5000/api/injury/update/${form.value.id}`, data, { headers })
+      ElMessage.success('修改成功')
+    } else {
+      const res = await axios.post('http://localhost:5000/api/injury/add', data, { headers })
+      if (res.data.code === 1) return ElMessage.warning(res.data.msg)
+      ElMessage.success('添加成功')
+    }
+    formVisible.value = false
     dialogVisible.value = false
     fetchPlayers()
-  } catch (err) {
-    ElMessage.error('更新失败')
+  } catch {
+    ElMessage.error('提交失败')
   }
 }
 
+
 const goBack = () => {
-  router.push('/dhome');
+  if (!token) return router.push('/login')
+  const type = JSON.parse(atob(token.split('.')[1])).type
+  const routeMap = {
+    medic: '/dhome'
+  }
+  router.push(routeMap[type] || '/login')
 }
 
 onMounted(() => {
@@ -86,14 +226,6 @@ onMounted(() => {
     router.replace('/login')
     return
   }
-
-  const payload = JSON.parse(atob(token.split('.')[1]))
-  if (payload.type !== 'medic') {
-    ElMessage.error('无权访问该页面')
-    router.replace('/login')
-    return
-  }
-
   fetchPlayers()
 })
 </script>
@@ -115,10 +247,6 @@ onMounted(() => {
   top: 0;
   height: 36px;
   padding: 0 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
 }
 .page-title {
   text-align: center;

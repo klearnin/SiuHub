@@ -69,13 +69,13 @@ exports.addInjury = async (req, res, next) => {
 exports.updateInjury = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { injury_name, description, injury_date, recovery_days } = req.body;
+    const { injury_name, description, recovery_days } = req.body;
 
     await db.startQuery(`
       UPDATE injuries
-      SET injury_name = ?, description = ?, injury_date = ?, recovery_days = ?
+      SET injury_name = ?, description = ?, recovery_days = ?
       WHERE id = ?
-    `, [injury_name, description, injury_date, recovery_days, id]);
+    `, [injury_name, description, recovery_days, id]);
 
     res.json({ code: 0, msg: "伤病信息更新成功" });
   } catch (err) {
