@@ -55,7 +55,8 @@ exports.updateplayer = async (req, res, next) => {
       height: Number(req.body.height),
       weight: Number(req.body.weight),
       dominant_foot: req.body.dominant_foot || null,
-      age: req.body.age ? Number(req.body.age) : null
+      age: req.body.age ? Number(req.body.age) : null,
+      health: req.body.health||null
     };
 
     // 3. 验证数值范围
@@ -82,7 +83,8 @@ exports.updateplayer = async (req, res, next) => {
         dominant_foot = ?,
         height = ?,
         weight = ?,
-        age = ?
+        age = ?,
+        health = ?,
       WHERE id = ?
     `;
     await db.startQuery(updateSql, [
@@ -91,6 +93,7 @@ exports.updateplayer = async (req, res, next) => {
       playerData.height,
       playerData.weight,
       playerData.age,
+      playerData.health,
       playerId
     ]);
 
