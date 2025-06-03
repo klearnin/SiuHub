@@ -148,7 +148,7 @@ export default {
       return parts.length === 2 && parts[1] === '0' ? parts[0] : note
     },
     goBack() {
-      this.$router.go(-1)
+      this.$emit('close') // 通知父组件关闭
     }
   },
     mounted() {

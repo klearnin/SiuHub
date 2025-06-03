@@ -39,9 +39,29 @@
             @row-click="handleRowClick"
           >
             <el-table-column prop="date" label="时间" width="180" />
-            <el-table-column prop="field" label="场地" width="220" />
-            <el-table-column prop="opponent" label="对手" width="220" />
+            <el-table-column prop="field" label="场地" width="200" />
             <el-table-column prop="result" label="比分" width="150" />
+            <el-table-column label="对手" width="260">
+              <template #default="{ row }">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <el-avatar
+                    v-if="row.opponentLogo"
+                    :src="row.opponentLogo"
+                    shape="circle"
+                    :size="32"
+                  />
+                  <el-avatar
+                    v-else
+                    shape="circle"
+                    :size="32"
+                    style="background-color: #ccc; color: white; font-size: 12px;"
+                  >
+                    队徽
+                  </el-avatar>
+                  <span>{{ row.opponent }}</span>
+                </div>
+              </template>
+            </el-table-column>
           </el-table>
           <!--比赛详情-->
         </div>
@@ -49,24 +69,17 @@
 
       <!-- 右侧：数据统计 -->
       <div class="right-panel">
-        <div class="section-title">球队数据</div>
         <el-tabs tab-position="top" style="height: 100%">
-          <el-tab-pane label="射手榜">
+          <el-tab-pane label="射手榜" class="custom-tab-title">
             <el-table :data="stats.goals" size="small">
               <el-table-column prop="name" label="球员" width="260" />
               <el-table-column prop="value" label="进球（点球）" width="100" />
             </el-table>
           </el-tab-pane>
-          <el-tab-pane label="助攻榜">
+          <el-tab-pane label="助攻榜" class="custom-tab-title">
             <el-table :data="stats.assists" size="small">
               <el-table-column prop="name" label="球员" width="260" />
               <el-table-column prop="value" label="助攻" width="80" />
-            </el-table>
-          </el-tab-pane>
-          <el-tab-pane label="出场次数">
-            <el-table :data="stats.appearances" size="small">
-              <el-table-column prop="name" label="球员" width="260" />
-              <el-table-column prop="value" label="出场" width="80" />
             </el-table>
           </el-tab-pane>
         </el-tabs>
@@ -74,7 +87,7 @@
     </div>
   </div>
   <el-dialog v-model="showDetail" width="90%" title="比赛详情">
-    <MatchDetailCard :match-id="matchId" />
+    <MatchDetailCard :match-id="matchId" @close="showDetail = false" />
   </el-dialog>
 
 </template>
@@ -148,28 +161,27 @@ const fetchSchedules = async () => {
   // ✅ 然后再 map 显示
   schedules.value = filtered.slice(0, 5).map(match => {
     const isPast = match.type === 'past_match'
-    const opponent = match.team1 === teamInfo.value.name ? match.team2 : match.team1
-    let result = 'VS'
+    const isTeam1Self = match.team1 === teamInfo.value.name
+    const opponent = isTeam1Self ? match.team2 : match.team1
+    const opponentLogoRaw = isTeam1Self ? match.team2_logo : match.team1_logo
 
-    if (isPast && match.score) {
-      const self = match.score[teamInfo.value.name] || { goal: 0, penalty: 0 }
-      const opp = match.score[opponent] || { goal: 0, penalty: 0 }
-
-      const normalScore = `${self.goal} - ${opp.goal}`
-      const penaltyScore = `${self.penalty} - ${opp.penalty}`
-
-      const hasPenalty = self.penalty > 0 || opp.penalty > 0
-
-      result = hasPenalty
-        ? `${normalScore}（${penaltyScore}）`
-        : normalScore
-    }
+    const result = isPast && match.score
+      ? (() => {
+          const self = match.score[teamInfo.value.name] || { goal: 0, penalty: 0 }
+          const opp = match.score[opponent] || { goal: 0, penalty: 0 }
+          const normalScore = `${self.goal} - ${opp.goal}`
+          const penaltyScore = `${self.penalty} - ${opp.penalty}`
+          const hasPenalty = self.penalty > 0 || opp.penalty > 0
+          return hasPenalty ? `${normalScore}（${penaltyScore}）` : normalScore
+        })()
+      : 'VS'
 
     return {
       id: match.match_id,
       date: formatDateTime(match.datetime),
       field: match.location,
       opponent,
+      opponentLogo: opponentLogoRaw ? `http://localhost:5000${opponentLogoRaw}` : null,
       result
     }
   })
@@ -355,7 +367,10 @@ onMounted(async () => {
 .team-logo {
   width: 100px;
   height: 100px;
-  object-fit: contain;
+  border-radius: 50%;         /* 圆形 */
+  object-fit: cover;          /* 裁剪填满 */
+  border: 2px solid #ccc;     /* 可选边框 */
+  background-color: #fff;     /* 可选背景色，防止图片加载失败时露底色 */
 }
 .team-meta p {
   margin: 2px 0;
@@ -565,6 +580,11 @@ onMounted(async () => {
 
 .timeline-item.right .dot {
   left: -6px;
+}
+
+::v-deep(.el-tabs__item) {
+  font-size: 20px;
+  font-weight: bold;
 }
 
 </style>
