@@ -378,6 +378,7 @@ CREATE TABLE players (
   dominant_foot ENUM('左脚', '右脚'),
   height INT COMMENT'cm',
   weight INT COMMENT'kg',
+  health ENUM('healthy', 'injured') DEFAULT 'healthy' COMMENT '健康状态',
   age INT
 );
 
@@ -472,3 +473,15 @@ VALUES(1,1,1,1,1,2,1);
 
 INSERT INTO next_tactic(next_id,team_id)
 VALUES('1','team_001');
+
+
+CREATE TABLE injuries (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  player_id INT NOT NULL,
+  injury_name VARCHAR(255) NOT NULL COMMENT '伤病名称',
+  description TEXT COMMENT '伤病描述',
+  injury_date DATE NOT NULL COMMENT '受伤日期',
+  recovery_days INT NOT NULL COMMENT '预计恢复天数',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+);
