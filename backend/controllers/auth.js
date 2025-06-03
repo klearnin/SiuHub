@@ -45,6 +45,18 @@ exports.login = async (req, res, next) => {
     // 返回信息（去除密码）
     delete user.password;
 
+    // ✅ 登录后更新球员健康状态
+    await db.startQuery(`
+      UPDATE players p
+      SET p.health = 'healthy'
+      WHERE p.health = 'injured'
+        AND NOT EXISTS (
+          SELECT 1 FROM injuries i
+          WHERE i.player_id = p.id
+            AND DATE_ADD(i.injury_date, INTERVAL i.recovery_days DAY) > CURDATE()
+        )
+    `);
+
     res.status(200).json({
       token,
       user

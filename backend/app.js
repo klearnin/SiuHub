@@ -1,12 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-const cron = require('node-cron');
 const app = express();
 const path = require('path');
 const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
 const fs = require("fs");
-const injuryController = require('./controllers/injury');
 
 const folders = ["public/avatars", "public/team-logos"];
 
@@ -59,16 +57,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`SiuHub 后端服务已启动，端口号为 ${PORT}`);
   printRoutes(app);
-
-  // 每天凌晨 2 点自动执行更新
-  cron.schedule('0 2 * * *', async () => {
-    try {
-      await injuryController.autoUpdateHealthStatus();
-      console.log("每日伤病自动更新完成");
-    } catch (err) {
-      console.error("自动更新伤病状态失败:", err);
-    }
-  });
 });
 
 app.use((req, res) => {

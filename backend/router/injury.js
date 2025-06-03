@@ -21,4 +21,7 @@ router.put('/update/:id', injuryController.updateInjury);
 // 删除某条伤病记录
 router.delete('/delete/:id', injuryController.deleteInjury);
 
+// 一键恢复健康
+router.patch("/recover/:player_id", injuryController.markPlayerAsRecovered);
+
 module.exports = router;
