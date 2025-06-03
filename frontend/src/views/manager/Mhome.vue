@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <div class="nav-bar">
       <router-link to="/forum" class="nav-item">论坛</router-link>
-      <router-link to="/team" class="nav-item">主队查看</router-link>
+      <router-link to="/teamstats" class="nav-item">主队查看</router-link>
       <router-link to="/Cschedule" class="nav-item">球队日程</router-link>
 
       <!-- 公告下拉 -->

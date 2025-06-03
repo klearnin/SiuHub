@@ -33,7 +33,7 @@
         <div class="match-schedule">
           <div class="section-title">赛程</div>
           <el-table
-            :data="schedules"
+            :data="pagedSchedules"
             border
             style="width: 100%"
             @row-click="handleRowClick"
@@ -64,6 +64,11 @@
             </el-table-column>
           </el-table>
           <!--比赛详情-->
+          <div class="pagination-controls" style="margin-top: 16px; display: flex; justify-content: center; gap: 16px;">
+            <el-button :disabled="currentPage === 1" @click="prevPage">上一页</el-button>
+            <span>第 {{ currentPage }} / {{ totalPages }} 页</span>
+            <el-button :disabled="currentPage === totalPages" @click="nextPage">下一页</el-button>
+          </div>
         </div>
       </div>
 
@@ -107,6 +112,24 @@ const openMatchDetail = (id) => {
   showDetail.value = true
 }
 
+const currentPage = ref(1)
+const pageSize = 5
+
+const pagedSchedules = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return allSchedules.value.slice(start, start + pageSize)
+})
+
+const totalPages = computed(() => Math.ceil(allSchedules.value.length / pageSize))
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--
+}
+
 const formatDateTime = (datetimeStr) => {
   const [datePart, timePart] = datetimeStr.split(' ')
   const [y, m, d] = datePart.split('-')
@@ -145,7 +168,24 @@ const fetchTeamInfo = async () => {
   }
 }
 
-const schedules = ref([])
+const allSchedules = ref([])
+
+const findClosestPage = () => {
+  const today = new Date()
+  let closestIndex = 0
+  let minDiff = Infinity
+
+  allSchedules.value.forEach((item, idx) => {
+    const date = new Date(item.date)
+    const diff = Math.abs(date - today)
+    if (diff < minDiff) {
+      minDiff = diff
+      closestIndex = idx
+    }
+  })
+
+  return Math.floor(closestIndex / pageSize) + 1
+}
 
 const fetchSchedules = async () => {
   try {
@@ -159,7 +199,9 @@ const fetchSchedules = async () => {
   )
 
   // ✅ 然后再 map 显示
-  schedules.value = filtered.slice(0, 5).map(match => {
+allSchedules.value = filtered
+  .sort((a, b) => new Date(a.datetime) - new Date(b.datetime))  // 按时间升序
+  .map(match => {
     const isPast = match.type === 'past_match'
     const isTeam1Self = match.team1 === teamInfo.value.name
     const opponent = isTeam1Self ? match.team2 : match.team1
@@ -318,6 +360,7 @@ const goBack = () => {
 onMounted(async () => {
   await fetchTeamInfo()
   await fetchSchedules()
+  currentPage.value = findClosestPage()
   fetchStats()
   fetchRecentMatchStatus()
 })
