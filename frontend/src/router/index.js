@@ -11,6 +11,7 @@ import ForumDetail from "../views/forumDetail.vue";
 import Fhome from "../views/fans/Fhome.vue";
 import Fnotice from "../views/fans/Fnotice.vue";
 import Stats from "../views/fans/TeamStats.vue";
+import MatchDetail from "../views/fans/MatchDetail.vue";
 
 //导入球员界面
 import Phome from "../views/player/Phome.vue";
@@ -52,6 +53,7 @@ const routes = [
   { path: '/fhome', component: Fhome },
   { path: '/fnotice', component: Fnotice },
   { path: '/teamstats', component: Stats },
+  { path: '/matchDetail/:id', component: MatchDetail },
   { path: '/mhome', component: Mhome },
   { path: '/mnotice', component: Mnotice },
   { path: '/mnotice_del', component: Mnotice_del }, 

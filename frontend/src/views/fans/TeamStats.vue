@@ -32,12 +32,18 @@
         </div>
         <div class="match-schedule">
           <div class="section-title">赛程</div>
-          <el-table :data="schedules" border style="width: 100%">
+          <el-table
+            :data="schedules"
+            border
+            style="width: 100%"
+            @row-click="handleRowClick"
+          >
             <el-table-column prop="date" label="时间" width="180" />
             <el-table-column prop="field" label="场地" width="220" />
             <el-table-column prop="opponent" label="对手" width="220" />
             <el-table-column prop="result" label="比分" width="150" />
           </el-table>
+          <!--比赛详情-->
         </div>
       </div>
 
@@ -67,13 +73,26 @@
       </div>
     </div>
   </div>
+  <el-dialog v-model="showDetail" width="90%" title="比赛详情">
+    <MatchDetailCard :match-id="matchId" />
+  </el-dialog>
+
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+
+import MatchDetailCard from './MatchDetail.vue'
+const showDetail = ref(false)
+const matchId = ref(null)
+
+const openMatchDetail = (id) => {
+  matchId.value = id
+  showDetail.value = true
+}
 
 const formatDateTime = (datetimeStr) => {
   const [datePart, timePart] = datetimeStr.split(' ')
@@ -118,7 +137,6 @@ const schedules = ref([])
 const fetchSchedules = async () => {
   try {
     const res = await axios.get('http://localhost:5000/api/team/matches', { headers })
-    const raw = res.data.data || []
 
   const allMatches = res.data.data || []
 
@@ -148,6 +166,7 @@ const fetchSchedules = async () => {
     }
 
     return {
+      id: match.match_id,
       date: formatDateTime(match.datetime),
       field: match.location,
       opponent,
@@ -156,6 +175,41 @@ const fetchSchedules = async () => {
   })
   } catch (err) {
     ElMessage.error('加载球队赛程失败')
+  }
+}
+
+const showMatchDetail = ref(false)
+const selectedMatchDetail = ref({})
+const matchEvents = ref([])
+
+const hasPenalty = computed(() => {
+  const score = selectedMatchDetail.value.score || {}
+  return (
+    score?.[selectedMatchDetail.value.team1]?.penalty > 0 ||
+    score?.[selectedMatchDetail.value.team2]?.penalty > 0
+  )
+})
+
+const fetchMatchDetailInline = async (match_id) => {
+  try {
+    const [matchRes, eventRes] = await Promise.all([
+      axios.get(`http://localhost:5000/api/team/match/${match_id}`, { headers }),
+      axios.get(`http://localhost:5000/api/team/match-events`, { params: { match_id }, headers })
+    ])
+
+    selectedMatchDetail.value = matchRes.data.data
+    matchEvents.value = eventRes.data.data
+    showMatchDetail.value = true
+  } catch (e) {
+    ElMessage.error('加载比赛详情失败')
+  }
+}
+
+const handleRowClick = (row) => {
+  console.log("点击了比赛行", row.id)
+  if (row.id) {
+    matchId.value = row.id
+    showDetail.value = true
   }
 }
 
@@ -400,6 +454,117 @@ onMounted(async () => {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+}
+
+.team-logo-small {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: solid 1px #cdd0d2;
+  padding: 1px;
+}
+
+.match-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+  font-weight: 600;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.match_center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 100px;
+}
+
+.score {
+  font-size: 28px;
+  font-weight: bold;
+  color: #c51c36;
+}
+
+.score-penalty {
+  font-size: 14px;
+  color: #605d5e;
+}
+
+.timeline-container {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.timeline {
+  position: relative;
+  margin: 40px auto;
+  padding: 0;
+  width: 80%;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  background-color: #4caf50;
+  transform: translateX(-50%);
+}
+
+.timeline-item {
+  position: relative;
+  width: 50%;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+
+.timeline-item.left {
+  left: 0;
+  text-align: right;
+}
+
+.timeline-item.right {
+  left: 50%;
+  text-align: left;
+}
+
+.timeline-item .content {
+  background: #e8f5e9;
+  padding: 10px;
+  border-radius: 8px;
+  max-width: 200px;
+  word-break: break-word;
+}
+
+.timeline-item .minute {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.timeline-item .dot {
+  position: absolute;
+  top: 20px;
+  width: 12px;
+  height: 12px;
+  background: #4caf50;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.timeline-item.left .dot {
+  right: -6px;
+}
+
+.timeline-item.right .dot {
+  left: -6px;
 }
 
 </style>
