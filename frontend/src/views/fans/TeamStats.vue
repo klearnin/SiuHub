@@ -14,7 +14,9 @@
           <div class="team-meta">
             <h2>{{ teamInfo.name }}</h2>
             <p><strong>简称：</strong>{{ teamInfo.abbr }}</p>
+          
           </div>
+          
         </div>
         <div class="status-bar-section">
           <div class="status-bar-row">
@@ -94,7 +96,21 @@
   <el-dialog v-model="showDetail" width="90%" title="比赛详情">
     <MatchDetailCard :match-id="matchId" @close="showDetail = false" />
   </el-dialog>
-
+  <div class="honor">
+  <h3 class="honor-subtitle">球队荣誉</h3>
+        <el-timeline>
+            <el-timeline-item
+                v-for="item in teamHonors"
+                :key="item.id"
+                :timestamp="formatDate(item.honor_date)"
+                placement="top"
+                @click="handleHonorClick(item, 'team')"
+            >
+            <p><strong>{{ item.title }}</strong></p>
+            <p>{{ item.description }}</p>
+            </el-timeline-item>
+        </el-timeline>
+      </div>
 </template>
 
 <script setup>
@@ -106,7 +122,36 @@ import { ElMessage } from 'element-plus'
 import MatchDetailCard from './MatchDetail.vue'
 const showDetail = ref(false)
 const matchId = ref(null)
-
+const teamHonors = ref([])
+const fetchHonors = async () => {
+  try {
+    const teamRes = await axios.get('http://localhost:5000/api/honor/team', { headers })
+   
+    teamHonors.value = teamRes.data.data
+   
+  } catch (err) {
+    ElMessage.error('加载荣誉失败')
+  }
+}
+const handleHonorClick = (item, type) => {
+    
+    if (!item.id) {
+      ElMessage.error('荣誉ID缺失，无法查看或操作')
+      return
+    }
+    selectedHonor.value = { ...item, type }
+    editForm.value = {
+      id: item.id || '',
+      type,
+      title: item.title,
+      description: item.description,
+      honor_date: new Date(item.honor_date),
+      user_id: item.user_id || '',
+      user_name: item.user_name || ''
+    }
+    editMode.value = false
+    viewDialogVisible.value = true   // ✅ 使用新的变量
+  }
 const openMatchDetail = (id) => {
   matchId.value = id
   showDetail.value = true
@@ -129,7 +174,13 @@ const nextPage = () => {
 const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--
 }
-
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+}
 const formatDateTime = (datetimeStr) => {
   const [datePart, timePart] = datetimeStr.split(' ')
   const [y, m, d] = datePart.split('-')
@@ -360,6 +411,7 @@ const goBack = () => {
 onMounted(async () => {
   await fetchTeamInfo()
   await fetchSchedules()
+  await fetchHonors()
   currentPage.value = findClosestPage()
   fetchStats()
   fetchRecentMatchStatus()
@@ -629,5 +681,49 @@ onMounted(async () => {
   font-size: 20px;
   font-weight: bold;
 }
+.honor-subtitle {
+  color: #000000;
+  font-size: 22px;
+  margin-bottom: 30px;
+  
+}
 
+.el-timeline {
+  padding-left: 20px;
+  
+}
+
+.el-timeline-item__timestamp {
+  color: #aaa;
+}
+
+.el-timeline-item__content {
+  background: #2c3e50;
+  color: #ecf0f1;
+  border-radius: 6px;
+  padding: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.el-timeline-item__content strong {
+  color: #3498db;
+}
+
+.el-timeline-item__tail {
+  background-color: #7f8c8d;
+}
+
+.el-timeline-item__node {
+  background-color: #3498db;
+}
+.honor{
+  height: 100px;
+
+  margin-right: auto;
+  padding-left: 2%;
+  width:100%;
+  height: 50%;
+  
+  
+}
 </style>

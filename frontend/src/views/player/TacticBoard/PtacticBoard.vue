@@ -150,7 +150,7 @@
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      playerlist.value = response.data.playerlist;
+      playerlist.value = response.data.userlist;
     } catch (error) {
       console.error('获取球员列表失败:', error);
       ElMessage.error('获取球员列表失败');

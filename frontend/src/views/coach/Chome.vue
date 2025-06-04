@@ -3,16 +3,19 @@
     <!-- 顶部导航栏 -->
     <div class="nav-bar">
       <router-link to="/forum" class="nav-item">论坛</router-link>
-      <router-link to="/cmanageTeam" class="nav-item">球队管理</router-link>
+    
+
+      <router-link to="/cmanageTeam" class="nav-item">人员管理</router-link>
+      <router-link to="/teamstats" class="nav-item">主队查看</router-link>
       <router-link to="/Cschedule" class="nav-item">球队日程</router-link>
       <router-link to="/ctacticcanvas" class="nav-item">战术画板</router-link>
-      <!-- 公告下拉 -->
+     
       <!-- 修改后 -->
       <div 
         class="nav-item dropdown-wrapper"
         @mouseenter="showNoticeDropdown = true"
         @mouseleave="showNoticeDropdown = false"
-      >
+      >  
         <div class="dropdown-trigger">
           公告
         </div>
@@ -33,17 +36,17 @@
 
     <!-- 右上角头像 -->
     <div class="top-bar">
-      <div class="avatar-wrapper" @click="toggleDropdown">
-        <img :src="avatarUrl" alt="头像" class="avatar" />
-        <div v-if="dropdownVisible" class="dropdown">
-          <ul>
-            <li @click="goToReview">审核人员</li>
-            <li @click="openInviteDialog">邀请码</li>
-            <li @click="logout">退出登录</li>
-          </ul>
-        </div>
-      </div>
+  <div class="avatar-wrapper">
+    <img :src="avatarUrl" alt="头像" class="avatar" />
+    <div class="dropdown">
+      <ul>
+        <li @click="goToReview">审核人员</li>
+        <li @click="openInviteDialog">邀请码</li>
+        <li @click="logout">退出登录</li>
+      </ul>
     </div>
+  </div>
+</div>
     <!-- 弹窗：邀请码展示 -->
     <el-dialog v-model="inviteVisible" title="我的球队邀请码" width="30%">
       <div style="font-size: 18px; text-align: center; margin-bottom: 20px;">
@@ -55,7 +58,7 @@
       </div>
     </el-dialog>
     
-    <!--转转转 <div class="container">
+    <div class="container">
     <div class="item">
       <img src="../../assets/1.jpg" alt="" />
     </div>
@@ -65,10 +68,10 @@
       <img src="../../assets/3.jpg" alt="" />
     </div> <div class="item">
       <img src="../../assets/4.jpg" alt="" />
-    </div> <div class="item">
-      <img src="../../assets/5.jpg" alt="" />
+    </div> <div class="item-5">
+      <img :src=" avatarUrl" alt="" />
     </div>
-</div>-->
+</div>
   </div>
 </template>
 
@@ -112,11 +115,12 @@ onMounted(async () => {
   } catch (err) {
     console.error("获取头像失败", err);
   }
+  fetchUserList();
 });
 
-const toggleDropdown = () => {
-  dropdownVisible.value = !dropdownVisible.value;
-};
+
+
+
 
 const openInviteDialog = async () => {
   try {
@@ -131,6 +135,22 @@ const openInviteDialog = async () => {
     console.error("获取邀请码失败", err);
   }
 };
+let users = ref([]);
+const fetchUserList = async()=>{
+      try {
+            const response = await axios.get("http://localhost:5000/api/player/list", { 
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              }
+            });
+            users = response.data.userlist;
+         
+           
+          } catch (error) {
+            console.error('获取球员列表失败', error);
+            ElMessage.error('获取球员列表失败');
+          } 
+    };
 
 const copyInviteCode = async () => {
   try {
@@ -200,20 +220,37 @@ const goToReview = () => {
 }
 
 /* 保证文字在遮罩上方 */
-.nav-item,
+.nav-item{
+  position: relative;
+  z-index: 2; /* 保证在斜纹遮罩之上 */
+  display: inline-block;
+  min-width: 40px;
+  height: 60px;
+  text-align: center;
+  padding: 12px 10px;
+  background: none;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 18px;
+  transition: color 0.3s, transform 0.2s, background-color 0.3s;
+}
+.nav-item:hover {
+  color: #00bcd4;
+  transform: translateY(-2px);
+}
 .dropdown-wrapper {
   position: relative;
   z-index: 2;
   color: white;
   text-decoration: none;
   font-size: 18px;
-  padding: 10px;
-  transition: color 0.3s;
+  padding: 8px;
+  transition: color 0.3s, transform 0.2s, background-color 0.3s;
+ 
 }
 
-.nav-item:hover {
-  color: #00bcd4;
-}
+
 
 /* 公告下拉菜单 */
 .dropdown-wrapper {
@@ -275,6 +312,11 @@ const goToReview = () => {
   object-fit: cover;
   border: 2px solid #eee;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: all 0.5s ease;
+}
+.avatar:hover{
+  transform: scale(1.05) rotate(5deg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .dropdown {
@@ -307,15 +349,18 @@ const goToReview = () => {
 }
 
 .dropdown-trigger {
-  padding: 10px;
+  padding: 4px;
+  size: 100%;
   cursor: pointer;
   font-size: 18px;
   color: white;
-  transition: color 0.3s;
+  
 }
 
 .dropdown-trigger:hover {
   color: #00bcd4;
+  
+
 }
 
 /* 新增下拉动效 fade+slide */
@@ -376,6 +421,19 @@ const goToReview = () => {
   align-items: center;
   border-radius: 20px;
 }
+.item-5{
+  overflow: hidden;
+  border: solid 1px #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 100px;
+}
+.item-5 img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 保持图片比例 */
+}
 .item img {
   width: 230%;
   height: 320%;
@@ -387,143 +445,41 @@ const goToReview = () => {
 .item img{
   animation: rotation 12s infinite linear reverse;
 }
+.item-5 img{
+  animation: rotation 12s infinite linear reverse;
+}
 @keyframes rotation{
   to{
     transform: rotate(360deg);
   }
 }
+/* 初始隐藏下拉菜单 */
+/* 初始状态：透明且上移 */
+.dropdown {
+  opacity: 0;
+  transform: translateY(-10px);
+  visibility: hidden;
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 0;
+  z-index: 1000;
+  transition: 
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    visibility 0.5s;
+}
 
+/* 鼠标悬停时：显示并下移 */
+.avatar-wrapper:hover .dropdown {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
 
 </style>
 
 
 
-<!-- <style scoped>
-.coach-page {
-  position: relative;
-  min-height: 100vh;
-  background: #f5f7fa;
-}
-
-/* 顶部导航栏背景换成 FCB 图片，并柔化处理 */
-.nav-bar {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  padding: 10px 40px;
-  background-image: url('/picture/FCB.jpg'); /* 注意路径是从 public 开始 */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  overflow: hidden;
-}
-
-/* 在.nav-bar上加一层渐变蒙版，虚化边界 */
-.nav-bar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4); /* 黑色半透明遮罩，柔化图片 */
-  backdrop-filter: blur(4px);     /* 轻微虚化背景 */
-  z-index: 1;
-}
-
-/* 导航项保持在图片上方 */
-.nav-item,
-.dropdown-wrapper {
-  position: relative;
-  z-index: 2;
-  color: white;
-  text-decoration: none;
-  font-size: 18px;
-  padding: 10px;
-  transition: color 0.3s;
-}
-
-.nav-item:hover {
-  color: #00bcd4;
-}
-
-/* 公告下拉菜单 */
-.dropdown-wrapper {
-  cursor: pointer;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 40px;
-  left: 0;
-  background-color: rgba(34,34,34,0.95);
-  border-radius: 6px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  overflow: hidden;
-  min-width: 160px;
-  z-index: 100;
-}
-
-.dropdown-item {
-  display: block;
-  color: white;
-  padding: 10px 15px;
-  text-decoration: none;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.dropdown-item:hover {
-  background-color: #333;
-}
-
-/* 顶部右侧头像 */
-.top-bar {
-  position: absolute;
-  top: 7px;
-  right: 60px;
-  z-index: 2; /* 保证在背景之上 */
-}
-
-.avatar-wrapper {
-  position: relative;
-  cursor: pointer;
-}
-
-.avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #eee;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
-.dropdown {
-  position: absolute;
-  top: 60px;
-  right: 0;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  z-index: 20;
-  min-width: 120px;
-}
-
-.dropdown ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.dropdown li {
-  padding: 10px;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.dropdown li:hover {
-  background-color: #f0f0f0;
-}
-</style> -->
 

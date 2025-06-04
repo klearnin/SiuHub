@@ -30,7 +30,7 @@ INSERT INTO users (
   'fan',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                 -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/a4995f3c6d414277464452700cbc784e.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
@@ -43,7 +43,7 @@ INSERT INTO users (
   'coach',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/a4995f3c6d414277464452700cbc784e copy.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
@@ -56,7 +56,7 @@ INSERT INTO users (
   'coach',                      -- 用户类型，可换成 'coach' 或其他
   'team_002',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/default.png'
+  '/public/avatars/58742d41ac65b920ac2a690e23d02c5a.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
@@ -256,9 +256,9 @@ INSERT INTO teams (
   id, name, abbr, logo_path, invite_code, creator_id
 ) VALUES (
   'team_001',
-  '测试队伍',
-  'TEST',
-  '/public/team-logos/version.jpg',
+  '弘毅学堂',
+  'HYXT',
+  '/public/team-logos/a4995f3c6d414277464452700cbc784e.png',
   'invite001',
   'coach_001');
 INSERT INTO teams (
@@ -267,7 +267,7 @@ INSERT INTO teams (
   'team_002',
   '测试队伍2',
   'TEST2',
-  '/public/team-logos/default.png',
+  '/public/team-logos/58742d41ac65b920ac2a690e23d02c5a.png',
   'invite002',
   'coach_002');
  
@@ -522,45 +522,23 @@ CREATE TABLE players (
   health ENUM('healthy', 'injured') DEFAULT 'healthy' COMMENT '健康状态',
   height INT COMMENT'cm',
   weight INT COMMENT'kg',
-  health ENUM('healthy', 'injured') DEFAULT 'healthy' COMMENT '健康状态',
   age INT
 );
 
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('1','player_1','team_001','/public/avatars/version.jpg','player_001');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('2','player_2','team_001','/public/avatars/version.jpg','player_002');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('3','player_3','team_001','/public/avatars/version.jpg','player_003');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('4','player_4','team_001','/public/avatars/version.jpg','player_004');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('5','player_5','team_001','/public/avatars/version.jpg','player_005');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('6','player_6','team_001','/public/avatars/1746619913987.jpg','player_006');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('7','player_7','team_001','/public/avatars/version.jpg','player_007');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('8','player_8','team_001','/public/avatars/version.jpg','player_008');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('9','player_9','team_001','/public/avatars/version.jpg','player_009');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('10','player_10','team_001','/public/avatars/version.jpg','player_010');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('11','player_11','team_001','/public/avatars/version.jpg','player_011');
-
-INSERT INTO players(player_number,player_name,team_id,avatar,user_id)
-VALUES('12','player_12','team_001','/public/avatars/version.jpg','player_012');
+INSERT INTO players(player_number, player_name, team_id, avatar, user_id, dominant_foot, health, height, weight, age)
+VALUES
+(1, '只因', 'team_001', '/public/avatars/version.jpg', 'player_001', '右脚', 'healthy', 185, 78, 28),
+(2, '李明', 'team_001', '/public/avatars/version.jpg', 'player_002', '右脚', 'healthy', 178, 72, 25),
+(3, '王强', 'team_001', '/public/avatars/version.jpg', 'player_003', '左脚', 'healthy', 182, 75, 27),
+(4, '赵刚', 'team_001', '/public/avatars/version.jpg', 'player_004', '右脚', 'injured', 176, 70, 24),
+(5, '刘洋', 'team_001', '/public/avatars/version.jpg', 'player_005', '右脚', 'healthy', 180, 76, 26),
+(6, '陈晨', 'team_001', '/public/avatars/1746619913987.jpg', 'player_006', '左脚', 'healthy', 175, 68, 23),
+(7, '杨光', 'team_001', '/public/avatars/version.jpg', 'player_007', '右脚', 'healthy', 183, 77, 29),
+(8, '周杰', 'team_001', '/public/avatars/version.jpg', 'player_008', '右脚', 'healthy', 177, 71, 25),
+(9, '吴磊', 'team_001', '/public/avatars/version.jpg', 'player_009', '右脚', 'healthy', 181, 74, 27),
+(10, '郑智', 'team_001', '/public/avatars/version.jpg', 'player_010', '右脚', 'healthy', 179, 73, 30),
+(11, '孙翔', 'team_001', '/public/avatars/version.jpg', 'player_011', '左脚', 'healthy', 174, 69, 24),
+(12, '马龙', 'team_001', '/public/avatars/version.jpg', 'player_012', '右脚', 'healthy', 178, 72, 26);
 
 CREATE TABLE tactics (
   id INT PRIMARY KEY AUTO_INCREMENT,

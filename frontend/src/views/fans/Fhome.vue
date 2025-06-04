@@ -4,7 +4,7 @@
       <div class="nav-bar">
         <router-link to="/forum" class="nav-item">论坛</router-link>
         <router-link to="/teamstats" class="nav-item">主队查看</router-link>
-        <router-link to="/Fschedule" class="nav-item">球队日程</router-link>
+       
         <router-link to="/fnotice" class="nav-item">查看公告</router-link>
       </div>
   
@@ -12,7 +12,7 @@
       <div class="top-bar">
         <div class="avatar-wrapper" @click="toggleDropdown">
           <img :src="avatarUrl" alt="头像" class="avatar" />
-          <div v-if="dropdownVisible" class="dropdown">
+          <div  class="dropdown">
             <ul>
               <li @click="logout">退出登录</li>
             </ul>
@@ -141,7 +141,12 @@
     object-fit: cover;
     border: 2px solid #eee;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    transition: all 0.5s ease;
   }
+  .avatar:hover{
+  transform: scale(1.05) rotate(5deg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
   
   .dropdown {
     position: absolute;
@@ -154,6 +159,28 @@
     z-index: 20;
     min-width: 120px;
   }
+  .dropdown {
+  opacity: 0;
+  transform: translateY(-10px);
+  visibility: hidden;
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 0;
+  z-index: 1000;
+  transition: 
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    visibility 0.5s;
+}
+
+/* 鼠标悬停时：显示并下移 */
+.avatar-wrapper:hover .dropdown {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
   
   .dropdown ul {
     list-style: none;

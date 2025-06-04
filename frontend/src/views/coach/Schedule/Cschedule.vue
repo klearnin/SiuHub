@@ -86,50 +86,51 @@
                   </div>
 
                   <div class="timeline">
-  <div
-    v-for="event in filteredEvents"
-    :key="event.id"
-    class="timeline-item"
-    :class="{ left: event.team_name === team1, right: event.team_name === team2 }"
-  >
-    <div class="content">
-      <div class="minute">{{ formatMinuteNote(event.minute_note) }}'</div>
-      <div class="detail">
-        <template v-if="event.event_type === 'goal'">
-          <span v-if="event.team_name === team1">{{ event.scorer_name }} ⚽</span>
-          <span v-else>⚽ {{ event.scorer_name }}</span>
-        </template>
-        <template v-else-if="event.event_type === 'yellow_card'">
-          <span v-if="event.team_name === team1">{{ event.card_player }} 🟨</span>
-          <span v-else>🟨 {{ event.card_player }}</span>
-        </template>
-        <template v-else-if="event.event_type === 'red_card'">
-          <span v-if="event.team_name === team1">{{ event.card_player }} 🟥</span>
-          <span v-else>🟥 {{ event.card_player }}</span>
-        </template>
-        <template v-else-if="event.event_type === 'penalty' && event.penalty_result === 'score'">
-          <span v-if="event.team_name === team1">{{ event.penalty_player }} ⚽</span>
-          <span v-else>⚽ {{ event.penalty_player }}</span>
-        </template>
-        <template v-else-if="event.event_type === 'penalty' && event.penalty_result === 'miss'">
-          <span v-if="event.team_name === team1">{{ event.penalty_player }} ❌</span>
-          <span v-else>❌ {{ event.penalty_player }}</span>
-        </template>
-        <template v-else-if="event.event_type === 'substitution'">
-          <span v-if="event.team_name === team1">
-            {{ event.sub_in_name }} ⬆️<br />
-            {{ event.sub_out_name }} ⬇️
-          </span>
-          <span v-else>
-            ⬆️ {{ event.sub_in_name }}<br />
-            ⬇️ {{ event.sub_out_name }}
-          </span>
-        </template>
-      </div>
-    </div>
-    <div class="dot"></div>
-  </div>
-</div>
+                    <div
+                      v-for="event in filteredEvents"
+                      :key="event.id"
+                      class="timeline-item"
+                      :class="{ left: event.team_name === team1, right: event.team_name === team2 }"
+                    >
+                      <div class="content">
+                        <div class="minute">{{ formatMinuteNote(event.minute_note) }}'</div>
+                        <div class="detail">
+                          <template v-if="event.event_type === 'goal'">
+                            <span v-if="event.team_name === team1">{{ event.scorer_name }} ⚽</span>
+                          
+                            <span v-else>⚽ {{ event.scorer_name }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'yellow_card'">
+                            <span v-if="event.team_name === team1">{{ event.card_player }} 🟨</span>
+                            <span v-else>🟨 {{ event.card_player }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'red_card'">
+                            <span v-if="event.team_name === team1">{{ event.card_player }} 🟥</span>
+                            <span v-else>🟥 {{ event.card_player }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'penalty' && event.penalty_result === 'score'">
+                            <span v-if="event.team_name === team1">{{ event.penalty_player }} ⚽</span>
+                            <span v-else>⚽ {{ event.penalty_player }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'penalty' && event.penalty_result === 'miss'">
+                            <span v-if="event.team_name === team1">{{ event.penalty_player }} ❌</span>
+                            <span v-else>❌ {{ event.penalty_player }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'substitution'">
+                            <span v-if="event.team_name === team1">
+                              {{ event.sub_in_name }} ⬆️<br />
+                              {{ event.sub_out_name }} ⬇️
+                            </span>
+                            <span v-else>
+                              ⬆️ {{ event.sub_in_name }}<br />
+                              ⬇️ {{ event.sub_out_name }}
+                            </span>
+                          </template>
+                        </div>
+                      </div>
+                      <div class="dot"></div>
+                    </div>
+                  </div>
                 </div>
           </template>
          </div>
@@ -180,7 +181,7 @@
           <button class="cancel-button" @click="closePopup">取消</button>
           <div v-if="activeTab==='match'">
             <div v-if="matchId">
-              <button class="del_button" @click="deleteScheduleInfo">删除</button>
+              <button  class="del_button" @click="deleteScheduleInfo">删除</button>
               <button v-if="!isPastmatch" @click="changeMatchInfo">修改</button>
             </div>
             <button v-else @click="saveMatchInfo">保存</button>
@@ -209,7 +210,7 @@
 
 import axios from 'axios';
 import MatchEditor from './MatchEditor.vue';
-import { ElMessage } from 'element-plus'; // ✅ 加了ElMessage
+import { ElMessage ,ElMessageBox} from 'element-plus'; // ✅ 加了ElMessage
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import TimeSlider from './TimeSlider.vue';
@@ -711,6 +712,11 @@ export default {
 
     async deleteScheduleInfo() {  
     try {
+          await ElMessageBox.confirm('确定删除该日程吗？', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning',
+            });
           const response = await  axios.delete(`http://localhost:5000/api/schedule/${this.selectedID}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
@@ -724,6 +730,7 @@ export default {
             ElMessage.success(`${typeName}日程删除成功！`);
           }
         } catch (error) {
+          if(error!=cancel)
           ElMessage.error('删除失败');
         }
       await this.fetchSchedules(); 

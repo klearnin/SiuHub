@@ -17,7 +17,7 @@
       <div class="day-cell" v-for="day in calendarDays" :key="day.date" @click="openEventPrompt(day.date)">
         <div class="day-number">{{ day.day }}</div>
         <ul class="events" v-for="(schedule, index) in schedules" :key="index">
-          <li v-if="schedule.date === day.date"><div class="schedule match" v-if="schedule.type==='match'">比赛 ⚽</div></li>
+          <li v-if="schedule.date === day.date"><div class="schedule match" v-if="schedule.type==='match'||schedule.type==='past_match'">比赛 ⚽</div></li>
           <li v-if="schedule.date === day.date"><div class="schedule training" v-if="schedule.type==='training'">训练🎯</div></li>
           <li v-if="schedule.date === day.date"><div class="schedule else" v-if="schedule.type==='else'">其他📅</div></li>
         </ul>
@@ -28,7 +28,7 @@
     <div v-if="showPopup" class="popup-overlay">
       <div class="popup">
         <!-- 选项卡按钮 -->
-        <!-- 模板部分保持原结构不变 -->
+       
         <div class="tab-buttons">
           <button class="tab-button" :class="{ active: activeTab === 'match' }" @click="switchTab('match')">比赛</button>
           <button class="tab-button" :class="{ active: activeTab === 'training' }" @click="switchTab('training')">训练</button>
@@ -38,8 +38,11 @@
         <!-- 选项卡内容 -->
         <div class="tab-content-wrapper">
           <!-- 比赛内容 -->
-          <div class="tab-content" :class="{ active: activeTab === 'match' }">
+           
+          <div class="tab-content" :class="{ active: activeTab === 'match' }"> 
+            <template v-if="!isPastmatch"> 
             <p class="match-info">
+             
               <span class="team">{{ teamname || '未设定' }}</span>
               <span class="vs">{{ matchTime || '时间未设定' }} / {{ matchLocation || '地点未设定' }}</span>
               <span class="team">{{ team2 || '对手未设定' }}</span>
@@ -50,15 +53,86 @@
                 <img v-if="teamLogo" :src="teamLogo" alt="主队队徽" class="team-logo-large" />
                 <span v-else class="team-logo-placeholder">主队队徽</span>
               </div>
-              <div class="vs-badge">
-                <strong>VS</strong>
+              <div class="buttons-center">
+               <stong style="color:red;font-size: 40px;">VS</stong>
               </div>
               <div class="team-logo-container">
                 <img v-if="team2Logo" :src="team2Logo" alt="客队队徽" class="team-logo-large" />
                 <span v-else class="team-logo-placeholder">对手队徽</span>
               </div>
-            </div>
-          </div>
+            </div>  
+          </template>
+          <template v-else>
+              <p class="match-info">
+                <img v-if="teamLogo" :src="teamLogo" alt="主队队徽" class="team-logo-small" />
+                  <span class="team">{{ teamname  }}</span>
+                <span class="match_center">
+                  <span class="">{{ matchTime }}</span>
+                  <span class="score">{{ Object.values(scoredata.score)[0].goal }} - {{ Object.values(scoredata.score)[1].goal }}</span>
+                    <span v-if="scoredata.has_penalty_shootout" class="score-penalty">
+                      点球：{{ Object.values(scoredata.score)[0].penalty }} - {{ Object.values(scoredata.score)[1].penalty }}
+                    </span>
+                  <!-- <span> {{ matchLocation}}</span>--> 
+                </span>
+                  <span class="team">{{ team2 || '对手未设定' }}</span>
+                  <img v-if="team2Logo" :src="team2Logo" alt="客队队徽" class="team-logo-small" />
+                </p>
+                <div class="timeline-container">
+                  <div class="filter">
+                    <label>
+                      <input type="checkbox" v-model="onlyGoals" />
+                      只看进球
+                    </label>
+                  </div>
+
+                  <div class="timeline">
+                    <div
+                      v-for="event in filteredEvents"
+                      :key="event.id"
+                      class="timeline-item"
+                      :class="{ left: event.team_name === team1, right: event.team_name === team2 }"
+                    >
+                      <div class="content">
+                        <div class="minute">{{ formatMinuteNote(event.minute_note) }}'</div>
+                        <div class="detail">
+                          <template v-if="event.event_type === 'goal'">
+                            <span v-if="event.team_name === team1">{{ event.scorer_name }} ⚽</span>
+                            <span v-else>⚽ {{ event.scorer_name }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'yellow_card'">
+                            <span v-if="event.team_name === team1">{{ event.card_player }} 🟨</span>
+                            <span v-else>🟨 {{ event.card_player }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'red_card'">
+                            <span v-if="event.team_name === team1">{{ event.card_player }} 🟥</span>
+                            <span v-else>🟥 {{ event.card_player }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'penalty' && event.penalty_result === 'score'">
+                            <span v-if="event.team_name === team1">{{ event.penalty_player }} ⚽</span>
+                            <span v-else>⚽ {{ event.penalty_player }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'penalty' && event.penalty_result === 'miss'">
+                            <span v-if="event.team_name === team1">{{ event.penalty_player }} ❌</span>
+                            <span v-else>❌ {{ event.penalty_player }}</span>
+                          </template>
+                          <template v-else-if="event.event_type === 'substitution'">
+                            <span v-if="event.team_name === team1">
+                              {{ event.sub_in_name }} ⬆️<br />
+                              {{ event.sub_out_name }} ⬇️
+                            </span>
+                            <span v-else>
+                              ⬆️ {{ event.sub_in_name }}<br />
+                              ⬇️ {{ event.sub_out_name }}
+                            </span>
+                          </template>
+                        </div>
+                      </div>
+                      <div class="dot"></div>
+                    </div>
+                  </div>
+                </div>
+          </template>
+         </div>
 
           <!-- 训练内容 -->
           <div class="tab-content" :class="{ active: activeTab === 'training' }">
@@ -161,6 +235,8 @@ export default {
       teamlist:[],
       teamLogo: null,
       team2Logo: null,
+      isPastmatch: false,
+      events: [], // 比赛事件
     };
   },
   computed: {
@@ -170,8 +246,12 @@ export default {
     },
     hasScheduleForSelectedDate() {
     return this.schedules.some(schedule => schedule.date === this.selectedDate);
-  }
-   
+  },
+  filteredEvents() {
+        return this.events
+          .filter((event) => !this.onlyGoals || event.event_type === 'goal')
+          .sort((a, b) => a.event_minute - b.event_minute);
+      },
   },
   mounted() {
     this.generateCalendar();
@@ -305,18 +385,21 @@ export default {
     openEventPrompt(date) {
         if (!date) return;
         this.selectedDate = date;
+        this.team1 = this.teamname;
 
         // 重置队徽
         this.team2Logo = null;
 
         for (const schedule of this.schedules || []) {
         if (schedule.date === this.selectedDate) {
-          if (schedule.type === 'match') {
+          if (schedule.type === 'match'||schedule.type ==='past_match') {
             this.matchId = schedule.id;
             this.matchTime = schedule.match_time;
             this.matchLocation = schedule.location;
             this.team2 = schedule.team2;
-            this.team1 = this.teamname;
+            this.events=schedule.events;
+            this.scoredata=schedule.scoredata;
+            this.isPastmatch=(schedule.type==='past_match');
             
             // 设置队徽
             if (schedule.team2logo) {
@@ -362,7 +445,8 @@ export default {
       this.selectedID = null,
       this.matchId=null,
       this.trainingId=null,
-      this.elseId=null  
+      this.elseId=null , 
+      this.isPastmatch=false;
     },
     
 
@@ -533,6 +617,15 @@ export default {
       }
       await this.fetchSchedules();
       this.closePopup();
+    },
+    formatMinuteNote(note) {
+      if (!note) return '';
+      if (note === '点球大战') return '点球大战';  // ✅ 新增
+      const parts = note.split('+');
+      if (parts.length === 2 && parts[1] === '0') {
+        return parts[0];
+      }
+      return note;
     },
 
     async changeElseInfo() {
@@ -853,6 +946,7 @@ export default {
 
 /* 选项卡内容容器 */
 .tab-content-wrapper {
+  
   position: relative;
   min-height: 300px;
   height: auto;
@@ -865,6 +959,7 @@ export default {
 
 /* 选项卡内容通用样式 */
 .tab-content {
+  overflow-y: auto;
   position: relative;
   width: 100%;
   height: auto;
@@ -894,6 +989,7 @@ export default {
 
 /* 比赛信息样式*/
 .match-info {
+ 
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1084,5 +1180,105 @@ export default {
 
 .button-group button {
   width: 100%;
+}
+.team-logo-small{
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+  border: solid 1px #cdd0d2;
+  padding: 1px;
+}
+.filter{
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+.timeline {
+  
+  position: relative;
+  margin: 40px 0;
+  padding: 0;
+  width:350px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  background-color: #4caf50;
+  transform: translateX(-50%);
+}
+
+.timeline-item {
+  
+  position: relative;
+  width: 50%;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+
+.timeline-item.left {
+  left: 0;
+  text-align: right;
+}
+
+.timeline-item.right {
+  left: 50%;
+  text-align: left;
+}
+
+.timeline-item .content {
+  background: #e8f5e9;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 200px;
+}
+
+.timeline-item .minute {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.timeline-item .dot {
+  position: absolute;
+  top: 20px;
+  width: 12px;
+  height: 12px;
+  background: #4caf50;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.timeline-item.left .dot {
+  right: -6px;
+}
+
+.timeline-item.right .dot {
+  left: -6px;
+}
+.match_center{
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width:100px;
+}
+.score{
+  font-size: 30px;
+  font-weight: bold;
+  color: #c51c36;
+ 
+}
+.score-penalty{
+  font-size: 12px;
+  color: #605d5e;
 }
 </style>

@@ -3,8 +3,6 @@
     <div class="team-management-container">
       <div class="team-info-section">
        
-      
-       
         <div class="team-details">
           <div class="team-logo">
             <img :src="teamLogo" alt="球队Logo" class="logo-image" >
@@ -30,7 +28,7 @@
         </div>
         <div class="btn-group">
           <button class="back-btn"@click=back>返回</button>
-        <button class="save-btn" @click="saveTeamInfo">保存球队信息</button>
+        <button class="save-btn" @click="saveTeamInfo">保存信息</button>
        
         </div>
       </div>
@@ -61,13 +59,13 @@
                 <th>身高(cm)</th>
                 <th>体重(kg)</th>
                 <th>惯用脚</th>
-                <th>健康状态</th>
+             
                 <th>操作</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="player in players" :key="player.id">
-                <td>{{ player.name }}</td>
+                <td>{{ player.player_name }}</td>
                 <td>
                   <input 
                     type="number" 
@@ -85,13 +83,7 @@
                     <option value="右脚">右脚</option>
                   </select>
                 </td>
-                <td>
-                  <select v-model="player.health" class="health-select">
-                    <option value="healthy">健康</option>
-                    <option value="injured">受伤</option>
-                    
-                  </select>
-                </td>
+            
                 <td>
                   <button class="remove-btn" @click="removePerson(player.uid)">移除</button>
                  
@@ -147,7 +139,7 @@
     </div>
   </template>
   
-  <script>
+<script>
   import { ref, computed } from 'vue';
   import { onMounted } from 'vue';
   import { useRouter } from 'vue-router';
@@ -197,7 +189,6 @@
         router.replace("/login");
       }
     });
-
     return { router };
   },
      
@@ -240,13 +231,14 @@
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
               }
             });
-            this.users = response.data.userlist;
-            this.players=this.users.filter(user => user.type === 'player') || [];
+            this.users = JSON.parse(JSON.stringify(response.data.userlist));
+            
+            this.players=this.users.filter(user => user.type === 'player') ;
            
-            this.managers=this.users.filter(user => user.type === 'manager')|| [];
-            this.doctors=this.users.filter(user => user.type === 'doctor') || [];
+            this.managers=this.users.filter(user => user.type === 'manager');
+            this.doctors=this.users.filter(user => user.type === 'medic') ;
           } catch (error) {
-            console.error('获取球员列表失败:', error);
+           
             ElMessage.error('获取球员列表失败');
           } 
     },
@@ -313,15 +305,17 @@
   
   <style scoped>
   .team-management-container {
+    
   display: flex;
   min-height: 100vh;
   background-color: #f0f2f5;
   padding: 20px;
   gap: 20px;
-  box-sizing: border-box;
+  
 }
 
 .team-info-section {
+  
   flex: 1;
   background: #fff;
   border-radius: 12px;
@@ -330,6 +324,7 @@
 }
 
 .personnel-management-section {
+ 
   flex: 2;
   background: #fff;
   border-radius: 12px;
@@ -338,6 +333,7 @@
 }
 
 .team-details {
+  
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -391,6 +387,7 @@ textarea.form-control {
 }
 
 .stats {
+  
   display: flex;
   justify-content: space-around;
   margin-top: 10px;
@@ -482,6 +479,7 @@ textarea.form-control {
 }
 
 .personnel-table {
+  
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
@@ -490,12 +488,14 @@ textarea.form-control {
 }
 
 .personnel-table th, .personnel-table td {
+  
   padding: 12px;
   border-bottom: 1px solid #ebeef5;
   text-align: center;
 }
 
 .personnel-table thead {
+  
   background-color: #f5f7fa;
 }
 
@@ -547,5 +547,7 @@ textarea.form-control {
   gap: 10px;
   margin-bottom: 20px;
 }
-
+.personnel-list{
+  overflow-y: auto;
+}
    </style>
