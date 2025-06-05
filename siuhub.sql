@@ -23,21 +23,21 @@ INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'default-user-001',         -- 用户 ID
-  '测试用户',                 -- 昵称
-  '12345678901',              -- 手机号
+  '测试球迷',                 -- 昵称
+  '13345678901',              -- 手机号
   'test@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'fan',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                 -- 状态
-  '/public/avatars/a4995f3c6d414277464452700cbc784e.png'
+  '/public/avatars/version.jpg'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'coach_001',         -- 用户 ID
   '测试教练',                 -- 昵称
-  '11122233345',              -- 手机号
+  '18822831891',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'coach',                      -- 用户类型，可换成 'coach' 或其他
@@ -63,7 +63,7 @@ INSERT INTO users (
 ) VALUES (
   'manager_001',         -- 用户 ID
   '测试经理',                 -- 昵称
-  '12345678904',              -- 手机号
+  '13345678904',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'manager',                      -- 用户类型，可换成 'coach' 或其他
@@ -75,14 +75,14 @@ INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_001',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '只因',                 -- 昵称
   '13345678925',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/1.png'
 );
 
 INSERT INTO users (
@@ -102,144 +102,144 @@ INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_002',         -- 用户 ID
-  '测试球员2',                 -- 昵称
+  '李明',                 -- 昵称
   '13345678926',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/2.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_003',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '王强',                 -- 昵称
   '13345678927',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/3.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_004',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '赵刚',                 -- 昵称
   '13345678928',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/4.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_005',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '刘洋',                 -- 昵称
   '13345678929',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/5.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_006',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '陈晨',                 -- 昵称
   '13345678930',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/6.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_007',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '杨光',                 -- 昵称
   '13345678931',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/7.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_008',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '周杰',                 -- 昵称
   '13345678932',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/8.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_009',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '吴磊',                 -- 昵称
   '13345678933',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/9.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_010',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '郑智',                 -- 昵称
   '13345678934',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/10.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_011',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '孙翔',                 -- 昵称
   '13345678935',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/11.png'
 );
 INSERT INTO users (
   id, name, phone, email, password, type, team_id, status, avatar
 ) VALUES (
   'player_012',         -- 用户 ID
-  '测试球员',                 -- 昵称
+  '马龙',                 -- 昵称
   '13345678936',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
   'team_001',                       -- 无需 team_id
   'approved',                  -- 状态
-  '/public/avatars/version.jpg'
+  '/public/avatars/12.png'
 );
 
 CREATE TABLE teams (
@@ -416,14 +416,6 @@ VALUES ('2025-04-24', 'match','team_001');
 INSERT INTO match_schedule (schedule_id, location, match_time, team1, team2)
 VALUES (2, '市体育场', '18:30:00', '红队', '蓝队');
 
--- 插入一条其他类型的主表记录
-INSERT INTO schedule (date, type, team_id) 
-VALUES ('2025-04-15', 'else','team_001');
-
--- 插入对应的训练表记录
-INSERT INTO else_schedule (schedule_id, else_time, content)
-VALUES (3, '16:00:00', '艹只因');
-
 -- 基础事件记录表
 CREATE TABLE match_event_log (
   id INT PRIMARY KEY AUTO_INCREMENT,
@@ -527,18 +519,18 @@ CREATE TABLE players (
 
 INSERT INTO players(player_number, player_name, team_id, avatar, user_id, dominant_foot, health, height, weight, age)
 VALUES
-(1, '只因', 'team_001', '/public/avatars/version.jpg', 'player_001', '右脚', 'healthy', 185, 78, 28),
-(2, '李明', 'team_001', '/public/avatars/version.jpg', 'player_002', '右脚', 'healthy', 178, 72, 25),
-(3, '王强', 'team_001', '/public/avatars/version.jpg', 'player_003', '左脚', 'healthy', 182, 75, 27),
-(4, '赵刚', 'team_001', '/public/avatars/version.jpg', 'player_004', '右脚', 'injured', 176, 70, 24),
-(5, '刘洋', 'team_001', '/public/avatars/version.jpg', 'player_005', '右脚', 'healthy', 180, 76, 26),
-(6, '陈晨', 'team_001', '/public/avatars/1746619913987.jpg', 'player_006', '左脚', 'healthy', 175, 68, 23),
-(7, '杨光', 'team_001', '/public/avatars/version.jpg', 'player_007', '右脚', 'healthy', 183, 77, 29),
-(8, '周杰', 'team_001', '/public/avatars/version.jpg', 'player_008', '右脚', 'healthy', 177, 71, 25),
-(9, '吴磊', 'team_001', '/public/avatars/version.jpg', 'player_009', '右脚', 'healthy', 181, 74, 27),
-(10, '郑智', 'team_001', '/public/avatars/version.jpg', 'player_010', '右脚', 'healthy', 179, 73, 30),
-(11, '孙翔', 'team_001', '/public/avatars/version.jpg', 'player_011', '左脚', 'healthy', 174, 69, 24),
-(12, '马龙', 'team_001', '/public/avatars/version.jpg', 'player_012', '右脚', 'healthy', 178, 72, 26);
+(1, '只因', 'team_001', '/public/avatars/1.png', 'player_001', '右脚', 'healthy', 185, 78, 28),
+(2, '李明', 'team_001', '/public/avatars/2.png', 'player_002', '右脚', 'healthy', 178, 72, 25),
+(3, '王强', 'team_001', '/public/avatars/3.png', 'player_003', '左脚', 'healthy', 182, 75, 27),
+(4, '赵刚', 'team_001', '/public/avatars/4.png', 'player_004', '右脚', 'injured', 176, 70, 24),
+(5, '刘洋', 'team_001', '/public/avatars/5.png', 'player_005', '右脚', 'healthy', 180, 76, 26),
+(6, '陈晨', 'team_001', '/public/avatars/6.png', 'player_006', '左脚', 'healthy', 175, 68, 23),
+(7, '杨光', 'team_001', '/public/avatars/7.png', 'player_007', '右脚', 'healthy', 183, 77, 29),
+(8, '周杰', 'team_001', '/public/avatars/8.png', 'player_008', '右脚', 'healthy', 177, 71, 25),
+(9, '吴磊', 'team_001', '/public/avatars/9.png', 'player_009', '右脚', 'healthy', 181, 74, 27),
+(10, '郑智', 'team_001', '/public/avatars/10.png', 'player_010', '右脚', 'healthy', 179, 73, 30),
+(11, '孙翔', 'team_001', '/public/avatars/11.png', 'player_011', '左脚', 'healthy', 174, 69, 24),
+(12, '马龙', 'team_001', '/public/avatars/12.png', 'player_012', '右脚', 'healthy', 178, 72, 26);
 
 CREATE TABLE tactics (
   id INT PRIMARY KEY AUTO_INCREMENT,

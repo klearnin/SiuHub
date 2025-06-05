@@ -3,7 +3,7 @@
   import { useRouter } from 'vue-router'
   import axios from 'axios'
   import { ElMessage } from 'element-plus'
-  import { ca, id, ta } from 'element-plus/es/locale/index.mjs';
+  import { ca, id, pl, ta } from 'element-plus/es/locale/index.mjs';
   
   
   const players = ref([
@@ -250,7 +250,14 @@
       y: pos.y
     }))
   }
-  
+  function rolename(role){
+    const name=playerlist.value.find(p=>p.id===role)?.player_name;
+    return name;
+  }
+  function rolenumber(role){
+    const number=playerlist.value.find(p=>p.id===role)?.player_number;
+    return number; 
+  }
   async function setTactic() {
     const selectedTactic = tactics.value.find(t => t.id === selectedTacticID.value);
     if (!selectedTactic) return;
@@ -506,8 +513,8 @@
               <div class="role-item" v-if="role !== 'id' && role !== 'tactic_id'">
                 <label class="role-label">{{ roleTranslations[role] || role }}</label>
                 <div class="player-info-display">
-                  {{ (characters[role]) }} 
-                  <span class="player-number">({{ (characters[role]) }})</span>
+                  {{ rolename(characters[role]) }} 
+                  <span class="player-number">({{ rolenumber(characters[role]) }})</span>
                 </div>
               </div>
             </template>
@@ -892,7 +899,7 @@ button i {
   font-size: auto;
   font-weight: 600;
   text-align: center;
-  width:100px;
+  width:150px;
   height: 25px;
   border-radius: 10px;
   border:solid 1px rgb(2, 22, 31);

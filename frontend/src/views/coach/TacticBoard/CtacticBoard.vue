@@ -65,7 +65,7 @@
             <label class="role-label">{{ roleTranslations[role] || role }}</label>
             <!-- 使用 roleTranslations[role] 显示中文，如果没有映射则显示原英文 -->
             <select class="styled-select small" v-model="characters[role]">
-              <option v-for="(player, index) in players" :value="player.id" :key="index">
+              <option v-for="(player, index) in players" :value="player.player_id" :key="index">
                 {{ player.name }} ({{ player.number }})
               </option>
             </select>
