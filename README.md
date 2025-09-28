@@ -43,16 +43,14 @@ npm install
 
 ### **📌 3. 配置数据库**
 ```bash
+cd SiuHub
 mysql -u root -p
 ```
 输入密码123456后，执行：
 ```sql
-CREATE DATABASE siuhub;
+source siuhub.sql
 ```
-然后退出：
-```sql
-EXIT;
-```
+
 
 ### **📌 4. 运行后端服务器**
 ```bash
