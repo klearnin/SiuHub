@@ -23,11 +23,14 @@ mysql --version
 如果所有都正常安装应该是下面这个图的样子，版本不一样最好也改成一样的（MySQL的账号密码最好改成：123456）
 ![技术栈版本](picture/version.png)
 
-## **📥 2. 下载项目代码**
+## **📥 2. clone项目代码**
 
-1.**打开GitHub网址**：https://github.com/klearnin/SiuHub
-2.**下载代码的Zip文件**
-3.**解压后进入SiuHub目录**
+1.**在自己准备用于开发的文件夹下打开cmd**
+
+2.**clone项目代码**
+```bash
+git clone https://github.com/klearnin/SiuHub.git
+```
 
 ## **🖥️ 3. 运行后端**
 
