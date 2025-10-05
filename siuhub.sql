@@ -113,18 +113,18 @@ INSERT INTO teams (
   id, name, abbr, logo_path, invite_code, creator_id
 ) VALUES (
   'team_001',
-  '测试队伍',
+  '弘毅学堂',
   'TEST',
-  '/public/team-logos/version.jpg',
+  '/public/team-logos/hyxt.jpg',
   'invite001',
   'coach_001');
 INSERT INTO teams (
   id, name, abbr, logo_path, invite_code, creator_id
 ) VALUES (
   'team_002',
-  '测试队伍2',
+  '电子信息学院',
   'TEST2',
-  '/public/team-logos/default.png',
+  '/public/team-logos/dzxx.png',
   'invite002',
   'coach_002');
  
