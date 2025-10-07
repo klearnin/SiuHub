@@ -1,7 +1,9 @@
 const db = require("../database/index");
 const jwt = require("../util/jwt");
+const { verify } = require("../util/jwt");
 const { jwtSecret } = require("../config/config.default");
 const { nanoid } =require("nanoid");
+const { sendMail } = require('../util/mailer');
 const path = require("path");
 const fs = require("fs");
 
@@ -79,11 +81,31 @@ exports.register = async (req, res, next) => {
       teamName,
       teamAbbr,
       teamId,
+      emailCodeToken, // 👈 前端传来的验证码 token
+      emailCode       // 👈 前端传来的验证码值
     } = req.body;
 
     if (!name || !phone || !password || !userType) {
       return res.status(400).json({ message: "缺少注册信息" });
     }
+
+    // 邮箱验证码校验（coach、fan、player…都必须）
+    if (!email || !emailCodeToken || !emailCode) {
+      return res.status(400).json({ message: "缺少邮箱验证码参数" });
+    }
+
+    let decoded;
+    try {
+      decoded = await verify(emailCodeToken, jwtSecret);
+    } catch (err) {
+      return res.status(400).json({ message: "验证码已过期或无效" });
+    }
+
+    if (decoded.valiCode.toUpperCase() !== emailCode.toUpperCase()) {
+      return res.status(400).json({ message: "验证码错误" });
+    }
+
+
 
     const userId = nanoid();
 
@@ -362,6 +384,41 @@ exports.getAllTeams = async (req, res, next) => {
     res.status(200).json({
       teams
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 发送邮箱验证码
+exports.validateMail = async (req, res, next) => {
+  try {
+    const { mail } = req.body;
+    if (!mail) {
+      return res.status(400).json({ message: "邮箱地址不能为空" });
+    }
+
+    const generateCode = () =>
+      Array.from({ length: 6 }, () =>
+        Math.random() < 0.5
+          ? String.fromCharCode(65 + Math.floor(Math.random() * 26))  // A-Z
+          : Math.floor(Math.random() * 10)                            // 0-9
+      ).join('');
+    
+    const valiCode = generateCode();
+    // const valiCode = nanoid(6); // 简洁验证码
+    const token = await jwt.sign(
+      { valiCode },
+      jwtSecret,
+      { expiresIn: 60 * 3 } // 三分钟
+    );
+
+    await sendMail(
+      mail,
+      '【SiuHub】注册验证码',
+      `您的验证码是：${valiCode}（有效期3分钟,可忽略大小写）`
+    );
+
+    res.status(200).json({ token });
   } catch (err) {
     next(err);
   }
