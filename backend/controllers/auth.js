@@ -392,8 +392,8 @@ exports.getAllTeams = async (req, res, next) => {
 // 发送邮箱验证码
 exports.validateMail = async (req, res, next) => {
   try {
-    const { mail } = req.body;
-    if (!mail) {
+    const { email } = req.body;
+    if (!email) {
       return res.status(400).json({ message: "邮箱地址不能为空" });
     }
 
@@ -413,13 +413,78 @@ exports.validateMail = async (req, res, next) => {
     );
 
     await sendMail(
-      mail,
+      email,
       '【SiuHub】注册验证码',
-      `您的验证码是：${valiCode}（有效期3分钟,可忽略大小写）`
+      `您的验证码是：${valiCode}（有效期3分钟，可忽略大小写）`
     );
 
     res.status(200).json({ token });
   } catch (err) {
     next(err);
+  }
+};
+
+// 忘记密码，需要发送验证码到邮箱
+exports.sendResetCode = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "请输入邮箱" });
+
+    // 查找邮箱是否存在于用户表中
+    const result = await db.startQuery(`SELECT * FROM users WHERE email = ${db.escape(email)} LIMIT 1`);
+    if (result.length === 0) return res.status(404).json({ message: "该邮箱未注册" });
+
+    // 生成验证码
+    const generateCode = () =>
+      Array.from({ length: 6 }, () =>
+        Math.random() < 0.5
+          ? String.fromCharCode(65 + Math.floor(Math.random() * 26))  // A-Z
+          : Math.floor(Math.random() * 10)                            // 0-9
+      ).join('');
+
+    const valiCode = generateCode();
+    const token = await jwt.sign({ email, valiCode }, jwtSecret, { expiresIn: 60 * 3 });
+
+    await sendMail(
+      email,
+      '【SiuHub】找回密码验证码',
+      `您的验证码是：${valiCode}（有效期3分钟，可忽略大小写）`
+    );
+
+    res.status(200).json({ token, message: "验证码已发送，请查收邮箱" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+// 检查验证码是否正确，并重置密码
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, code, newPassword } = req.body;
+    if (!token || !code || !newPassword) {
+      return res.status(400).json({ message: "参数不完整" });
+    }
+
+    const decoded = await verify(token, jwtSecret);
+    if (decoded.valiCode.toUpperCase() !== code.toUpperCase()) {
+      return res.status(400).json({ message: "验证码错误" });
+    }
+
+    const email = decoded.email;
+    const result = await db.startQuery(`SELECT id FROM users WHERE email = ${db.escape(email)} LIMIT 1`);
+    if (result.length === 0) {
+      return res.status(404).json({ message: "用户不存在" });
+    }
+
+    await db.startQuery(`
+      UPDATE users SET password = MD5(${db.escape(newPassword)})
+      WHERE email = ${db.escape(email)}
+    `);
+
+    res.status(200).json({ message: "密码重置成功" });
+  } catch (err) {
+    return res.status(400).json({ message: "验证码已失效或无效" });
   }
 };

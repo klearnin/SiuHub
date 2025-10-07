@@ -1,4 +1,4 @@
-// test-mail.js
+// test.js, 用于测试邮件能否正确发送（node test.js）
 const { sendMail } = require('./util/mailer');
 
 const generateCode = () =>
