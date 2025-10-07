@@ -122,3 +122,50 @@ exports.deleteuser = async (req, res,next) => {
     next(err);
   }
 };
+
+exports.transferCoach = async (req, res, next) => {
+  try {
+    const { userid } = req.params.id; // 前端传来的目标用户 ID
+    const currentUser = req.user; // 当前登录教练
+
+    // 检查当前用户是否为教练
+    if (currentUser.type !== 'coach') {
+      return res.status(403).json({ code: 1, msg: '只有教练才能转让教练身份' });
+    }
+
+    // 查询目标用户信息
+    const [targetUser] = await db.startQuery(
+      `SELECT * FROM users WHERE id = ? AND team_id = ?`,
+      [userid, currentUser.team_id]
+    );
+
+    if (!targetUser) {
+      return res.status(404).json({ code: 1, msg: '目标用户不存在或不属于该团队' });
+    }
+
+    // 如果目标用户是球员，需要删除其 players 表记录
+    if (targetUser.type === 'player') {
+      await db.startQuery(
+        `DELETE FROM players WHERE user_id = ?`,
+        [targetUser.id]
+      );
+    }
+
+    // 更新目标用户身份为 coach
+    await db.startQuery(
+      `UPDATE users SET type = 'coach' WHERE id = ?`,
+      [targetUser.id]
+    );
+
+    // 将当前教练身份改为 fan
+    await db.startQuery(
+      `UPDATE users SET type = 'fan' WHERE id = ?`,
+      [currentUser.id]
+    );
+
+    res.json({ code: 0, msg: '教练身份转让成功' });
+  } catch (err) {
+    console.error('转让教练错误:', err);
+    next(err);
+  }
+};
