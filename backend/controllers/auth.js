@@ -427,12 +427,23 @@ exports.validateMail = async (req, res, next) => {
 // 忘记密码，需要发送验证码到邮箱
 exports.sendResetCode = async (req, res, next) => {
   try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "请输入邮箱" });
+    const { phone, type, email } = req.body;
+    if (!phone || !type || !email) {
+      return res.status(400).json({ message: "请输入手机号、身份和邮箱" });
+    }
 
-    // 查找邮箱是否存在于用户表中
-    const result = await db.startQuery(`SELECT * FROM users WHERE email = ${db.escape(email)} LIMIT 1`);
-    if (result.length === 0) return res.status(404).json({ message: "该邮箱未注册" });
+    // 查找手机号+身份+邮箱是否存在于用户表中
+    const result = await db.startQuery(`
+      SELECT * FROM users 
+      WHERE phone = ${db.escape(phone)}
+        AND type = ${db.escape(type)}
+        AND email = ${db.escape(email)}
+      LIMIT 1
+    `);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "未找到对应的用户，请检查手机号、身份和邮箱是否匹配" });
+    }
 
     // 生成验证码
     const generateCode = () =>
@@ -443,7 +454,13 @@ exports.sendResetCode = async (req, res, next) => {
       ).join('');
 
     const valiCode = generateCode();
-    const token = await jwt.sign({ email, valiCode }, jwtSecret, { expiresIn: 60 * 3 });
+
+    // 把 phone、type、email 一起写进 token
+    const token = await jwt.sign(
+      { phone, type, email, valiCode },
+      jwtSecret,
+      { expiresIn: 60 * 3 }
+    );
 
     await sendMail(
       email,
@@ -458,7 +475,6 @@ exports.sendResetCode = async (req, res, next) => {
 };
 
 
-
 // 检查验证码是否正确，并重置密码
 exports.resetPassword = async (req, res, next) => {
   try {
@@ -468,19 +484,32 @@ exports.resetPassword = async (req, res, next) => {
     }
 
     const decoded = await verify(token, jwtSecret);
+
     if (decoded.valiCode.toUpperCase() !== code.toUpperCase()) {
       return res.status(400).json({ message: "验证码错误" });
     }
 
-    const email = decoded.email;
-    const result = await db.startQuery(`SELECT id FROM users WHERE email = ${db.escape(email)} LIMIT 1`);
+    const { phone, type, email } = decoded;
+
+    // 再次确认数据库中存在该用户
+    const result = await db.startQuery(`
+      SELECT id FROM users 
+      WHERE phone = ${db.escape(phone)}
+        AND type = ${db.escape(type)}
+        AND email = ${db.escape(email)}
+      LIMIT 1
+    `);
+
     if (result.length === 0) {
-      return res.status(404).json({ message: "用户不存在" });
+      return res.status(404).json({ message: "用户不存在或信息不匹配" });
     }
 
     await db.startQuery(`
-      UPDATE users SET password = MD5(${db.escape(newPassword)})
-      WHERE email = ${db.escape(email)}
+      UPDATE users 
+      SET password = MD5(${db.escape(newPassword)})
+      WHERE phone = ${db.escape(phone)}
+        AND type = ${db.escape(type)}
+        AND email = ${db.escape(email)}
     `);
 
     res.status(200).json({ message: "密码重置成功" });
@@ -488,3 +517,4 @@ exports.resetPassword = async (req, res, next) => {
     return res.status(400).json({ message: "验证码已失效或无效" });
   }
 };
+
