@@ -125,36 +125,21 @@ exports.deleteuser = async (req, res,next) => {
 
 exports.transferCoach = async (req, res, next) => {
   try {
-    const userid  = req.params.id; // 前端传来的目标用户 ID
-    const currentUser = req.user; // 当前登录教练
+    const test = await db.startQuery('SELECT * FROM users WHERE id = "manager_001"');
+    console.log('测试查询返回：', test);
+
+    const userid = req.params.id.trim(); 
+    const currentUser = req.user;
 
     console.log('接收到的用户ID:', userid);
     console.log('当前用户team_id:', currentUser.team_id);
     console.log('当前用户ID:', currentUser.id);
     console.log('当前用户类型:', currentUser.type);
 
-    // 检查当前用户是否为教练
     if (currentUser.type !== 'coach') {
       return res.status(403).json({ code: 1, msg: '只有教练才能转让教练身份' });
     }
-    console.log(userid,currentUser.team_id);
-
-     // 先单独查询目标用户，不限制team_id
-     const targetUserWithoutTeam = await db.startQuery(
-      `SELECT * FROM users WHERE id =${db.escape(userid)}`
-    );
-
-    console.log('不限制team_id的查询结果:', targetUserWithoutTeam);
-
-    if (!targetUserWithoutTeam) {
-      return res.status(404).json({ code: 1, msg: '目标用户不存在' });
-    }
-
-    console.log('目标用户的team_id:', targetUserWithoutTeam.team_id);
-    console.log('当前用户的team_id:', currentUser.team_id);
-    console.log('team_id是否相等:', targetUserWithoutTeam.team_id === currentUser.team_id);
-
-    // 查询目标用户信息
+    
     const [targetUser] = await db.startQuery(
       `SELECT * FROM users WHERE id = ? AND team_id = ?`,
       [userid, currentUser.team_id]
@@ -165,25 +150,12 @@ exports.transferCoach = async (req, res, next) => {
       return res.status(404).json({ code: 1, msg: '目标用户不存在或不属于该团队' });
     }
 
-    // 如果目标用户是球员，需要删除其 players 表记录
     if (targetUser.type === 'player') {
-      await db.startQuery(
-        `DELETE FROM players WHERE user_id = ?`,
-        [targetUser.id]
-      );
+      await db.startQuery(`DELETE FROM players WHERE user_id = ?`, [targetUser.id]);
     }
 
-    // 更新目标用户身份为 coach
-    await db.startQuery(
-      `UPDATE users SET type = 'coach' WHERE id = ?`,
-      [targetUser.id]
-    );
-
-    // 将当前教练身份改为 fan
-    await db.startQuery(
-      `UPDATE users SET type = 'fan' WHERE id = ?`,
-      [currentUser.id]
-    );
+    await db.startQuery(`UPDATE users SET type = 'coach' WHERE id = ?`, [targetUser.id]);
+    await db.startQuery(`UPDATE users SET type = 'fan' WHERE id = ?`, [currentUser.id]);
 
     res.json({ code: 0, msg: '教练身份转让成功' });
   } catch (err) {
@@ -191,3 +163,4 @@ exports.transferCoach = async (req, res, next) => {
     next(err);
   }
 };
+
