@@ -125,21 +125,13 @@ exports.deleteuser = async (req, res,next) => {
 
 exports.transferCoach = async (req, res, next) => {
   try {
-    const test = await db.startQuery('SELECT * FROM users WHERE id = "manager_001"');
-    console.log('测试查询返回：', test);
-
     const userid = req.params.id.trim(); 
     const currentUser = req.user;
-
-    console.log('接收到的用户ID:', userid);
-    console.log('当前用户team_id:', currentUser.team_id);
-    console.log('当前用户ID:', currentUser.id);
-    console.log('当前用户类型:', currentUser.type);
 
     if (currentUser.type !== 'coach') {
       return res.status(403).json({ code: 1, msg: '只有教练才能转让教练身份' });
     }
-    
+
     const [targetUser] = await db.startQuery(
       `SELECT * FROM users WHERE id = ? AND team_id = ?`,
       [userid, currentUser.team_id]
