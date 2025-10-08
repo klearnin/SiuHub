@@ -146,16 +146,100 @@
         >
           {{ isRegister ? '注册' : '登录' }}
         </el-button>
-        <el-button
-          type="text"
-          class="toggle-btn"
-          @click="isRegister = !isRegister"
-        >
-          {{ isRegister ? '已有账号？去登录' : '没有账号？去注册' }}
-        </el-button>
+
+        <div class="aux-actions">
+          <el-button
+            type="text"
+            class="toggle-btn toggle-btn--inline"
+            @click="openResetDialog"
+          >
+            忘记密码
+          </el-button>
+          <el-button
+            type="text"
+            class="toggle-btn toggle-btn--inline"
+            @click="isRegister = !isRegister"
+          >
+            {{ isRegister ? '已有账号？去登录' : '没有账号？去注册' }}
+          </el-button>
+        </div>
       </div>
     </el-card>
   </div>
+
+  <!-- 忘记密码弹窗 -->
+  <el-dialog v-model="showResetDialog" title="找回密码" width="420px">
+    <div class="form-group">
+      <el-input v-model.trim="resetForm.phone" placeholder="手机号" clearable />
+    </div>
+    <div class="form-group">
+      <el-select v-model="resetForm.userType" placeholder="选择身份" style="width: 100%">
+        <el-option label="球迷" value="fan" />
+        <el-option label="教练" value="coach" />
+        <el-option label="球员" value="player" />
+        <el-option label="经理" value="manager" />
+        <el-option label="队医" value="medic" />
+      </el-select>
+    </div>
+    <div class="form-group">
+      <el-input v-model.trim="resetForm.email" placeholder="邮箱" clearable>
+        <template #append>
+          <el-button
+            :disabled="resetSendDisabled"
+            :loading="resetSendLoading"
+            @click="onSendResetCode"
+            type="primary"
+            plain
+          >
+            {{ resetSendBtnText }}
+          </el-button>
+        </template>
+      </el-input>
+    </div>
+
+    <!-- 新增：验证码输入框 -->
+    <div class="form-group">
+      <el-input
+        v-model.trim="resetForm.code"
+        maxlength="6"
+        placeholder="请输入邮箱验证码（6位）"
+        show-word-limit
+        clearable
+      />
+    </div>
+
+    <!-- 新密码 + 确认密码 -->
+    <div class="form-group">
+      <el-input
+        v-model.trim="resetForm.newPwd"
+        type="password"
+        placeholder="请输入新密码（6~18位）"
+        show-password
+      />
+    </div>
+    <div class="form-group">
+      <el-input
+        v-model.trim="resetForm.confirmPwd"
+        type="password"
+        placeholder="请再次输入新密码"
+        show-password
+      />
+    </div>
+
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="showResetDialog = false">取 消</el-button>
+        <el-button
+          type="primary"
+          :loading="resetSubmitLoading"
+          @click="onDoResetPassword"
+        >
+          重置密码
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
+
 </template>
 
 <script setup>
@@ -379,6 +463,125 @@ const handleUserTypeChange = async () => {
     }
   }
 };
+
+// —— 忘记密码弹窗状态 —— //
+const showResetDialog = ref(false);
+const resetForm = ref({
+  phone: "",
+  userType: "",
+  email: "",
+  code: "",
+  newPwd: "",
+  confirmPwd: "",
+});
+const resetToken = ref("");
+const resetSendLoading = ref(false);
+const resetSubmitLoading = ref(false);
+
+// 倒计时控制
+const resetCooldown = ref(0);
+let _resetTimer = null;
+
+const resetSendDisabled = computed(() => {
+  if (resetSendLoading.value || resetCooldown.value > 0) return true;
+  const phoneOk = /^1[3-9]\d{9}$/.test(resetForm.value.phone);
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetForm.value.email);
+  return !(phoneOk && emailOk && resetForm.value.userType);
+});
+
+const resetSendBtnText = computed(() =>
+  resetCooldown.value > 0 ? `重新发送(${resetCooldown.value}s)` : "获取验证码"
+);
+
+function _startResetCooldown(sec = 60) {
+  resetCooldown.value = sec;
+  _resetTimer && clearInterval(_resetTimer);
+  _resetTimer = setInterval(() => {
+    resetCooldown.value -= 1;
+    if (resetCooldown.value <= 0) {
+      clearInterval(_resetTimer);
+      _resetTimer = null;
+    }
+  }, 1000);
+}
+onUnmounted(() => _resetTimer && clearInterval(_resetTimer));
+
+// 打开弹窗
+const openResetDialog = () => {
+  showResetDialog.value = true;
+  Object.assign(resetForm.value, {
+    phone: form.value.phone || "",
+    userType: form.value.userType || "",
+    email: form.value.email || "",
+    code: "",
+    newPwd: "",
+    confirmPwd: "",
+  });
+  resetToken.value = "";
+  resetCooldown.value = 0;
+};
+
+// 点击“获取验证码”
+async function onSendResetCode() {
+  if (resetSendDisabled.value) return;
+  resetSendLoading.value = true;
+  try {
+    const { data } = await axios.post("http://localhost:5000/api/auth/send-reset-code", {
+      phone: resetForm.value.phone,
+      type: resetForm.value.userType,
+      email: resetForm.value.email,
+    });
+    resetToken.value = data?.token || "";
+    if (!resetToken.value) throw new Error("未获取到重置 token");
+    ElMessage.success("验证码已发送，请在3分钟内完成验证");
+    _startResetCooldown(60);
+  } catch (err) {
+    const msg = err?.response?.data?.message || err?.message || "发送失败，请稍后重试";
+    ElMessage.error(msg);
+  } finally {
+    resetSendLoading.value = false;
+  }
+}
+
+// 点击“重置密码”
+async function onDoResetPassword() {
+  const { code, newPwd, confirmPwd } = resetForm.value;
+
+  if (!code || code.length !== 6) {
+    ElMessage.error("请输入6位邮箱验证码");
+    return;
+  }
+  if (newPwd.length < 6 || newPwd.length > 18) {
+    ElMessage.error("密码长度需为6~18位");
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    ElMessage.error("两次输入的新密码不一致");
+    return;
+  }
+  if (!resetToken.value) {
+    ElMessage.error("请先获取验证码");
+    return;
+  }
+
+  resetSubmitLoading.value = true;
+  try {
+    const payload = {
+      token: resetToken.value,
+      code: code.trim().toUpperCase(),
+      newPassword: newPwd,
+    };
+    await axios.post("http://localhost:5000/api/auth/reset-password", payload);
+    ElMessage.success("密码重置成功，请使用新密码登录");
+    showResetDialog.value = false;
+  } catch (err) {
+    const msg = err?.response?.data?.message || err?.message || "重置失败，请稍后重试";
+    ElMessage.error(msg);
+  } finally {
+    resetSubmitLoading.value = false;
+  }
+}
+
 </script>
 
 <style scoped>
@@ -448,4 +651,19 @@ h2 {
 .toggle-btn:hover {
   color: #409eff;
 }
+/* 第二行两个文本按钮左右分布 */
+.aux-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 复用原有 .toggle-btn 样式，但去掉强制 100% 宽度以便并排 */
+.toggle-btn--inline {
+  width: auto !important;
+  display: inline-block;
+  margin-top: 0; /* 在行内统一高度 */
+}
+
 </style>
