@@ -26,7 +26,7 @@ exports.getuserlist = async (req, res, next) => {
       detailedList.push(detail);
      
     }
-    console.log('API 返回数据:', { userlist: detailedList });
+  
     res.json({ code: 0, msg: '获取成功', userlist: detailedList });
   } catch (err) {
     next(err);
@@ -125,13 +125,34 @@ exports.deleteuser = async (req, res,next) => {
 
 exports.transferCoach = async (req, res, next) => {
   try {
-    const { userid } = req.params.id; // 前端传来的目标用户 ID
+    const userid  = req.params.id; // 前端传来的目标用户 ID
     const currentUser = req.user; // 当前登录教练
+
+    console.log('接收到的用户ID:', userid);
+    console.log('当前用户team_id:', currentUser.team_id);
+    console.log('当前用户ID:', currentUser.id);
+    console.log('当前用户类型:', currentUser.type);
 
     // 检查当前用户是否为教练
     if (currentUser.type !== 'coach') {
       return res.status(403).json({ code: 1, msg: '只有教练才能转让教练身份' });
     }
+    console.log(userid,currentUser.team_id);
+
+     // 先单独查询目标用户，不限制team_id
+     const targetUserWithoutTeam = await db.startQuery(
+      `SELECT * FROM users WHERE id =${db.escape(userid)}`
+    );
+
+    console.log('不限制team_id的查询结果:', targetUserWithoutTeam);
+
+    if (!targetUserWithoutTeam) {
+      return res.status(404).json({ code: 1, msg: '目标用户不存在' });
+    }
+
+    console.log('目标用户的team_id:', targetUserWithoutTeam.team_id);
+    console.log('当前用户的team_id:', currentUser.team_id);
+    console.log('team_id是否相等:', targetUserWithoutTeam.team_id === currentUser.team_id);
 
     // 查询目标用户信息
     const [targetUser] = await db.startQuery(
@@ -139,6 +160,7 @@ exports.transferCoach = async (req, res, next) => {
       [userid, currentUser.team_id]
     );
 
+    console.log('带team_id限制的查询结果:', targetUser);
     if (!targetUser) {
       return res.status(404).json({ code: 1, msg: '目标用户不存在或不属于该团队' });
     }
