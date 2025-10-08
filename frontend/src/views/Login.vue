@@ -28,10 +28,30 @@
         />
       </div>
 
+      <!-- 邮箱：右侧追加“发送验证码”按钮 -->
+      <div class="form-group" v-if="isRegister">
+        <el-input v-model.trim="form.email" placeholder="邮箱" clearable>
+          <template #append>
+            <el-button
+              :disabled="sendDisabled"
+              :loading="sendLoading"
+              @click="onSendEmailCode"
+              type="primary"
+              plain
+            >
+              {{ sendBtnText }}
+            </el-button>
+          </template>
+        </el-input>
+      </div>
+
+      <!-- 新增：验证码输入框（紧跟在邮箱项下方） -->
       <div class="form-group" v-if="isRegister">
         <el-input
-          v-model="form.email"
-          placeholder="邮箱"
+          v-model.trim="form.emailCode"
+          maxlength="6"
+          placeholder="请输入6位验证码（不区分大小写）"
+          show-word-limit
           clearable
         />
       </div>
@@ -139,18 +159,23 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { ElMessage } from "element-plus";
 
 const router = useRouter();
+const sendLoading = ref(false);
+const cooldown = ref(0);
+let _timer = null;
 
 const isRegister = ref(false);
 const form = ref({
   name: "",
   phone: "",
   email: "",
+  emailCode: "",
+  emailCodeToken: "",
   password: "",
   userType: "",
   teamName: "",
@@ -225,6 +250,59 @@ const login = async () => {
   }
 };
 
+// 发送按钮可用与文案
+const sendDisabled = computed(() => {
+  if (sendLoading.value || cooldown.value > 0) return true;
+  const email = (form.value.email || '').trim();
+  return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+});
+
+const sendBtnText = computed(() =>
+  cooldown.value > 0 ? `重新发送(${cooldown.value}s)` : '获取验证码'
+);
+
+function _startCooldown(sec = 60) {
+  cooldown.value = sec;
+  _timer && clearInterval(_timer);
+  _timer = setInterval(() => {
+    cooldown.value -= 1;
+    if (cooldown.value <= 0) {
+      clearInterval(_timer);
+      _timer = null;
+    }
+  }, 1000);
+}
+onUnmounted(() => _timer && clearInterval(_timer));
+
+// 点击“发送验证码”
+async function onSendEmailCode() {
+  if (sendDisabled.value) return;
+  sendLoading.value = true;
+  try {
+    const { data } = await axios.post("http://localhost:5000/api/auth/validate-Mail", {
+      email: form.value.email,
+    });
+    // 后端返回 { token }（3分钟有效）
+    form.value.emailCodeToken = data?.token || '';
+    if (!form.value.emailCodeToken) throw new Error('未获取到验证码token');
+    ElMessage.success('验证码已发送，请在3分钟内完成验证');
+    _startCooldown(60);
+  } catch (err) {
+    const msg = err?.response?.data?.message || err?.message || '发送失败，请稍后重试';
+    ElMessage.error(msg);
+  } finally {
+    sendLoading.value = false;
+  }
+}
+
+// 用户改了邮箱 → 清空旧验证码与令牌，重置倒计时
+watch(() => form.value.email, () => {
+  form.value.emailCode = '';
+  form.value.emailCodeToken = '';
+  cooldown.value = 0;
+  if (_timer) { clearInterval(_timer); _timer = null; }
+});
+
 const register = async () => {
   const phoneRegex = /^1[3-9]\d{9}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -241,12 +319,22 @@ const register = async () => {
     ElMessage.error("密码长度需为 6~18 位");
     return;
   }
+  if (!form.value.emailCodeToken) {
+    ElMessage.error("请先获取邮箱验证码");
+    return;
+  }
+  if (!form.value.emailCode || form.value.emailCode.length !== 6) {
+    ElMessage.error("请输入6位邮箱验证码");
+    return;
+  }
 
   try {
     const formData = new FormData();
     formData.append("name", form.value.name);
     formData.append("phone", form.value.phone);
     formData.append("email", form.value.email);
+    formData.append("emailCode", form.value.emailCode);
+    formData.append("emailCodeToken", form.value.emailCodeToken);
     formData.append("password", form.value.password);
     formData.append("teamId", form.value.userType === "fan" ? form.value.teamId : form.value.inviteCode);
     formData.append("teamName", form.value.teamName);
