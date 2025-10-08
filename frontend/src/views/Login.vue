@@ -36,9 +36,8 @@
               :disabled="sendDisabled"
               :loading="sendLoading"
               @click="onSendEmailCode"
-              type="primary"
-              plain
-            >
+              :type="sendDisabled ? 'default' : 'primary'"
+              >
               {{ sendBtnText }}
             </el-button>
           </template>
@@ -149,6 +148,7 @@
 
         <div class="aux-actions">
           <el-button
+            v-if="!isRegister"
             type="text"
             class="toggle-btn toggle-btn--inline"
             @click="openResetDialog"
@@ -188,9 +188,8 @@
             :disabled="resetSendDisabled"
             :loading="resetSendLoading"
             @click="onSendResetCode"
-            type="primary"
-            plain
-          >
+            :type="resetSendDisabled ? 'default' : 'primary'"
+            >
             {{ resetSendBtnText }}
           </el-button>
         </template>
@@ -655,8 +654,10 @@ h2 {
 .aux-actions {
   margin-top: 10px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end; /* ✅ 改成靠右对齐 */
   align-items: center;
+  gap: 110px; /* 可选：两个按钮之间留点空隙 */
+  width: 100%; /* 确保在整个卡片宽度内右对齐 */
 }
 
 /* 复用原有 .toggle-btn 样式，但去掉强制 100% 宽度以便并排 */
@@ -664,6 +665,22 @@ h2 {
   width: auto !important;
   display: inline-block;
   margin-top: 0; /* 在行内统一高度 */
+}
+
+/* 让 input 右侧的按钮显示真实颜色 */
+.el-input-group__append .el-button {
+  color: #fff;
+  background-color: #409eff;
+  border-color: #409eff;
+  transition: background-color 0.3s;
+}
+.el-input-group__append .el-button.is-disabled {
+  color: #909399;
+  background-color: #f0f0f0;
+  border-color: #dcdfe6;
+}
+.el-input-group__append .el-button:hover:not(.is-disabled) {
+  background-color: #66b1ff;
 }
 
 </style>
