@@ -168,7 +168,12 @@
   </div>
 
   <!-- 忘记密码弹窗 -->
-  <el-dialog v-model="showResetDialog" title="找回密码" width="420px">
+  <el-dialog
+    v-model="showResetDialog"
+    title="找回密码"
+    width="420px"
+    :close-on-click-modal="false"
+  >
     <div class="form-group">
       <el-input v-model.trim="resetForm.phone" placeholder="手机号" clearable />
     </div>
