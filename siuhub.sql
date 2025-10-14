@@ -15,6 +15,7 @@ CREATE TABLE users (
   team_id VARCHAR(100) COMMENT '所属球队ID（球迷选择主队，其他角色关联团队）',
   status ENUM('pending', 'approved') DEFAULT 'approved' COMMENT '审核状态（球员、经理、队医默认为 pending）',
   avatar VARCHAR(200) COMMENT '头像本地路径',
+  confirmed_announcement_id INT DEFAULT NULL COMMENT '用户已确认的最新公告ID';
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
   UNIQUE KEY unique_phone_type (phone, type)  -- 联合唯一索引：手机号 + 身份不能重复
 );

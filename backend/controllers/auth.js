@@ -59,10 +59,28 @@ exports.login = async (req, res, next) => {
         )
     `);
 
-    res.status(200).json({
-      token,
-      user
-    });
+    // 查询该球队的最新公告
+    const [latestNotice] = await db.startQuery(`
+      SELECT * FROM notices 
+      WHERE team_id = ${db.escape(user.team_id)}
+      ORDER BY publish_time DESC LIMIT 1
+    `);
+
+    if (latestNotice && user.confirmed_announcement_id !== latestNotice.id) {
+      res.status(200).json({
+        token,
+        user,
+        showAnnouncement: true,
+        announcement: latestNotice
+      });
+    } else {
+      res.status(200).json({
+        token,
+        user,
+        showAnnouncement: false
+      });
+    }
+
 
   } catch (err) {
     next(err);
@@ -518,3 +536,23 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
+exports.confirmAnnouncement = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { announcementId } = req.body;
+
+    if (!announcementId) {
+      return res.status(400).json({ message: "缺少公告ID" });
+    }
+
+    await db.startQuery(`
+      UPDATE users
+      SET confirmed_announcement_id = ?
+      WHERE id = ?
+    `, [announcementId, userId]);
+
+    res.status(200).json({ message: "已确认公告" });
+  } catch (err) {
+    next(err);
+  }
+};

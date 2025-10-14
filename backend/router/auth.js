@@ -15,6 +15,9 @@ router.post("/validate-mail", authController.validateMail);
 router.post("/send-reset-code", authController.sendResetCode);
 router.post("/reset-password", authController.resetPassword);
 
+// 确认公告接口
+router.post('/confirm-announcement', auth, authController.confirmAnnouncement);
+
 
 
 module.exports = router;
