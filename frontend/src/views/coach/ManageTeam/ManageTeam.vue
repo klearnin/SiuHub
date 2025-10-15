@@ -183,7 +183,7 @@
         </div>
         <div class="modal-footer">
           <button class="remove-btn" @click="removePerson(selectedPerson.uid)">移除</button>
-          <button class="save-detail-btn" @click="saveTeamInfo">保存</button>
+          <button class="save-detail-btn" @click="savePersonDetail">保存</button>
         </div>
       </div>
     </div>
@@ -288,8 +288,9 @@ export default {
           this.players[index] = {...this.selectedPerson};
         }
       }
+      this.saveTeamInfo();
       this.closeModal();
-      ElMessage.success('信息已更新');
+      //ElMessage.success('信息已更新');
     },
 
     async fetchTeamInfo() {
