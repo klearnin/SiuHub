@@ -141,8 +141,11 @@ exports.transferCoach = async (req, res, next) => {
 
      // 先单独查询目标用户，不限制team_id
      const targetUserWithoutTeam = await db.startQuery(
-      `SELECT * FROM users WHERE id =${db.escape(userid)}`
+      `SELECT * FROM users WHERE id = ?`,
+      [userid]
     );
+
+    
 
     console.log('不限制team_id的查询结果:', targetUserWithoutTeam);
 
