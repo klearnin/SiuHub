@@ -22,6 +22,7 @@
     </div>
    
   </div>
+  <Announcement />
 </template>
 
 <script setup>
@@ -29,7 +30,7 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { ElMessage } from "element-plus";
-
+import Announcement from '@/components/Announcement.vue'
 
 const avatarUrl = ref(null);
 const dropdownVisible = ref(false);
@@ -74,6 +75,7 @@ onMounted(async () => {
     console.error("获取头像失败", err);
   }
 });
+
 </script>
 
 <style scoped>

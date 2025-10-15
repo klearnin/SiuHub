@@ -331,6 +331,12 @@ const login = async () => {
       type: form.value.userType,
     });
     localStorage.setItem("token", res.data.token);
+
+  // ✅ 有新公告 → 存到 sessionStorage（让主界面组件去弹）
+  if (res.data.showAnnouncement && res.data.announcement) {
+    sessionStorage.setItem('PENDING_ANNOUNCEMENT', JSON.stringify(res.data.announcement))
+  }
+
     ElMessage.success("登录成功");
     redirectAfterLogin(res.data.user.type);
   } catch (err) {

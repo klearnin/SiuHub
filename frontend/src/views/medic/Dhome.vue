@@ -38,6 +38,7 @@
         </div>
       </div>
     </div>
+    <Announcement />
   </template>
   
   <script setup>
@@ -45,6 +46,7 @@
   import { useRouter } from "vue-router";
   import axios from "axios";
   import { ElMessage } from "element-plus";
+  import Announcement from '@/components/Announcement.vue'
   
   const router = useRouter();
   const avatarUrl = ref(null);
@@ -87,6 +89,7 @@
     localStorage.removeItem("token");
     router.push("/login");
   };
+
   </script>
   
   <style scoped>

@@ -36,17 +36,17 @@
 
     <!-- 右上角头像 -->
     <div class="top-bar">
-  <div class="avatar-wrapper">
-    <img :src="avatarUrl" alt="头像" class="avatar" />
-    <div class="dropdown">
-      <ul>
-        <li @click="goToReview">审核人员</li>
-        <li @click="openInviteDialog">邀请码</li>
-        <li @click="logout">退出登录</li>
-      </ul>
+      <div class="avatar-wrapper">
+        <img :src="avatarUrl" alt="头像" class="avatar" />
+        <div class="dropdown">
+          <ul>
+            <li @click="goToReview">审核人员</li>
+            <li @click="openInviteDialog">邀请码</li>
+            <li @click="logout">退出登录</li>
+          </ul>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
     <!-- 弹窗：邀请码展示 -->
     <el-dialog v-model="inviteVisible" title="我的球队邀请码" width="30%">
       <div style="font-size: 18px; text-align: center; margin-bottom: 20px;">
@@ -71,8 +71,9 @@
     </div> <div class="item-5">
       <img :src=" avatarUrl" alt="" />
     </div>
-</div>
+    </div>
   </div>
+  <Announcement />
 </template>
 
 <script setup>
@@ -80,6 +81,7 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { ElMessage } from "element-plus";
+import Announcement from '@/components/Announcement.vue'
 
 const router = useRouter();
 const avatarUrl = ref(null);
@@ -181,6 +183,7 @@ const logout = () => {
 const goToReview = () => {
   router.push("/chome/review");
 };
+
 </script>
 
 <style scoped>

@@ -15,7 +15,7 @@ CREATE TABLE users (
   team_id VARCHAR(100) COMMENT '所属球队ID（球迷选择主队，其他角色关联团队）',
   status ENUM('pending', 'approved') DEFAULT 'approved' COMMENT '审核状态（球员、经理、队医默认为 pending）',
   avatar VARCHAR(200) COMMENT '头像本地路径',
-  confirmed_announcement_id INT DEFAULT NULL COMMENT '用户已确认的最新公告ID';
+  confirmed_announcement_id INT DEFAULT NULL COMMENT '用户已确认的最新公告ID',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
   UNIQUE KEY unique_phone_type (phone, type)  -- 联合唯一索引：手机号 + 身份不能重复
 );
@@ -38,7 +38,7 @@ INSERT INTO users (
 ) VALUES (
   'coach_001',         -- 用户 ID
   '测试教练',                 -- 昵称
-  '18822831891',              -- 手机号
+  '11122233345',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'coach',                      -- 用户类型，可换成 'coach' 或其他
@@ -64,7 +64,7 @@ INSERT INTO users (
 ) VALUES (
   'manager_001',         -- 用户 ID
   '测试经理',                 -- 昵称
-  '13345678904',              -- 手机号
+  '12345678904',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'manager',                      -- 用户类型，可换成 'coach' 或其他
@@ -77,7 +77,7 @@ INSERT INTO users (
 ) VALUES (
   'player_001',         -- 用户 ID
   '只因',                 -- 昵称
-  '13345678925',              -- 手机号
+  '12345678903',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -104,7 +104,7 @@ INSERT INTO users (
 ) VALUES (
   'player_002',         -- 用户 ID
   '李明',                 -- 昵称
-  '13345678926',              -- 手机号
+  '13345678921',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -117,7 +117,7 @@ INSERT INTO users (
 ) VALUES (
   'player_003',         -- 用户 ID
   '王强',                 -- 昵称
-  '13345678927',              -- 手机号
+  '13345678922',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -130,7 +130,7 @@ INSERT INTO users (
 ) VALUES (
   'player_004',         -- 用户 ID
   '赵刚',                 -- 昵称
-  '13345678928',              -- 手机号
+  '13345678923',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -143,7 +143,7 @@ INSERT INTO users (
 ) VALUES (
   'player_005',         -- 用户 ID
   '刘洋',                 -- 昵称
-  '13345678929',              -- 手机号
+  '13345678924',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -156,7 +156,7 @@ INSERT INTO users (
 ) VALUES (
   'player_006',         -- 用户 ID
   '陈晨',                 -- 昵称
-  '13345678930',              -- 手机号
+  '13345678925',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -169,7 +169,7 @@ INSERT INTO users (
 ) VALUES (
   'player_007',         -- 用户 ID
   '杨光',                 -- 昵称
-  '13345678931',              -- 手机号
+  '13345678926',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -182,7 +182,7 @@ INSERT INTO users (
 ) VALUES (
   'player_008',         -- 用户 ID
   '周杰',                 -- 昵称
-  '13345678932',              -- 手机号
+  '13345678927',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -195,7 +195,7 @@ INSERT INTO users (
 ) VALUES (
   'player_009',         -- 用户 ID
   '吴磊',                 -- 昵称
-  '13345678933',              -- 手机号
+  '13345678928',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -208,7 +208,7 @@ INSERT INTO users (
 ) VALUES (
   'player_010',         -- 用户 ID
   '郑智',                 -- 昵称
-  '13345678934',              -- 手机号
+  '13345678929',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -221,7 +221,7 @@ INSERT INTO users (
 ) VALUES (
   'player_011',         -- 用户 ID
   '孙翔',                 -- 昵称
-  '13345678935',              -- 手机号
+  '13345678930',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
@@ -234,7 +234,7 @@ INSERT INTO users (
 ) VALUES (
   'player_012',         -- 用户 ID
   '马龙',                 -- 昵称
-  '13345678936',              -- 手机号
+  '13345678960',              -- 手机号
   'coach@example.com',         -- 邮箱
   MD5('123456'),              -- 密码（加密后）
   'player',                      -- 用户类型，可换成 'coach' 或其他
