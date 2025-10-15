@@ -59,12 +59,27 @@ exports.login = async (req, res, next) => {
         )
     `);
 
-    // 查询该球队的最新公告
-    const [latestNotice] = await db.startQuery(`
-      SELECT * FROM notices 
-      WHERE team_id = ${db.escape(user.team_id)}
-      ORDER BY publish_time DESC LIMIT 1
-    `);
+      const isFan = user.type === 'fan';
+
+      // 查询该球队的最新公告
+      const sqlNotice = isFan
+      // 球迷：只看 type='fan' 的公告（不限定 team_id）
+      ? `SELECT * FROM notices
+        WHERE type = 'fan' AND team_id = ${db.escape(user.team_id)}
+        ORDER BY publish_time DESC LIMIT 1`
+      // 其他身份：只看本队的 team 公告（限定 team_id 且 type='team'）
+      : `SELECT * FROM notices
+        WHERE type = 'team' AND team_id = ${db.escape(user.team_id)}
+        ORDER BY publish_time DESC LIMIT 1`;
+
+
+    const [latestNotice] = await db.startQuery(sqlNotice);
+
+    // const [latestNotice] = await db.startQuery(`
+    //   SELECT * FROM notices 
+    //   WHERE team_id = ${db.escape(user.team_id)}
+    //   ORDER BY publish_time DESC LIMIT 1
+    // `);
 
     if (latestNotice && user.confirmed_announcement_id !== latestNotice.id) {
       res.status(200).json({
