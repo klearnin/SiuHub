@@ -26,7 +26,6 @@ exports.getuserlist = async (req, res, next) => {
       detailedList.push(detail);
      
     }
-    console.log('API 返回数据:', { userlist: detailedList });
     res.json({ code: 0, msg: '获取成功', userlist: detailedList });
   } catch (err) {
     next(err);
