@@ -6,7 +6,7 @@ const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
 const fs = require("fs");
 
-const folders = ["public/avatars", "public/team-logos"];
+const folders = ["public/avatars", "public/team-logos", "public/forum-images"];
 
 folders.forEach((folder) => {
   if (!fs.existsSync(folder)) {
