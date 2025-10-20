@@ -12,10 +12,25 @@
             <el-button type="primary" @click="submitPost" :disabled="!newPostContent">发布帖子</el-button>
           </div>
   
+          <!-- 发表区域下方新增 -->
+          <div class="sort-bar">
+            <el-radio-group v-model="sortMode" size="small" @change="applySort">
+              <el-radio-button label="time">按时间</el-radio-button>
+              <el-radio-button label="random">随机</el-radio-button>
+            </el-radio-group>
+            <el-button
+              v-if="sortMode==='random'"
+              size="small"
+              link
+              @click="reshuffle"
+              style="margin-left:8px;"
+            >换一换</el-button>
+          </div>
+
           <div class="post-list">
             <div
               class="click-wrapper"
-              v-for="post in posts"
+              v-for="post in displayedPosts"
               :key="post.id"
               @click="goToPostDetail(post.id)"
             >
@@ -69,6 +84,8 @@
     data() {
       return {
         posts: [],
+        displayedPosts: [],
+        sortMode: 'time',     // 'time' | 'random'
         newPostContent: "",
       };
     },
@@ -149,9 +166,36 @@
       setDefaultAvatar(event) {
         event.target.src = "/version.png";
       },
+      applySort() {
+        if (this.sortMode === 'random') {
+          this.displayedPosts = this._shuffle([...this.posts]);
+        } else {
+          // 时间倒序（最近在前）
+          this.displayedPosts = [...this.posts].sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          );
+        }
+      },
+      reshuffle() {
+        if (this.sortMode === 'random') {
+          this.displayedPosts = this._shuffle([...this.posts]);
+        }
+      },
+      _shuffle(arr) {
+        // Fisher–Yates 洗牌算法
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      },
     },
     mounted() {
       this.fetchPosts();
+    },
+    watch: {
+      posts()    { this.applySort(); },
+      sortMode() { this.applySort(); }
     },
   };
   </script>
@@ -258,5 +302,13 @@
   .top-comment {
   margin-bottom: 6px;
   }
+
+  .sort-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 12px 0;
+  }
+
   </style>
   
