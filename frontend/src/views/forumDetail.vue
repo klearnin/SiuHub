@@ -23,6 +23,28 @@
             </el-button>
           </div>
           <div class="post-content">{{ post.content }}</div>
+          <!-- ✅ 图片展示区（与 forum.vue 同款） -->
+        <div
+          v-if="post.images && post.images.length"
+          class="post-images-grid"
+          :class="`count-${post.images.length}`"
+        >
+          <el-image
+            v-for="(img, idx) in post.images"
+            :key="idx"
+            :src="resolveImg(img)"
+            :preview-src-list="post.images.map(resolveImg)"
+            :initial-index="idx"
+            :fit="imgFit(post)"
+            :lazy="false"
+            class="post-image"
+            preview-teleported
+            hide-on-click-modal
+            @click.stop
+            :style="post.images.length === 1 ? 'max-height: 60vh' : ''"
+          />
+        </div>
+
         </el-card>
   
         <div class="comment-section">
@@ -118,7 +140,22 @@
         });
         const postId = this.$route.params.id;
         this.post = res.data.data.find((p) => p.id == postId) || {};
+
+        if (this.post && typeof this.post.images === 'string') {
+          try { this.post.images = JSON.parse(this.post.images) } catch (e) { this.post.images = [] }
+        }
       },
+
+      // ✅ 跟 forum.vue 保持一致
+      resolveImg(path) {
+        if (!path) return '';
+        return path.startsWith('http') ? path : `http://localhost:5000${path}`;
+      },
+      imgFit(post) {
+        // 单图“完整显示”(contain)；多图网格铺满(cover)
+        return (post?.images?.length === 1) ? 'contain' : 'cover';
+      },
+
       async fetchComments() {
         const res = await axios.get("http://localhost:5000/api/forum/comments", {
           params: { post_id: this.$route.params.id },
@@ -326,6 +363,20 @@
     cursor: pointer;
     color: #4b96f0;
     font-weight: bold;
+  }
+
+  /* ======= 帖子内图片网格（与 forum.vue 同步） ======= */
+  .post-images-grid {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .post-images-grid.count-1 { grid-template-columns: 1fr; }
+
+  .post-image {
+    width: 100%;
+    border-radius: 8px;
   }
   </style>
   
