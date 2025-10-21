@@ -5,7 +5,7 @@ const upload = require("../middleware/upload");
 const forumController = require("../controllers/forum");
 
 // 帖子相关
-router.post("/post", auth, upload.array("images", 5), forumController.createPost); // 创建帖子
+router.post("/post", auth, upload.array("images", 9), forumController.createPost); // 创建帖子
 router.get("/posts", auth, forumController.getPosts); // 获取帖子列表及前三高赞评论
 router.post("/post/like", auth, forumController.likePost); // 点赞或取消点赞帖子
 

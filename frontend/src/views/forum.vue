@@ -17,31 +17,23 @@
                 :file-list="fileList"
                 :limit="maxImages"
                 :accept="accept"
+                :disabled="fileList.length >= maxImages"
                 @change="handleFileChange"
                 @remove="handleRemove"
                 @preview="handlePreview"
                 :preview-teleported="true"
                 action="#"
                 :http-request="() => {}"
-              />
-              <el-dialog v-model="previewVisible" width="60%">
-                <img :src="previewUrl" style="width:100%;height:auto;display:block;object-fit:contain;" />
-              </el-dialog>
-
+              >
+                <el-dialog v-model="previewVisible" width="60%">
+                  <img :src="previewUrl" style="width:100%;height:auto;display:block;object-fit:contain;" />
+                </el-dialog>
+              </el-upload>
               <!-- 你的“格式说明 + 发布按钮”等，放在上传区域下面，不要绝对定位在上面 -->
               <div class="uploader-footer">
-                <span class="upload-hint">支持 .png .jpg .jpeg .webp；最多 5 张，单张 ≤ 5MB</span>
+                <span class="upload-hint">支持 .png .jpg .jpeg .webp；最多 9 张，单张 ≤ 5MB</span>
                 <el-button type="primary" @click="submitPost">发布帖子</el-button>
-              </div>
-
-            <!-- <el-button
-              type="primary"
-              @click="submitPost"
-              :disabled="!newPostContent.trim() && fileList.length === 0"
-            >
-              发布帖子
-            </el-button> -->
-            
+              </div>            
           </div>
   
           <div class="sort-bar">
@@ -142,7 +134,7 @@
         fileList: [],
 
         posting: false,       // 发帖中防重复提交
-        maxImages: 5,         // 最多 5 张
+        maxImages: 9,         // 最多 9 张
         maxSizeMB: 5,         // 单张最大 5MB
         accept: '.png,.jpg,.jpeg,.webp',
 
@@ -229,7 +221,7 @@
           const fd = new FormData();
           fd.append('content', this.newPostContent || '');
   
-          // ✅ 关键：字段名必须是 "images"，与后端 upload.array("images", 5) 一致
+          // ✅ 关键：字段名必须是 "images"，与后端 upload.array("images", 9) 一致
           for (const f of this.fileList) {
             fd.append('images', f.raw);
           }
@@ -412,15 +404,16 @@
   }
 
   .comment-author {
-  font-weight: bold;
-  font-family: "SimHei", "Microsoft YaHei", sans-serif;
-  color: #333;
+    font-weight: bold;
+    font-family: "SimHei", "Microsoft YaHei", sans-serif;
+    color: #333;
   }
 
   .top-comment {
-  margin-bottom: 6px;
+    margin-bottom: 6px;
   }
 
+  /* ======= 排序条 ======= */
   .sort-bar {
     display: flex;
     align-items: center;
@@ -428,80 +421,92 @@
     margin: 12px 0;
     gap: 10px;
   }
-
-  /* 放大“按时间 / 随机”两个单选按钮的文字 */
   .sort-bar :deep(.el-radio-button__inner) {
-    font-size: 16px;           /* 默认 14px，放大一点 */
-    font-weight: 500;          /* 字体稍加粗 */
-    padding: 6px 14px;         /* 稍微加大按钮内部间距，保持比例协调 */
+    font-size: 16px;
+    font-weight: 500;
+    padding: 6px 14px;
   }
-
-  /* 放大“换一换”按钮 */
   .sort-bar :deep(.el-button.is-link) {
-    font-size: 16px;           /* 让“换一换”与上面两个一致 */
+    font-size: 16px;
     font-weight: 500;
     color: var(--el-color-primary, #409EFF);
     transition: all 0.2s;
   }
-
-  /* 悬停时轻微放大+变浅蓝，增加交互感 */
   .sort-bar :deep(.el-button.is-link:hover) {
     transform: scale(1.05);
     color: var(--el-color-primary-light-3, #66b1ff);
   }
 
+  /* ======= 上传区 ======= */
   .post-uploader {
     margin-top: 8px;
     position: relative;
+    overflow: visible; /* 避免把加号或预览层裁掉 */
   }
 
-  .upload-hint {
-    font-size: 12px;                         /* ↓ 缩小字号 */
-    color: var(--el-text-color-secondary, #909399); /* 灰色（兼容 Element Plus 主题变量） */
-    line-height: 1.2;
-    white-space: nowrap;                      /* 不换行；若需自动换行可删掉这一行 */
-    user-select: none;                        /* 防误选 */
-    margin-top: 4px;
+  /* 统一卡片与“加号”尺寸，并保证可见性 */
+  :deep(.el-upload-list--picture-card) {
+    --el-upload-list-picture-card-size: 148px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
   }
-
-  /* 关键：避免上方任何自定义内容覆盖到图片卡片的操作层 */
-  .uploader-footer {
-    display: flex;
-    justify-content: space-between;   /* 左文字右按钮 */
+  :deep(.el-upload--picture-card) {
+    width: var(--el-upload-list-picture-card-size);
+    height: var(--el-upload-list-picture-card-size);
+    display: inline-flex;
     align-items: center;
-    margin-top: 8px;                  /* 放在上传区域“下面”，而不是绝对定位在上面 */
+    justify-content: center;
+  }
+  :deep(.el-upload-list--picture-card .el-upload-list__item) {
+    width: var(--el-upload-list-picture-card-size);
+    height: var(--el-upload-list-picture-card-size);
   }
 
-  /* 兜底：把操作按钮层的点击开启 & 提高层级，防止被别的块遮住 */
+  /* 兜底：把操作按钮层的点击开启 & 提高层级，防遮挡 */
   :deep(.el-upload-list__item) { position: relative; }
   :deep(.el-upload-list__item-actions) {
     pointer-events: auto;
     z-index: 5;
   }
 
-  /* 兜底：如果你之前写过覆盖全宽的提示条（.el-upload__tip）且用了绝对定位，会挡住点击。
-    强制让它变为普通文流布局，放下面。*/
+  /* 提示语与发布按钮在上传区下方的行内布局 */
+  .uploader-footer {
+    display: flex;
+    justify-content: space-between;   /* 左文字右按钮 */
+    align-items: center;
+    margin-top: 8px;
+    gap: 12px;
+  }
+
+  /* 提示文案：变小 + 变灰 */
+  .upload-hint {
+    font-size: 12px;
+    color: var(--el-text-color-secondary, #909399);
+    line-height: 1.2;
+    white-space: nowrap;       /* 不换行；需要自动换行可删 */
+    user-select: none;
+    margin-top: 4px;
+  }
+
+  /* 若你曾让 .el-upload__tip 绝对定位，会挡点击，这里强制回流布局 */
   :deep(.el-upload__tip) {
     position: static !important;
-    pointer-events: none; /* 防止它吃掉点击 */
+    pointer-events: none;
   }
   
+  /* ======= 帖子内图片网格 ======= */
   .post-images-grid {
     display: grid;
     gap: 8px;
     margin-top: 8px;
     grid-template-columns: repeat(3, 1fr);
   }
+  .post-images-grid.count-1 { grid-template-columns: 1fr; }
 
-  /* 单图独占一行，宽度 100%，高度随比例变化（由 fit=contain 控制），并限制最大高度 */
-  .post-images-grid.count-1 {
-    grid-template-columns: 1fr;
-  }
-
-  /* 让 el-image 自己根据图像比例决定高度，不强行定高 */
   .post-image {
     width: 100%;
-    /* 不要再设置 height/ padding-bottom/ aspect-ratio */
     border-radius: 8px;
     overflow: hidden;
     background: #f6f6f6;
@@ -512,12 +517,7 @@
   .post-images-grid:not(.count-1) {
     grid-template-columns: repeat(3, 1fr);
   }
-
-  .post-images-grid:not(.count-1) .post-image {
-    /* 正方形格子 */
-    aspect-ratio: 1 / 1;
-  }
-
+  .post-images-grid:not(.count-1) .post-image { aspect-ratio: 1 / 1; }
   :deep(.post-images-grid:not(.count-1) .post-image .el-image__inner) {
     width: 100%;
     height: 100%;
