@@ -1,4 +1,5 @@
 const db = require("../database");
+const path = require('path');     // ✅ 缺它才会报 path is not defined
 const fs = require("fs");
 const crypto = require("crypto");
 
