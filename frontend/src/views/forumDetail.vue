@@ -366,13 +366,31 @@
   }
 
   /* ======= 帖子内图片网格（与 forum.vue 同步） ======= */
-  .post-images-grid {
-    display: grid;
-    gap: 8px;
-    margin-top: 8px;
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .post-images-grid.count-1 { grid-template-columns: 1fr; }
+/* 三列网格（与主页一致时可改成一样的列数） */
+.post-images-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  grid-template-columns: repeat(3, 1fr);
+}
+/* 单图按 1 列展示：想让单图也三列可改成 repeat(3, 1fr) */
+.post-images-grid.count-1 { grid-template-columns: 1fr; }
+
+/* 只在多图时 -> 正方形小卡片 */
+.post-images-grid:not(.count-1) .post-image { 
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f6f6f6;
+}
+
+/* 多图时内部图片铺满小卡片 */
+:deep(.post-images-grid:not(.count-1) .post-image .el-image__inner) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
   .post-image {
     width: 100%;

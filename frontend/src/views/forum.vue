@@ -115,7 +115,7 @@
                     preview-teleported
                     hide-on-click-modal
                     @click.stop
-                    :style="post.images.length === 1 ? 'max-height: 60vh' : ''"
+                    :style="post.images.length === 1 ? 'max-height: 40vh' : ''"
                   />
                 </div>
 
@@ -528,11 +528,18 @@
   /* ======= 帖子内图片网格 ======= */
   .post-images-grid {
     display: grid;
-    gap: 8px;
+    gap: 6px;
     margin-top: 8px;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
-  .post-images-grid.count-1 { grid-template-columns: 1fr; }
+
+    /* ✅ 单图：方形更大（放大比例变量） */
+  .post-images-grid.count-1 {
+    --el-upload-list-picture-card-size: 200px; /* 可根据需要调大 */
+    display: inline-grid;
+    grid-template-columns: 1fr;
+    justify-content: start;
+  }
 
   .post-image {
     width: 100%;
@@ -544,7 +551,7 @@
   .post-images-grid.count-2,
   .post-images-grid.count-3,
   .post-images-grid:not(.count-1) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
   .post-images-grid:not(.count-1) .post-image { aspect-ratio: 1 / 1; }
   :deep(.post-images-grid:not(.count-1) .post-image .el-image__inner) {
