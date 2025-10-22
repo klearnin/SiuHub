@@ -17,7 +17,7 @@
                 :file-list="fileList"
                 :limit="maxImages"
                 :accept="accept"
-                :disabled="fileList.length >= maxImages"
+                @exceed="handleExceed"
                 @change="handleFileChange"
                 @remove="handleRemove"
                 @preview="handlePreview"
@@ -25,10 +25,30 @@
                 action="#"
                 :http-request="() => {}"
               >
-                <el-dialog v-model="previewVisible" width="60%">
-                  <img :src="previewUrl" style="width:100%;height:auto;display:block;object-fit:contain;" />
-                </el-dialog>
+                <template #trigger>
+                  <el-icon v-show="fileList.length < maxImages" @click.stop><Plus /></el-icon>
+                </template>
+
+                <!-- 自定义文件卡片：不渲染右上角小×；自己放预览和删除 -->
+                <template #file="{ file }">
+                  <img class="el-upload-list__item-thumbnail" :src="file.url" alt="" />
+
+                    <!-- 覆盖层操作区：保留预览与“垃圾桶”删除 -->
+                    <span class="el-upload-list__item-actions">
+                      <span class="el-upload-list__item-preview" @click.stop="handlePreview(file)">
+                        <el-icon><Pointer /></el-icon>
+                      </span>
+                      <span class="el-upload-list__item-delete" @click.stop="removeOne(file)">
+                        <el-icon><Delete /></el-icon>
+                      </span>
+                    </span>
+                </template>
               </el-upload>
+
+              <el-dialog v-model="previewVisible" width="60%" :teleported="true">
+                <img :src="previewUrl" style="width:100%;height:auto;display:block;object-fit:contain;" />
+              </el-dialog>
+
               <!-- 你的“格式说明 + 发布按钮”等，放在上传区域下面，不要绝对定位在上面 -->
               <div class="uploader-footer">
                 <span class="upload-hint">支持 .png .jpg .jpeg .webp；最多 9 张，单张 ≤ 5MB</span>
@@ -116,12 +136,12 @@
   <script>
   import axios from "axios";
   import { ElMessage, ElMessageBox } from "element-plus";
-  import { Pointer, Plus } from '@element-plus/icons-vue';
+  import { Pointer, Plus, Delete } from '@element-plus/icons-vue';
 
   export default {
     name: "ForumBoard",
     components: {
-      Pointer, Plus
+      Pointer, Plus, Delete
     },    
     data() {
       return {
@@ -159,6 +179,10 @@
         return true; // 允许加入队列
       },
 
+      handleExceed(files, uploadFiles) {
+        this.$message.warning(`最多只能上传 ${this.maxImages} 张图片`);
+      },
+
       handleFileChange(uploadFile, uploadFiles) {
         if (uploadFile?.raw && /image\/(png|jpe?g|webp)/i.test(uploadFile.raw.type)) {
           if (!uploadFile.url) uploadFile.url = URL.createObjectURL(uploadFile.raw)
@@ -166,6 +190,11 @@
           if (!uploadFile.name) uploadFile.name = uploadFile.raw.name || 'image'
         }
         this.fileList = uploadFiles.slice(0, this.maxImages)
+      },
+
+      removeOne(file) {
+        const uid = file.uid ?? file.name;
+        this.fileList = this.fileList.filter(f => (f.uid ?? f.name) !== uid);
       },
       
       handlePreview(file) {
@@ -523,5 +552,7 @@
     height: 100%;
     object-fit: cover;   /* 多图时铺满格子 */
   }
+
+  
   </style>
   
