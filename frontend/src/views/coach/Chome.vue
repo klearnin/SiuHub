@@ -320,7 +320,7 @@ const transferCoach = async (userId) => {
     if (response.data.code === 0) {
       ElMessage.success('教练转让成功');
       transferVisible.value = false;
-      
+      this.logout();
       // 转让成功后，可能需要重新登录或刷新页面
       // 因为当前用户的身份已经从 coach 变为 fan
       setTimeout(() => {
