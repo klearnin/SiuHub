@@ -47,10 +47,31 @@
             </div>
 
             <div class="vs">
-              <div class="teams">
-                <span class="team">{{ m.team1 }}</span>
-                <span class="sep">vs</span>
-                <span class="team">{{ m.team2 }}</span>
+              <div class="pair">
+                <!-- 左队徽 + 队名 -->
+                <div class="team-left">
+                  <img v-if="m.team1Logo" :src="m.team1Logo" alt="" class="logo" />
+                  <span class="team-name text-ellipsis">{{ m.team1 }}</span>
+                </div>                
+                <div class="mid">
+                  <template v-if="m.type === 'past_match' && m.result && m.result !== 'VS'">
+                    <div class="score-main">{{ formatMainScore(m.result) }}</div>
+                    <div
+                      v-if="formatPenaltyScore(m.result)"
+                      class="score-penalty"
+                    >
+                      （{{ formatPenaltyScore(m.result) }}）
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="score-main">vs</div>
+                  </template>
+                </div>
+                <!-- 右队名 + 队徽 -->
+                <div class="team-right">
+                  <span class="team-name text-ellipsis">{{ m.team2 }}</span>
+                  <img v-if="m.team2Logo" :src="m.team2Logo" alt="" class="logo" />
+                </div>                
               </div>
               <div class="meta">
                 <el-tag size="small" type="info">{{ m.location || '待定球场' }}</el-tag>
@@ -73,7 +94,7 @@
 </template>
   
 <script setup>
-  import { ref, onMounted } from "vue";
+  import { ref, onMounted ,computed } from "vue";
   import { useRouter } from "vue-router";
   import axios from "axios";
   import { ElMessage } from "element-plus";
@@ -94,6 +115,11 @@
   const fiveMatches = ref([]);
   const loading = ref(false);
   let booted = false; // 防止重复 mounted
+
+  const BASE = "http://localhost:5000";
+  const toFullUrl = (p) => (p ? (p.startsWith("http") ? p : `${BASE}${p}`) : null);
+  // 本队队徽（来自 teamInfo.logo_path）
+  const myTeamLogo = computed(() => toFullUrl(teamInfo.value?.logo_path || null));
 
   // ===== 时间格式化（展示用）=====
   function pad(n) {
@@ -124,8 +150,32 @@
     return res.data?.data || [];
   }
 
+  // 提取主比分（2：1）
+  function formatMainScore(result) {
+    if (!result) return '';
+    const m = String(result).match(/(\d+)\s*-\s*(\d+)/);
+    return m ? `${m[1]}：${m[2]}` : result;
+  }
+
+  // 提取点球比分（如果有，如 "（1 - 0）"）
+  function formatPenaltyScore(result) {
+    if (!result) return '';
+    const m = String(result).match(/（\s*(\d+)\s*-\s*(\d+)\s*）/);
+    if (m) return `${m[1]}：${m[2]}`;
+    return '';
+  }
+
+
   // ===== 组装赛程 =====
   function buildSchedules(raw) {
+    console.table(raw.map(m => ({
+      id: m.match_id ?? m.id,
+      type: m.type,
+      score_type: typeof m.score,
+      score_preview: typeof m.score === 'string' ? m.score : JSON.stringify(m.score),
+      t1g: m.team1_goal, t2g: m.team2_goal
+    })));
+
     const selfNames = new Set(
       [teamInfo.value?.name, teamInfo.value?.team_name, teamInfo.value?.abbr]
         .filter(Boolean)
@@ -172,6 +222,17 @@
             : normal;
         }
 
+        // >>> 补丁A开始：计算两侧队徽，并写入返回对象
+        // 1) 后端若已回传对手/双方队徽的相对路径（如 /public/team-logos/xxx.png）
+        const t1LogoApi = match.team1_logo ? `http://localhost:5000${match.team1_logo}` : null;
+        const t2LogoApi = match.team2_logo ? `http://localhost:5000${match.team2_logo}` : null;
+
+        // 2) 哪一侧是自己球队？自己球队优先使用 myTeamLogo（若已拿到）；否则退回接口里的 logo
+        const isTeam2Self = selfNames.has(String(match.team2 || "").trim());
+        const team1Logo = isTeam1Self ? (myTeamLogo.value || t1LogoApi) : t1LogoApi;
+        const team2Logo = isTeam2Self ? (myTeamLogo.value || t2LogoApi) : t2LogoApi;
+        // <<< 补丁A结束
+
         return {
           id: match.match_id ?? match.id,
           team1: match.team1,
@@ -185,6 +246,10 @@
             : null,
           field: match.location,
           result,
+
+          // 关键：把队徽挂到条目对象，模板才能 v-if 渲染
+          team1Logo,
+          team2Logo,
         };
       })
       .filter((m) => m._dt && !Number.isNaN(m._dt.getTime()))
@@ -192,6 +257,23 @@
 
     allSchedules.value = list;
     fiveMatches.value = pickFiveWindow(list, new Date());
+
+    console.table(
+      raw.map(m => ({
+        id: m.match_id ?? m.id,
+        t1: m.team1, t2: m.team2,
+        // 如果你已映射成 list 条目对象，就打印 list 里的字段：
+        team1Logo_from_api: m.team1_logo,
+        team2Logo_from_api: m.team2_logo
+      }))
+    );
+    console.table(
+      allSchedules.value.map(m => ({
+        id: m.id, t1: m.team1, t2: m.team2,
+        team1Logo: m.team1Logo, team2Logo: m.team2Logo
+      }))
+    );
+
   }
 
   // ===== 选“最近的一场”为中心，取前2后2（等距优先过去）=====
@@ -475,10 +557,96 @@
   .ml8 { margin-left: 8px; }
 
   .center {
-  max-width: 980px;
-  margin: 24px auto 40px; /* 居中 */
-  padding: 0 16px;
-}
+    max-width: 980px;
+    margin: 24px auto 40px; /* 居中 */
+    padding: 0 16px;
+  }
+
+  .score {
+    margin-left: 10px;
+    padding: 2px 6px;
+    font-weight: 600;
+    border-radius: 6px;
+    background: var(--el-color-success-light-9);
+    color: var(--el-color-success-dark-2);
+    line-height: 1.2;
+  }
+
+  /* 三栅格：左队名 | 中间比分/VS | 右队名 */
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    column-gap: 12px;
+    margin-bottom: 4px; /* 与下面 meta 留一点缝 */
+  }
+
+  .team-left,
+  .team-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    max-width: 100%;
+  }
+
+  .team-left {
+    justify-self: start;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .team-right {
+    justify-self: end;
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .team-name {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 队徽统一尺寸 */
+  .logo {
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  /* 中间的比分或 vs 居中，使用等宽数字便于纵向对齐 */
+  .mid {
+    justify-self: center;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    min-width: 44px;
+    line-height: 1.1;
+  }
+
+  .score-main {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  .score-penalty {
+    color: var(--el-text-color-secondary);
+    font-size: 13px;
+    line-height: 1.1;
+    margin-top: 2px;
+  }
+
+  /* 队名过长时省略（避免挤压中间列） */
+  .text-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
 
   </style>
   
