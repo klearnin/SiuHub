@@ -137,15 +137,38 @@ const searchKeyword = ref('');
 const selectedUser = ref(null);
 const users = ref([]); // 修正：确保 users 是响应式数组
 
+
+function parseJwt(token) {
+  try {
+    const base64Payload = token.split('.')[1];
+    const payload = atob(base64Payload);
+    return JSON.parse(payload);
+  } catch (err) {
+    console.error("Token解析失败", err);
+    return {};
+  }
+}
+
+
 // 计算属性 - 过滤用户列表
 const filteredUsers = computed(() => {
+   const token = localStorage.getItem("token");
+   let userId=null;
+  if (token) {
+    const payload = parseJwt(token);
+     userId = payload.userId;
+  }
+ // 首先过滤掉当前用户
+ let filtered = users.value.filter(user => user.uid !== userId);
+  // 如果没有搜索关键词，返回过滤后的列表
   if (!searchKeyword.value) {
-    return users.value;
+    return filtered;
   }
   
+  // 如果有搜索关键词，进一步过滤
   const keyword = searchKeyword.value.toLowerCase();
-  return users.value.filter(user => {
-    const name = (user.player_name || user.name|| '').toLowerCase();
+  return filtered.filter(user => {
+    const name = (user.player_name || user.name || '').toLowerCase();
     const role = getUserRole(user).toLowerCase();
     return name.includes(keyword) || role.includes(keyword);
   });
@@ -320,7 +343,7 @@ const transferCoach = async (userId) => {
     if (response.data.code === 0) {
       ElMessage.success('教练转让成功');
       transferVisible.value = false;
-      this.logout();
+      logout();
       // 转让成功后，可能需要重新登录或刷新页面
       // 因为当前用户的身份已经从 coach 变为 fan
       setTimeout(() => {

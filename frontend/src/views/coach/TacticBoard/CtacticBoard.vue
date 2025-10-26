@@ -14,15 +14,14 @@
           <select class="styled-select" v-model="selectedTacticID" @change="setTactic">
             <option v-for="tactic in tactics" :value="tactic.id">{{tactic.tactic_name}}</option> 
           </select> 
-       
-         
+          
           <button class="save-btn" @click="saveTactic">
              保存
           </button>
           <button class="warn-btn" @click="deleteTactic">
            删除
           </button>
-        
+         
           <button class="back-btn" @click="back">
            返回
           </button>
@@ -148,10 +147,10 @@
         </div>
         <div class="modal-actions">
           <button class="primary-btn" @click="closeNewTacticDialog">
-            <i class="icon-check"></i>确认
+           确认
           </button>
           <button class="cancel-btn" @click="showNewTacticDialog = false">
-            <i class="icon-close"></i>取消
+           取消
           </button>
         </div>
       </div>
@@ -675,14 +674,59 @@ async function closeNewTacticDialog() {
 <style scoped>
 /* 基础样式 */
 :root {
-  --primary-color: #3498db;
-  --success-color: #2ecc71;
-  --warn-color: #e74c3c;
-  --bg-color: #7c96bc;
-  --card-bg: #c47878;
-  --text-color: #333;
-  --border-color: #e0e0e0;
-  --shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+  --success-color: #06d6a0;
+  --warn-color: #ef476f;
+  --bg-gradient: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --text-color: #2b2d42;
+  --border-radius: 10px;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.control-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.control-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.styled-select {
+  width: 50%;
+  border: 1px solid #dee2e6;
+  transition: border-color 0.3s ease;
+}
+
+.styled-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+.field {
+  background: linear-gradient(165deg, #c7f9cc 0%, #80ed99 100%);
+  box-shadow: inset 0 0 30px rgba(0, 128, 0, 0.1);
+}
+
+.player {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-item {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-content {
+  border-radius: var(--border-radius);
+  background: var(--card-bg);
 }
 
 body {
@@ -817,37 +861,59 @@ body {
   align-items: center;
   transition: all 0.2s;
 }
+.blank{
+  width: 0%;
+}
 .save-btn{
   
-
- width:75px;
- height: 50px;
-  background-color: #5193d5;
-  padding: 5px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 70px;
+  height: 40px;
+  background-color: #11c726;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
    
    
 }
-.back-btn{
-  background-color: #999;
-  width:75px;
- height: 50px;
+.back-btn {
+  width: 70px;
+  height: 40px;
+  background-color: #409eff;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  padding: 5px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
- 
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  background: #66b1ff;
 }
 .warn-btn {
-  background-color: #d53737;
- 
-  width:75px;
-  height: 50px;
- 
-  padding: 5px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 70px;
+  height: 40px;
+  background-color: #b81010;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .warn-btn:hover {
   background-color: #cc0000;
@@ -858,7 +924,7 @@ body {
   color: white;
 }
 .cancel-btn:hover {
-  background-color: #666;
+  background-color: #979292;
 }
 .cancel-btn {
   background-color: #f0f0f0;
