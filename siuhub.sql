@@ -514,7 +514,20 @@ CREATE TABLE players (
   health ENUM('healthy', 'injured') DEFAULT 'healthy' COMMENT '健康状态',
   height INT COMMENT'cm',
   weight INT COMMENT'kg',
-  age INT
+  age INT,
+   position ENUM(
+    '门将', '中后卫', '边后卫', '防守中场', 
+    '中场', '进攻中场', '边锋', '前锋'
+  ) COMMENT '球员位置',
+  
+  rating INT CHECK (rating BETWEEN 1 AND 5) COMMENT '总体评级',
+  
+  speed INT CHECK (speed BETWEEN 1 AND 100) COMMENT '速度',
+  shooting INT CHECK (shooting BETWEEN 1 AND 100) COMMENT '射门',
+  passing INT CHECK (passing BETWEEN 1 AND 100) COMMENT '传球',
+  dribbling INT CHECK (dribbling BETWEEN 1 AND 100) COMMENT '盘带',
+  defending INT CHECK (defending BETWEEN 1 AND 100) COMMENT '防守',
+  stamina INT CHECK (stamina BETWEEN 1 AND 100) COMMENT '体能'
 );
 
 INSERT INTO players(player_number, player_name, team_id, avatar, user_id, dominant_foot, health, height, weight, age)
