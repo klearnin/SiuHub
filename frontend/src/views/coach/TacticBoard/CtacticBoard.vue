@@ -3,19 +3,23 @@
     <!-- 顶部控制栏 -->
     <div class="top-controls">
       <div class="control-group">
-        
-        <button class="primary-btn" @click="newTactic">
-             新建
+        <div class="left-actions">
+          <button class="back-btn" @click="back">
+           返回
           </button>
-          <button class="primary-btn" @click="setnext">
-            设为下次战术
+          <button class="primary-btn tactic-new-btn" type="button" @click="newTactic">
+            新建
           </button>
+        </div>
         <div class="control-items">
           <select class="styled-select" v-model="selectedTacticID" @change="setTactic">
             <option v-for="tactic in tactics" :value="tactic.id">{{tactic.tactic_name}}</option> 
           </select> 
-       
-         
+          
+          <button class="primary-btn set-next-btn" type="button" @click="setnext">
+            设为下次战术
+          </button>
+          
           <button class="save-btn" @click="saveTactic">
              保存
           </button>
@@ -23,9 +27,6 @@
            删除
           </button>
         
-          <button class="back-btn" @click="back">
-           返回
-          </button>
         </div>
       </div>
     </div>
@@ -77,6 +78,34 @@
       <!-- 球场区域 -->
       <div class="field-container">
         <div class="field">
+          <!-- 使用 SVG 绘制足球场线条，替代图片背景 -->
+          <svg class="pitch-svg" viewBox="0 0 1000 550" preserveAspectRatio="none" aria-hidden="true">
+            <!-- 外围边线 -->
+            <rect x="10" y="10" width="980" height="530" fill="none" stroke="white" stroke-width="3"/>
+            <!-- 中线 -->
+            <line x1="500" y1="10" x2="500" y2="540" stroke="white" stroke-width="3"/>
+            <!-- 中圈与开球点 -->
+            <circle cx="500" cy="275" r="91" fill="none" stroke="white" stroke-width="3"/>
+            <circle cx="500" cy="275" r="3" fill="white"/>
+            
+            <!-- 左侧禁区与小禁区 -->
+            <rect x="10" y="110" width="160" height="330" fill="none" stroke="white" stroke-width="3"/>
+            <rect x="10" y="201" width="55" height="148" fill="none" stroke="white" stroke-width="3"/>
+            <!-- 左侧点球点 -->
+            <circle cx="115" cy="275" r="3" fill="white"/>
+
+            <!-- 右侧禁区与小禁区 -->
+            <rect x="830" y="110" width="160" height="330" fill="none" stroke="white" stroke-width="3"/>
+            <rect x="935" y="201" width="55" height="148" fill="none" stroke="white" stroke-width="3"/>
+            <!-- 右侧点球点 -->
+            <circle cx="885" cy="275" r="3" fill="white"/>
+
+            <!-- 角球弧 -->
+            <path d="M 10 30 A 20 20 0 0 1 30 10" fill="none" stroke="white" stroke-width="3"/>
+            <path d="M 970 10 A 20 20 0 0 1 990 30" fill="none" stroke="white" stroke-width="3"/>
+            <path d="M 10 520 A 20 20 0 0 0 30 540" fill="none" stroke="white" stroke-width="3"/>
+            <path d="M 970 540 A 20 20 0 0 0 990 520" fill="none" stroke="white" stroke-width="3"/>
+          </svg>
           <div
             v-for="player in players"
             :key="player.id"
@@ -313,7 +342,8 @@ async function setnext() {
   }
   
   catch (error) {
-    ElMessage.error('设置下次战术失败');    
+    const detail = error?.response?.data?.error || error?.response?.data?.message || error.message;
+    ElMessage.error(`设置下次战术失败：${detail}`);    
   }
   await getNext();
 }
@@ -324,9 +354,12 @@ async function getNext() {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
-    next.value=response.data.nexttac[0].next_id;
+    const list = response?.data?.nexttac ?? [];
+    next.value = Array.isArray(list) && list.length ? list[0].next_id : null;
+    // 空列表不是错误，静默处理
   }catch (error) {
-    ElMessage.error('获取下次战术失败');
+    const detail = error?.response?.data?.error || error?.response?.data?.message || error.message;
+    ElMessage.error(`获取下次战术失败：${detail}`);
   }
   
 }
@@ -339,8 +372,10 @@ async function fetchTacticlist() {
     });
     tactics.value = response.data.tacticList;
   } catch (error) {
-    console.error('获取战术列表失败:', error);
-    ElMessage.error('获取战术列表失败');
+    // 展示后端返回的具体错误，便于定位（如缺表/字段名错误等）
+    const detail = error?.response?.data?.error || error?.response?.data?.message || error.message;
+    console.error('获取战术列表失败:', error?.response?.data || error);
+    ElMessage.error(`获取战术列表失败：${detail}`);
   }
 }
 async function fetchPlayerlist() {
@@ -352,8 +387,9 @@ async function fetchPlayerlist() {
     });
     playerlist.value = response.data.userlist;
   } catch (error) {
-    console.error('获取球员列表失败:', error);
-    ElMessage.error('获取球员列表失败');
+    const detail = error?.response?.data?.error || error?.response?.data?.message || error.message;
+    console.error('获取球员列表失败:', error?.response?.data || error);
+    ElMessage.error(`获取球员列表失败：${detail}`);
   }
 }
 
@@ -674,56 +710,69 @@ async function closeNewTacticDialog() {
 
 <style scoped>
 /* 基础样式 */
-:root {
-  --primary-color: #3498db;
-  --success-color: #2ecc71;
-  --warn-color: #e74c3c;
-  --bg-color: #7c96bc;
-  --card-bg: #c47878;
+.tactic-board {
+  --primary-color: #409eff;        /* 与人员管理保持一致的蓝色 */
+  --success-color: #67c23a;        /* 成功绿色 */
+  --warn-color: #f56c6c;           /* 警告/删除红色 */
+  --bg-color: #f0f2f5;             /* 页面浅灰背景 */
+  --card-bg: #ffffff;              /* 卡片白底 */
   --text-color: #333;
-  --border-color: #e0e0e0;
-  --shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --border-color: #dcdfe6;         /* 边框浅灰 */
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  /* 草地条纹颜色（略微加深） */
+  --pitch-green-1: #44d947;
+  --pitch-green-2: #2fc63f;
 }
 
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--text-color);
-  background-color: var(--bg-color);
-}
+/* 避免影响全局 body，这里不覆盖 body 样式 */
 
 /* 主布局 */
 .tactic-board {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background-color:#f9f9f9;
+  min-height: 100vh;
+  background-color: var(--bg-color, #f0f2f5);
+  padding: 20px;
+  gap: 20px;
 }
 
 .top-controls {
-  padding: 12px 20px;
-  background-color: var(--card-bg);
-  box-shadow: var(--shadow);
-  border-bottom: 1px solid var(--border-color);
+  padding: 16px 20px;
+  background-color: var(--card-bg, #fff);
+  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
+  border: 1px solid var(--border-color, #dcdfe6);
+  border-radius: 12px;
+}
+/* 顶部控制组：增加结构边界与布局 */
+.top-controls .control-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* 左侧按钮组：保持两个主按钮靠左并有一致间距 */
+.top-controls .left-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .main-content {
   display: flex;
   flex: 1;
   overflow: hidden;
+  gap: 20px;
 }
 
 .left-panel {
-  width: 280px;
+  width: 320px;
   padding: 20px;
   overflow-y: auto;
-
-  background-color: var(--card-bg);
-  border-right: 1px solid var(--border-color);
-  border:solid rgb(134, 196, 215);
-  
-  margin-bottom: 1%;
-  margin-left: 1%;
+  background-color: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #dcdfe6);
+  border-radius: 12px;
+  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
 }
 
 .field-container {
@@ -733,15 +782,20 @@ body {
   justify-content: center;
   align-items: center;
   overflow: auto;
+  background-color: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #dcdfe6);
+  border-radius: 12px;
+  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
 }
 
 /* 卡片样式 */
 .control-card {
-  background-color: var(--card-bg);
-  border-radius: 8px;
+  background-color: var(--card-bg, #fff);
+  border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color, #dcdfe6);
+  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
 }
 
 .panel-title {
@@ -749,8 +803,8 @@ body {
   font-weight: 600;
   margin: 0 0 16px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color, #dcdfe6);
+  color: #0154a0; /* 与“主队查看”中“赛程”标题统一 */
 }
 
 /* 表单元素 */
@@ -768,17 +822,18 @@ body {
 .styled-select {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: rgb(187, 237, 252);
+  border: 1px solid var(--border-color, #dcdfe6);
+  border-radius: 10px;
+  background-color: #ffffff;
   font-size: 14px;
   transition: all 0.3s;
+  height: 40px;
 }
 
 .styled-select:focus {
-  border-color: var(--primary-color);
+  border-color: var(--primary-color, #409eff);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(89, 180, 95, 0.2);
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
 }
 
 .styled-select.small {
@@ -792,66 +847,103 @@ body {
 
 /* 按钮样式 */
 .primary-btn {
-  background-color: var(--primary-color);
-  color: rgb(0, 0, 0);
+  background-color: var(--primary-color, #409eff);
+  color: #ffffff;
   border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  border: solid 1px rgb(0, 0, 0);
- 
+  padding: 0 16px;
+  height: 40px;
+  min-width: 96px;
+  border-radius: 6px;
   font-size: 14px;
- 
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
-  transition: all 0.2s;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
 }
 
 .success-btn {
-  background-color: var(--success-color);
-  color: rgb(126, 191, 232);
-  border: solid 1px rgb(113, 202, 243);
-  padding: 8px 16px;
-  border-radius: 4px;
+  background-color: var(--success-color, #67c23a);
+  color: #ffffff;
+  border: none;
+  padding: 0 16px;
+  height: 40px;
+  min-width: 96px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
-  transition: all 0.2s;
+  justify-content: center;
+  transition: background-color 0.2s ease;
 }
 .save-btn{
-  
-
- width:75px;
- height: 50px;
-  background-color: #5193d5;
-  padding: 5px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-   
-   
+  background-color: var(--success-color, #67c23a);
+  color: #ffffff;
+  border: none;
+  padding: 0 16px;
+  height: 40px;
+  min-width: 96px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
 }
 .back-btn{
-  background-color: #999;
-  width:75px;
- height: 50px;
-
-  padding: 5px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
- 
+  background-color: var(--primary-color, #409eff);
+  color: #ffffff;
+  border: none;
+  padding: 0 16px;
+  height: 40px;
+  min-width: 96px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
 }
 .warn-btn {
-  background-color: #d53737;
- 
-  width:75px;
-  height: 50px;
- 
-  padding: 5px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: var(--warn-color, #f56c6c);
+  color: #ffffff;
+  border: none;
+  padding: 0 16px;
+  height: 40px;
+  min-width: 96px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
 }
-.warn-btn:hover {
-  background-color: #cc0000;
+
+/* 强化顶部主按钮样式，防止被默认样式覆盖 */
+.top-controls .primary-btn {
+  background-color: var(--primary-color, #409eff) !important;
+  color: #ffffff !important;
+  border: none !important;
 }
+.warn-btn:hover { opacity: 0.95; }
 
 .cancel-btn {
   background-color: #999;
@@ -873,14 +965,8 @@ body {
   transition: all 0.2s;
 }
 
-button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-button:active {
-  transform: translateY(0);
-}
+button:hover { opacity: 0.9; }
+button:active { opacity: 1; }
 
 button i {
   margin-right: 6px;
@@ -889,7 +975,7 @@ button i {
 
 .control-items {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
@@ -898,11 +984,27 @@ button i {
   position: relative;
   width: 1000px;
   height: 550px;
-  background: url('@/assets/football.svg') no-repeat center center;
-  background-size: cover;
+  /* 使用浅绿色条纹背景以匹配项目风格 */
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pitch-green-1, #bfe7c4) 0px,
+    var(--pitch-green-1, #bfe7c4) 40px,
+    var(--pitch-green-2, #a9dbad) 40px,
+    var(--pitch-green-2, #a9dbad) 80px
+  );
   border-radius: 8px;
   box-shadow: var(--shadow);
-  border: 2px solid #fff;
+  border: 2px solid #ebeef5; /* 更清晰的结构边界 */
+}
+
+/* 覆盖在草地上的白色场线（不拦截鼠标事件） */
+.pitch-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* 球员样式 */
@@ -911,6 +1013,7 @@ button i {
   width: 60px;
   height: 60px;
   border-radius: 50%;
+  border: 2px solid #ffffff; /* 头像边框 */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -923,6 +1026,7 @@ button i {
   background-size: cover;      /* 确保图片填充整个圆形 */
   background-position: center; /* 图片居中 */
   background-repeat: no-repeat;
+  z-index: 1; /* 保证球员在场线之上 */
 }
 
 .player:hover {
@@ -959,7 +1063,7 @@ button i {
 
 .role-label {
   flex: 0 0 80px;
-  font-size: 13px;
+  font-size: 14px; /* 与“战术设置”内表单标签一致 */
   color: #666;
 }
 
@@ -1049,6 +1153,36 @@ button i {
 .health{
   margin-right: auto;
   color: #67C23A;
+}
+.tactic-new-btn {
+  /* 交由父级 .control-group 的 gap 控制间距，避免与其它按钮不一致 */
+  margin-right: 0;
+}
+
+/* 统一顶部按钮的尺寸与排版，避免某些浏览器默认样式造成差异 */
+.top-controls .control-group > button {
+  height: 40px;
+  min-width: 96px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 指定“设为下次战术”为主按钮配色（兜底强化）*/
+.top-controls .set-next-btn {
+  background-color: var(--primary-color, #409eff) !important;
+  color: #ffffff !important;
+  border: none !important;
+  white-space: nowrap;            /* 保持单行显示 */
+  min-width: 140px;               /* 适配中文文案长度，避免换行 */
+}
+
+/* 顶部的战术选择框更显眼一些（轻微阴影） */
+.top-controls .control-items .styled-select {
+  box-shadow: 0 2px 6px rgba(64, 158, 255, 0.15);
 }
 </style>
 
