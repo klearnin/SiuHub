@@ -18,5 +18,6 @@ router.use("/tactics", require("./tactics"));
 router.use("/team", require("./team"));
 router.use("/player", require("./player"));
 router.use("/injury", require("./injury"));
+router.use("/video", require("./video"));
 
 module.exports = router

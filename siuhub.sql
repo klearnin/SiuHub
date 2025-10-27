@@ -615,3 +615,13 @@ CREATE TABLE injuries (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
 );
+
+CREATE TABLE videos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  file_path VARCHAR(255) NOT NULL,
+  uploader_id VARCHAR(50),
+  uploader_name VARCHAR(100),
+  team_id VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
