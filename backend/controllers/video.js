@@ -1,5 +1,6 @@
 const db = require('../database');
 const path = require('path');
+const fs = require('fs');
 
 // 上传视频
 exports.uploadVideo = async (req, res, next) => {

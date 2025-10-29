@@ -420,7 +420,7 @@ export default {
       }
       this.saveTeamInfo();
       this.closeModal();
-      //ElMessage.success('信息已更新');
+      
     },
 
     async fetchTeamInfo() {
@@ -493,40 +493,76 @@ export default {
     async saveTeamInfo() {
       try {
         for (const player of this.players) {
-          // 确保所有必填字段存在且有效
+          // 数据验证
+          if (!player.player_number || player.player_number === '') {
+            ElMessage.error(`球员 ${player.name || player.id} 的球衣号码不能为空`);
+            return;
+          }
+          if (!player.height || player.height === '') {
+            ElMessage.error(`球员 ${player.name || player.id} 的身高不能为空`);
+            return;
+          }
+          if (!player.weight || player.weight === '') {
+            ElMessage.error(`球员 ${player.name || player.id} 的体重不能为空`);
+            return;
+          }
+          
+          // 数值范围验证
+          const height = Number(player.height);
+          const weight = Number(player.weight);
+          
+          if (isNaN(height) || height < 100 || height > 250) {
+            ElMessage.error(`球员 ${player.name || player.id} 的身高必须在100-250cm之间`);
+            return;
+          }
+          if (isNaN(weight) || weight < 30 || weight > 150) {
+            ElMessage.error(`球员 ${player.name || player.id} 的体重必须在30-150kg之间`);
+            return;
+          }
+          
+          // 准备完整的球员数据，为未赋值的字段提供默认值
           const playerData = {
-            player_number: Number(player.player_number),  // 必须转换为数字
-            height: Number(player.height),        // 必须且介于100-250
-            weight: Number(player.weight),        // 必须
-            dominant_foot: player.dominant_foot , 
-            age: player.age ? Number(player.age) : null ,    // 可选字段
-            health: player.health,
+            player_number: Number(player.player_number),
+            height: height,
+            weight: weight,
+            dominant_foot: player.dominant_foot || null,
+            age: player.age ? Number(player.age) : null,
+            health: player.health || null,
+            position: player.position || null,
+            rating: player.rating ? Number(player.rating) : null,
+            speed: player.speed ? Number(player.speed) : null,
+            shooting: player.shooting ? Number(player.shooting) : null,
+            passing: player.passing ? Number(player.passing) : null,
+            dribbling: player.dribbling ? Number(player.dribbling) : null,
+            defending: player.defending ? Number(player.defending) : null,
+            stamina: player.stamina ? Number(player.stamina) : null
           };
 
-      // 调试：打印实际发送的数据
-      console.log('正在发送的数据:', playerData);
+          // 调试：打印实际发送的数据
+          //console.log('正在发送的数据:', playerData);
 
-      const res = await axios.put(
-        `http://localhost:5000/api/player/${player.id}`,
-        playerData,
-        {
-          headers: { 
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
+          const res = await axios.put(
+            `http://localhost:5000/api/player/${player.id}`,
+            playerData,
+            {
+              headers: { 
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
         }
-      );
-    }ElMessage.success('保存成功');
-    this.closeModal();
-  } 
-  catch (error) {
-    // 显示后端返回的具体错误信息
-    const errorMsg = error.response?.data?.msg || error.message;
-    ElMessage.error(`保存失败: ${errorMsg}`);
-    console.error('完整错误响应:', error.response?.data);
-  }
-}
+        
+        ElMessage.success('保存成功');
+        this.closeModal();
+      } catch (error) {
+        // 显示后端返回的具体错误信息
+        const errorMsg = error.response?.data?.msg || error.message;
+        ElMessage.error(`保存失败: ${errorMsg}`);
+        console.error('完整错误响应:', error.response?.data);
+      }
     }
+  }
 }
 </script>
 
@@ -1136,7 +1172,7 @@ export default {
   border-radius: 3px;
   background: #eee;
   outline: none;
-  -webkit-appearance: none;
+    -webkit-appearance: none;
   transition: all 0.2s ease;
 }
 

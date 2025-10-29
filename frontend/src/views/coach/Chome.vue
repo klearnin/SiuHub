@@ -7,7 +7,7 @@
       <router-link to="/teamstats" class="nav-item">主队查看</router-link>
       <router-link to="/Cschedule" class="nav-item">球队日程</router-link>
       <router-link to="/ctacticcanvas" class="nav-item">战术画板</router-link>
-     
+      <router-link to="/cvideo" class="nav-item">视频管理</router-link>
    
       <div 
         class="nav-item dropdown-wrapper"
