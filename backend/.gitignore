@@ -44,6 +44,4 @@ Thumbs.db
 *.sw?
 
 # Public directories with user content
-/public/videos/
-/public/avatars/
-/public/team-logos/
+ 

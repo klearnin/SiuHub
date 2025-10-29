@@ -15,8 +15,8 @@ folders.forEach((folder) => {
 });
 
 // ✅ 增加请求体大小限制 - 修复上传问题
-app.use(express.json({ limit: '100mb' })); // 增加到100MB
-app.use(express.urlencoded({ extended: true, limit: '100mb' }));  // 增加到100MB
+app.use(express.json({ limit: '1000mb' })); // 增加到100MB
+app.use(express.urlencoded({ extended: true, limit: '1000mb' }));  // 增加到100MB
 
 // ✅ CORS 配置
 app.use(cors({

@@ -1,19 +1,1 @@
 node_modules
-dist
-dist-ssr
-*.local
-
-# 忽略视频文件目录
-/public/videos/
-public/videos/*
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
