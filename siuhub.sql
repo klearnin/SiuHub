@@ -516,9 +516,11 @@ CREATE TABLE players (
   weight INT COMMENT'kg',
   age INT,
    position ENUM(
-    '门将', '中后卫', '边后卫', '防守中场', 
-    '中场', '进攻中场', '边锋', '前锋'
-  ) DEFAULT '门将' COMMENT '球员位置',
+    '中锋', '影锋', '左边锋', '右边锋',
+  '前腰', '左前卫', '右前卫', '中前卫', '后腰',
+  '左后卫', '右后卫', '中后卫',
+  '守门员'
+  ) DEFAULT '守门员' COMMENT '球员位置',
   
   rating INT CHECK (rating BETWEEN 1 AND 5) DEFAULT 5 COMMENT '总体评级',
   

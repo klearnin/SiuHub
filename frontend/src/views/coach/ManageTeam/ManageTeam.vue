@@ -197,14 +197,19 @@
                   <span class="detail-label">位置:</span>
                   <select v-model="selectedPerson.position" class="detail-select">
                     <option value="">请选择位置</option>
-                    <option value="门将">门将</option>
+                    <option value="中锋">中锋</option>
+                    <option value="影锋">影锋</option>
+                    <option value="左边锋">左边锋</option>
+                    <option value="右边锋">右边锋</option>
+                    <option value="前腰">前腰</option>
+                    <option value="左前卫">左前卫</option>
+                    <option value="右前卫">右前卫</option>
+                    <option value="中前卫">中前卫</option>
+                    <option value="后腰">后腰</option>
+                    <option value="左后卫">左后卫</option>
+                    <option value="右后卫">右后卫</option>
                     <option value="中后卫">中后卫</option>
-                    <option value="边后卫">边后卫</option>
-                    <option value="防守中场">防守中场</option>
-                    <option value="中场">中场</option>
-                    <option value="进攻中场">进攻中场</option>
-                    <option value="边锋">边锋</option>
-                    <option value="前锋">前锋</option>
+                    <option value="守门员">守门员</option>
                   </select>
                 </div>
                 <div class="detail-row">
