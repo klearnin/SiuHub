@@ -28,7 +28,7 @@ import Ctest from "../views/coach/Ctest.vue";
 import CtacticBoard from "../views/coach/TacticBoard/CtacticBoard.vue";
 import CtacticCanvas from "../views/coach/TacticCanvas/CtacticCanvas.vue";
 import ManageTeam from "../views/coach/ManageTeam/ManageTeam.vue";
-
+import Video from "../views/coach/video/Cvideo.vue";
 //导入经理界面
 import Mhome from "../views/manager/Mhome.vue";
 import Mnotice from "../views/manager/Notice/Mnotice.vue";
@@ -43,8 +43,7 @@ import Dnotice from "../views/medic/Notice/Dnotice.vue";
 import Dnotice_del from "../views/medic/Notice/Dnotice_del.vue";
 import Dinjury from "../views/medic/injury.vue";
 
-import { pa } from "element-plus/es/locales.mjs";
-import path from "path";
+
 
 const routes = [
   { path: "/", component: Home },
@@ -91,7 +90,7 @@ const routes = [
     {path: "/cnotice", component: Cnotice},
     {path: "/cschedule", component: Cschedule},
     {path: "/cnotice_del", component: Cnotice_del},
-    
+    {path: "/cvideo", component: Video},
 ];
 
 const router = createRouter({

@@ -516,7 +516,22 @@ CREATE TABLE players (
   health ENUM('healthy', 'injured') DEFAULT 'healthy' COMMENT '健康状态',
   height INT COMMENT'cm',
   weight INT COMMENT'kg',
-  age INT
+  age INT,
+   position ENUM(
+    '中锋', '影锋', '左边锋', '右边锋',
+  '前腰', '左前卫', '右前卫', '中前卫', '后腰',
+  '左后卫', '右后卫', '中后卫',
+  '守门员'
+  ) DEFAULT '守门员' COMMENT '球员位置',
+  
+  rating INT CHECK (rating BETWEEN 1 AND 5) DEFAULT 5 COMMENT '总体评级',
+  
+  speed INT CHECK (speed BETWEEN 1 AND 100) DEFAULT 1 COMMENT '速度',
+  shooting INT CHECK (shooting BETWEEN 1 AND 100) DEFAULT 1 COMMENT '射门',
+  passing INT CHECK (passing BETWEEN 1 AND 100) DEFAULT 1 COMMENT '传球',
+  dribbling INT CHECK (dribbling BETWEEN 1 AND 100) DEFAULT 1 COMMENT '盘带',
+  defending INT CHECK (defending BETWEEN 1 AND 100) DEFAULT 1 COMMENT '防守',
+  stamina INT CHECK (stamina BETWEEN 1 AND 100) DEFAULT 1 COMMENT '体能'
 );
 
 INSERT INTO players(player_number, player_name, team_id, avatar, user_id, dominant_foot, health, height, weight, age)
@@ -603,4 +618,14 @@ CREATE TABLE injuries (
   recovery_days INT NOT NULL COMMENT '预计恢复天数',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+);
+
+CREATE TABLE videos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  file_path VARCHAR(255) NOT NULL,
+  uploader_id VARCHAR(50),
+  uploader_name VARCHAR(100),
+  team_id VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
