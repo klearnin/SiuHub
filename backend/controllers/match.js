@@ -43,6 +43,14 @@ exports.addGoalEvent = async (req, res, next) => {
       if (!match_id || !period || !event_minute || !team_name || !scorer_name) {
         return res.status(400).json({ msg: "缺少必要字段" });
       }
+
+      // 判断进球者与助攻者是否为同一人
+      if (
+        (scorer_id && assist_id && scorer_id === assist_id) ||
+        (!scorer_id && scorer_name && assist_name && scorer_name === assist_name)
+      ) {
+        return res.status(400).json({ msg: "进球球员和助攻球员不能为同一人" });
+      }
   
       const base = await db.startQuery(`
         INSERT INTO match_event_log (match_id, period, event_minute, minute_note, event_type, team_name)
