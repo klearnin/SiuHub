@@ -326,3 +326,105 @@ exports.getPublicTeamHonors = async (req, res, next) => {
     next(err);
   }
 };
+
+// 新增：获取全队球员基础信息 + 进球(含点球) + 助攻
+exports.getPlayersStats = async (req, res, next) => {
+  try {
+    const { team_id } = req.user;
+
+    // 1) 球队名称（用于过滤只统计本队的进球/助攻事件）
+    const [teamRow] = await db.startQuery(
+      `SELECT name FROM teams WHERE id = ? LIMIT 1`,
+      [team_id]
+    );
+    if (!teamRow) return res.json({ code: 0, data: [] });
+    const teamName = teamRow.name;
+
+    // 2) 进球子表（含点球）
+    const goalRows = await db.startQuery(`
+      SELECT g.scorer_id AS uid,
+             COUNT(*) AS total_goals,
+             SUM(CASE WHEN g.is_penalty THEN 1 ELSE 0 END) AS penalty_goals
+      FROM match_goals g
+      JOIN match_event_log e ON g.event_id = e.id
+      WHERE e.team_name = ?
+      GROUP BY g.scorer_id
+    `, [teamName]);
+
+    // 3) 助攻子表
+    const assistRows = await db.startQuery(`
+      SELECT g.assist_id AS uid,
+             COUNT(*) AS total_assists
+      FROM match_goals g
+      JOIN match_event_log e ON g.event_id = e.id
+      WHERE e.team_name = ?
+        AND g.assist_id IS NOT NULL
+      GROUP BY g.assist_id
+    `, [teamName]);
+
+    // 4) 做成 uid->stats 的 map
+    const goalsMap = new Map();
+    for (const r of goalRows) {
+      goalsMap.set(r.uid, {
+        total_goals: Number(r.total_goals) || 0,
+        penalty_goals: Number(r.penalty_goals) || 0,
+      });
+    }
+    const assistsMap = new Map();
+    for (const r of assistRows) {
+      assistsMap.set(r.uid, Number(r.total_assists) || 0);
+    }
+
+    // 5) 拉取球队所有球员（含 users 头像），并合并统计
+    const players = await db.startQuery(`
+      SELECT 
+        p.id,
+        p.user_id,
+        p.player_number,
+        p.player_name,
+        p.position,
+        COALESCE(p.avatar, u.avatar) AS avatar
+      FROM players p
+      LEFT JOIN users u ON u.id = p.user_id
+      WHERE p.team_id = ?
+      ORDER BY 
+        CASE p.position
+          WHEN '守门员' THEN 0
+          WHEN '中后卫' THEN 1
+          WHEN '左后卫' THEN 2
+          WHEN '右后卫' THEN 3
+          WHEN '后腰'   THEN 4
+          WHEN '中前卫' THEN 5
+          WHEN '前腰'   THEN 6
+          WHEN '左前卫' THEN 7
+          WHEN '右前卫' THEN 8
+          WHEN '左边锋' THEN 9
+          WHEN '影锋'   THEN 10
+          WHEN '右边锋' THEN 11
+          WHEN '中锋'   THEN 12
+          ELSE 99
+        END,
+        p.player_number ASC
+    `, [team_id]);
+
+    const data = players.map(p => {
+      const g = goalsMap.get(p.user_id) || { total_goals: 0, penalty_goals: 0 };
+      const a = assistsMap.get(p.user_id) || 0;
+      return {
+        id: p.id,
+        user_id: p.user_id,
+        number: p.player_number || null,
+        name: p.player_name,
+        position: p.position,
+        avatar: p.avatar || null,
+        total_goals: g.total_goals,
+        penalty_goals: g.penalty_goals,
+        total_assists: a,
+      };
+    });
+
+    res.json({ code: 0, data });
+  } catch (err) {
+    next(err);
+  }
+};
