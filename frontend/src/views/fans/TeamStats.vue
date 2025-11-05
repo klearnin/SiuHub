@@ -12,8 +12,8 @@
           <!-- 右侧内容区：左边是文字信息，右边是状态条 -->
           <div class="team-info-right">
             <div class="team-meta">
-              <h2>{{ teamInfo.name }}</h2>
-              <p><strong>简称：</strong>{{ teamInfo.abbr }}</p>
+              <h2 class="team-name">{{ teamInfo.name }}</h2>
+              <div class="team-abbr">{{ teamInfo.abbr }}</div>
             </div>
 
             <div class="team-status-inline">
@@ -728,9 +728,15 @@ onMounted(async () => {
 .team-meta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   /* 防止过长名称把右侧挤掉 */
   min-width: 0;
+}
+.team-name { margin: 0; line-height: 1.1; }
+.team-abbr {
+  margin-top: 2px;
+  font-size: 15px;
+  color: #8a93a6;      /* 浅色副标题 */
 }
 .team-meta h2 {
   margin: 0;
@@ -1078,6 +1084,7 @@ onMounted(async () => {
   margin-top: 2px;
   color: #374151;
   line-height: 1.45;
+  font-size: 14px;
   word-break: break-word;
 }
 
