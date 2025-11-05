@@ -275,7 +275,7 @@ exports.getnext = async (req, res, next) => {
       WHERE team_id = ${db.escape(user.team_id)}
     `;
 
-    nexttac =await db.startQuery(nextSql);
+    const nexttac = await db.startQuery(nextSql);
     
     res.json({ code: 0, message: '获取成功', nexttac });
   } catch (err) {
