@@ -44,4 +44,4 @@ Thumbs.db
 *.sw?
 
 # Public directories with user content
- 
+ /public/videos/

@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 // 文件类型和大小限制
 const uploadvideo = multer({
   storage,
-  limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
+  limits: { fileSize: 2 * 1024 * 1024 * 1024 }, // 2GB
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['video/mp4', 'video/mkv', 'video/avi'];
     if (!allowedTypes.includes(file.mimetype)) {

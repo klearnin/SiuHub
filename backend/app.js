@@ -15,8 +15,8 @@ folders.forEach((folder) => {
 });
 
 // ✅ 增加请求体大小限制 - 修复上传问题
-app.use(express.json({ limit: '1000mb' })); // 增加到100MB
-app.use(express.urlencoded({ extended: true, limit: '1000mb' }));  // 增加到100MB
+app.use(express.json({ limit: '2500mb' })); // 增加到2.5GB
+app.use(express.urlencoded({ extended: true, limit: '2500mb' }));  // 增加到2.5GB
 
 // ✅ CORS 配置
 app.use(cors({
@@ -107,7 +107,7 @@ app.use((err, req, res, next) => {
   if (err.type === 'entity.too.large') {
     return res.status(413).json({
       code: 413,
-      msg: '文件太大，请上传小于100MB的文件',
+      msg: '文件太大，请上传小于2GB的文件',
       data: null
     });
   }
