@@ -480,16 +480,11 @@
       <!-- 顶部控制栏 -->
       <div class="top-controls">
         <div class="control-group">
-          <div class="left-actions">
-            <button class="back-btn" type="button" @click="back">
-              返回
-            </button>
-          </div>
+          <label class="control-label">战术：</label>
+          <div class="tactic-name-display">{{tactic_name}}</div>
           <div class="control-items">
-            <div class="tactic-summary">
-              <span class="summary-label">当前战术：</span>
-              <span class="tactic-name-display">{{ tactic_name || '暂无战术' }}</span>
-            </div>
+           
+            <button class="warn-btn" @click="back"> 返回 </button>
           </div>
         </div>
       </div>
@@ -518,13 +513,8 @@
               <div class="role-item" v-if="role !== 'id' && role !== 'tactic_id'">
                 <label class="role-label">{{ roleTranslations[role] || role }}</label>
                 <div class="player-info-display">
-                  {{ rolename(characters[role]) || '未分配' }}
-                  <span
-                    v-if="rolenumber(characters[role])"
-                    class="role-player-number"
-                  >
-                    ({{ rolenumber(characters[role]) }})
-                  </span>
+                  {{ rolename(characters[role]) }} 
+                  <span class="player-number">({{ rolenumber(characters[role]) }})</span>
                 </div>
               </div>
             </template>
@@ -534,25 +524,6 @@
         <!-- 球场区域 -->
         <div class="field-container">
           <div class="field">
-            <svg class="pitch-svg" viewBox="0 0 1000 550" preserveAspectRatio="none" aria-hidden="true">
-              <rect x="10" y="10" width="980" height="530" fill="none" stroke="white" stroke-width="3"/>
-              <line x1="500" y1="10" x2="500" y2="540" stroke="white" stroke-width="3"/>
-              <circle cx="500" cy="275" r="91" fill="none" stroke="white" stroke-width="3"/>
-              <circle cx="500" cy="275" r="3" fill="white"/>
-
-              <rect x="10" y="110" width="160" height="330" fill="none" stroke="white" stroke-width="3"/>
-              <rect x="10" y="201" width="55" height="148" fill="none" stroke="white" stroke-width="3"/>
-              <circle cx="115" cy="275" r="3" fill="white"/>
-
-              <rect x="830" y="110" width="160" height="330" fill="none" stroke="white" stroke-width="3"/>
-              <rect x="935" y="201" width="55" height="148" fill="none" stroke="white" stroke-width="3"/>
-              <circle cx="885" cy="275" r="3" fill="white"/>
-
-              <path d="M 10 30 A 20 20 0 0 1 30 10" fill="none" stroke="white" stroke-width="3"/>
-              <path d="M 970 10 A 20 20 0 0 1 990 30" fill="none" stroke="white" stroke-width="3"/>
-              <path d="M 10 520 A 20 20 0 0 0 30 540" fill="none" stroke="white" stroke-width="3"/>
-              <path d="M 970 540 A 20 20 0 0 0 990 520" fill="none" stroke="white" stroke-width="3"/>
-            </svg>
             <div
               v-for="player in players"
               :key="player.id"
@@ -595,94 +566,63 @@
 </template>
 
 <style scoped>
-.tactic-board {
-  --primary-color: #409eff;
-  --success-color: #67c23a;
-  --warn-color: #f56c6c;
-  --bg-color: #f0f2f5;
-  --card-bg: #ffffff;
+/* 基础样式 */
+:root {
+  --primary-color: #3498db;
+  --success-color: #2ecc71;
+  --warn-color: #e74c3c;
+  --bg-color: #7c96bc;
+  --card-bg: #c47878;
   --text-color: #333;
-  --border-color: #dcdfe6;
-  --shadow: 0 2px 8px rgba(0,0,0,0.08);
-  --pitch-green-1: #44d947;
-  --pitch-green-2: #2fc63f;
+  --border-color: #e0e0e0;
+  --shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
 
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+}
+
+/* 主布局 */
+.tactic-board {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background-color: var(--bg-color, #f0f2f5);
-  padding: 20px;
-  gap: 20px;
-  color: var(--text-color, #333);
+  height: 100vh;
+  background-color:#f9f9f9;
 }
 
-.top-controls {
-  padding: 16px 20px;
-  background-color: var(--card-bg, #fff);
-  border: 1px solid var(--border-color, #dcdfe6);
-  border-radius: 12px;
-  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
-}
-
-.top-controls .control-group {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  position: relative;
-}
-
-.left-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.control-items {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.tactic-summary {
-  display: flex;
-  align-items: baseline;
-}
-
-.summary-label {
-  font-size: 28px;
+.tactic-name-display{
+  font-size: 30px;
   font-weight: 600;
-  color: var(--text-color, #333);
+  height: 25px;
+  width:auto;
+  border-radius: 15px;
+  
 }
-
-.tactic-name-display {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--primary-color, #409eff);
-  max-width: 320px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+.top-controls {
+  padding: 12px 20px;
+  background-color: var(--card-bg);
+  box-shadow: var(--shadow);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .main-content {
   display: flex;
   flex: 1;
   overflow: hidden;
-  gap: 20px;
 }
 
 .left-panel {
-  width: 320px;
+  width: 280px;
   padding: 20px;
-  overflow-y: auto;
-  background-color: var(--card-bg, #fff);
-  border: 1px solid var(--border-color, #dcdfe6);
-  border-radius: 12px;
-  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
+  margin-top: 1%; margin-bottom: 1%;
+  margin-left: 1%;
+  background-color: var(--card-bg);
+  border-right: 1px solid var(--border-color);
+  border: solid #3498db;
+  border-radius: 25px;
 }
 
 .field-container {
@@ -691,20 +631,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: auto;
-  background-color: var(--card-bg, #fff);
-  border: 1px solid var(--border-color, #dcdfe6);
-  border-radius: 12px;
-  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
+ 
 }
 
+/* 卡片样式 */
 .control-card {
-  background-color: var(--card-bg, #fff);
-  border-radius: 12px;
+  background-color: var(--card-bg);
+  border-radius: 8px;
   padding: 16px;
   margin-bottom: 20px;
-  border: 1px solid var(--border-color, #dcdfe6);
-  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
+  box-shadow: var(--shadow);
 }
 
 .panel-title {
@@ -712,10 +648,11 @@
   font-weight: 600;
   margin: 0 0 16px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-color, #dcdfe6);
-  color: #0154a0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--primary-color);
 }
 
+/* 表单元素 */
 .form-group {
   margin-bottom: 16px;
 }
@@ -727,35 +664,128 @@
   color: #666;
 }
 
-.info-display,
-.player-info-display {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 40px;
-  padding: 8px 12px;
+.styled-select {
   width: 100%;
-  border: 1px solid var(--border-color, #dcdfe6);
-  border-radius: 10px;
-  background-color: #f5f7ff;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: rgb(187, 237, 252);
   font-size: 14px;
-  font-weight: 600;
-  color: var(--text-color, #333);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
-  gap: 6px;
+  transition: all 0.3s;
 }
 
-.player-info-display {
-  flex-wrap: wrap;
+.styled-select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(89, 180, 95, 0.2);
 }
 
-.role-player-number {
-  margin-left: auto;
-  color: #999;
+.styled-select.small {
+  padding: 6px 10px;
   font-size: 13px;
-  font-weight: 500;
 }
 
+.styled-select.full-width {
+  width: 100%;
+}
+
+
+
+.control-label{
+  font-size: 30px;
+}
+
+
+
+.warn-btn {
+  background-color: #999;
+  width:75px;
+ height: 50px;
+
+  padding: 5px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button i {
+  margin-right: 6px;
+  font-size: 14px;
+}
+.control-group{
+  display: flex;
+  
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.control-items {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 球场样式 */
+.field {
+  position: relative;
+  width: 1000px;
+  height: 550px;
+  background: url('@/assets/football.svg') no-repeat center center;
+  background-size: cover;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  border: 2px solid #fff;
+}
+
+/* 球员样式 */
+.player {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: move;
+  user-select: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: white;
+  background-size: cover;      /* 确保图片填充整个圆形 */
+  background-position: center; /* 图片居中 */
+  background-repeat: no-repeat;
+}
+
+.player:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.player-number {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.player-name {
+  font-size: 12px;
+  line-height: 1.2;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* 角色分配 */
 .roles-card {
   max-height: 400px;
   overflow-y: auto;
@@ -769,109 +799,11 @@
 
 .role-label {
   flex: 0 0 80px;
-  font-size: 14px;
+  font-size: 13px;
   color: #666;
 }
 
-.field {
-  position: relative;
-  width: 1000px;
-  height: 550px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--pitch-green-1, #44d947) 0px,
-    var(--pitch-green-1, #44d947) 40px,
-    var(--pitch-green-2, #2fc63f) 40px,
-    var(--pitch-green-2, #2fc63f) 80px
-  );
-  border-radius: 8px;
-  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.08));
-  border: 2px solid #ebeef5;
-}
-
-.pitch-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.player {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 2px solid #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: move;
-  user-select: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
-  color: white;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 1;
-}
-
-.player:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.player-number {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.player-name {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.2;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
-  color: #ffffff;
-}
-
-.back-btn {
-  background-color: var(--primary-color, #409eff);
-  color: #ffffff;
-  border: none;
-  padding: 0 16px;
-  height: 40px;
-  min-width: 96px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  appearance: none;
-  outline: none;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-button:active {
-  opacity: 1;
-}
-
-button i {
-  margin-right: 6px;
-  font-size: 14px;
-}
-
+/* 编辑弹窗 */
 .edit-modal {
   position: fixed;
   top: 0;
@@ -886,7 +818,10 @@ button i {
 
 .modal-overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: rgba(0,0,0,0.5);
 }
 
@@ -902,8 +837,9 @@ button i {
 }
 
 .modal-title {
-  margin: 0 0 20px 0;
-  color: var(--primary-color, #409eff);
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--primary-color);
 }
 
 .modal-actions {
@@ -913,23 +849,14 @@ button i {
   margin-top: 24px;
 }
 
-.cancel-btn {
-  background-color: #f0f0f0;
-  color: #666;
-  border: none;
-  padding: 8px 16px;
+.number-display {
+  padding: 8px 12px;
+  background-color: #f5f5f5;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.2s;
 }
 
-.cancel-btn:hover {
-  background-color: #e0e0e0;
-}
-
+/* 动画 */
 @keyframes modalFadeIn {
   from {
     opacity: 0;
@@ -941,43 +868,40 @@ button i {
   }
 }
 
+/* 响应式设计 */
 @media (max-width: 1200px) {
   .main-content {
     flex-direction: column;
   }
-
+  
   .left-panel {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--border-color, #dcdfe6);
+    border-bottom: 1px solid var(--border-color);
   }
-
+  
   .field {
     width: 100%;
     height: 500px;
   }
 }
 
-@media (max-width: 768px) {
-  .tactic-board {
-    padding: 16px;
-  }
-
-  .top-controls .control-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .control-items {
-    position: static;
-    transform: none;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .tactic-summary {
-    width: 100%;
-    justify-content: center;
-  }
+.info-display{
+  font-size: auto;
+  font-weight: 600;
+  text-align: center;
+  width: 175px;
+  height: 20px;
+  border-radius: 10px;
+  border:solid 1px rgb(2, 22, 31);
+}
+.player-info-display{
+  font-size: auto;
+  font-weight: 600;
+  text-align: center;
+  width:150px;
+  height: 25px;
+  border-radius: 10px;
+  border:solid 1px rgb(2, 22, 31);
 }
 </style>
