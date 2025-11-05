@@ -1157,6 +1157,7 @@ button i {
 .tactic-new-btn {
   /* 交由父级 .control-group 的 gap 控制间距，避免与其它按钮不一致 */
   margin-right: 0;
+  font-size: 16px;
 }
 
 /* 统一顶部按钮的尺寸与排版，避免某些浏览器默认样式造成差异 */
@@ -1178,6 +1179,7 @@ button i {
   border: none !important;
   white-space: nowrap;            /* 保持单行显示 */
   min-width: 140px;               /* 适配中文文案长度，避免换行 */
+  font-size: 16px;                /* 与“保存”按钮字号保持一致 */
 }
 
 /* 顶部的战术选择框更显眼一些（轻微阴影） */
