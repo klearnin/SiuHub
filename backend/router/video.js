@@ -15,4 +15,8 @@ router.delete('/:id', auth, videoController.deleteVideo);
 
 // 模糊搜索视频（按标题）
 router.get('/search', auth, videoController.searchVideos);
+
+// 修改视频标题
+router.put('/:id/title', auth, videoController.updateVideoTitle);
+
 module.exports = router;

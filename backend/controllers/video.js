@@ -98,3 +98,37 @@ exports.searchVideos = async (req, res) => {
     res.status(500).json({ code: 500, msg: '服务器错误' });
   }
 };
+
+// ✅ 修改视频标题
+exports.updateVideoTitle = async (req, res) => {
+  try {
+    const user = req.user;
+    const videoId = req.params.id;
+    const { title } = req.body;
+
+    if (!title || title.trim() === '') {
+      return res.status(400).json({ code: 1, msg: '视频标题不能为空' });
+    }
+
+    // 检查该视频是否属于当前球队
+    const [video] = await db.startQuery(
+      `SELECT * FROM videos WHERE id = ? AND team_id = ?`,
+      [videoId, user.team_id]
+    );
+
+    if (!video) {
+      return res.status(404).json({ code: 1, msg: '视频不存在或不属于你的球队' });
+    }
+
+    // 更新标题
+    await db.startQuery(
+      `UPDATE videos SET title = ? WHERE id = ?`,
+      [title, videoId]
+    );
+
+    res.json({ code: 0, msg: '视频标题更新成功' });
+  } catch (err) {
+    console.error('修改视频标题错误:', err);
+    res.status(500).json({ code: 500, msg: '服务器错误' });
+  }
+};
