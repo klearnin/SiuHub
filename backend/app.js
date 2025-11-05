@@ -17,8 +17,8 @@ folders.forEach((folder) => {
 });
 
 // ② 请求体解析（调大上限，保留你原来的解析顺序与风格）
-app.use(express.json({ limit: '100mb' }));                 // 原先是默认，按你需求调大
-app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+app.use(express.json({ limit: '2500mb' }));                 // 原先是默认，按你需求调大
+app.use(express.urlencoded({ extended: true, limit: '2500mb' }));
 
 // ③ CORS：保留你原来“先 app.use(cors()) 再自定义 allowCors”的结构
 //    只做必要补充：允许 PATCH、OPTIONS，并加一个统一的 OPTIONS 预检快速返回

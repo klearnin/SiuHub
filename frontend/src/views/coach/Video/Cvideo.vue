@@ -13,7 +13,7 @@
           @input="handleSearch"
         />
         <el-button type="primary" @click="openUploadDialog" class="upload-btn">
-          <el-icon><UploadFilled/>上传视频</el-icon>
+          上传视频
         </el-button>
         <router-link to="/chome" class="nav-item">返回</router-link>
       </div>
@@ -42,7 +42,7 @@
                 <el-icon><VideoPlay /></el-icon>
               </div>
             </div>
-            <div class="video-duration">{{ formatDuration(video.duration || 0) }}</div>
+            <div class="video-duration">{{ formatDuration(video.duration) }}</div>
           </div>
           <div class="video-actions">
            
@@ -50,7 +50,18 @@
         </div>
         <div class="video-info">
           <h3 class="video-title">{{ video.title }}</h3>
-           <el-button
+          <div class="video-actions">
+            <el-button
+              type="primary"
+              size="small"
+              circle
+              @click.stop="editVideoTitle(video)"
+              class="edit-btn"
+              title="编辑标题"
+            >
+              <el-icon><Edit /></el-icon>
+            </el-button>
+            <el-button
               type="danger"
               size="small"
               circle
@@ -58,10 +69,11 @@
               class="delete-btn"
               title="删除视频"
             >
-              <el-icon><Delete />🗙</el-icon>
+              <el-icon><Delete /></el-icon>
             </el-button>
+          </div>
           <div class="video-meta">
-            <span class="upload-time">{{ formatDate(video.upload_time) }}</span>
+            <span class="upload-time">{{ formatDate(video.created_at) }}</span>
           </div>
         </div>
       </div>
@@ -108,7 +120,7 @@
             </div>
             <template #tip>
               <div class="el-upload__tip">
-                支持 mp4、avi、mov、wmv、flv、mkv 格式，单个文件不超过 100MB
+                支持 mp4、avi、mov、wmv、flv、mkv 格式，单个文件不超过 2GB
               </div>
             </template>
           </el-upload>
@@ -147,11 +159,47 @@
         <div class="video-details">
           <h3>{{ currentVideo.title }}</h3>
           <div class="video-stats">
-            <span>上传时间：{{ formatDate(currentVideo.upload_time) }}</span>
+            <span>上传时间：{{ formatDate(currentVideo.created_at) }}</span>
             <span>时长：{{ formatDuration(currentVideo.duration || videoDuration) }}</span>
           </div>
         </div>
       </div>
+    </el-dialog>
+
+    <!-- 编辑标题对话框 -->
+    <el-dialog
+      title="编辑视频标题"
+      v-model="editDialogVisible"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        :model="editForm"
+        :rules="uploadRules"
+        ref="editFormRef"
+        label-width="80px"
+      >
+        <el-form-item label="视频标题" prop="title">
+          <el-input
+            v-model="editForm.title"
+            placeholder="请输入新的视频标题"
+            maxlength="100"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button 
+            type="primary" 
+            @click="submitEditTitle" 
+            :loading="editing"
+          >
+            {{ editing ? '保存中...' : '确定保存' }}
+          </el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -162,7 +210,8 @@ import {
   UploadFilled, 
   Search, 
   VideoPlay, 
-  Delete 
+  Delete,
+  Edit
 } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
@@ -190,7 +239,14 @@ export default {
       },
       fileList: [],
       uploading: false,
-      videoDuration: 0
+      videoDuration: 0,
+      // 编辑标题相关
+      editDialogVisible: false,
+      editForm: {
+        title: ''
+      },
+      editingVideo: null,
+      editing: false
     };
   },
   mounted() {
@@ -226,6 +282,11 @@ export default {
         if (response.data.code === 0) {
           this.videoList = response.data.data || [];
           ElMessage.success('视频列表加载成功');
+          
+          // 视频列表更新后，等待DOM更新完成，然后触发视频元数据加载
+          this.$nextTick(() => {
+            this.initializeVideoMetadata();
+          });
         } else {
           ElMessage.error(response.data.msg || '获取视频列表失败');
         }
@@ -252,12 +313,19 @@ export default {
             }
           }
         );
-        
+      this.$nextTick(() => {
+            this.initializeVideoMetadata();
+          });
         if (response.data.code === 0) {
           this.videoList = response.data.data || [];
           if (this.videoList.length === 0) {
             ElMessage.info('未找到相关视频');
           }
+          
+          // 搜索结果更新后，等待DOM更新完成，然后触发视频元数据加载
+          this.$nextTick(() => {
+            this.initializeVideoMetadata();
+          });
         } else {
           ElMessage.error(response.data.msg || '搜索失败');
         }
@@ -266,6 +334,62 @@ export default {
         ElMessage.error('搜索失败，请重试');
         this.fetchVideoList();
       }
+    },
+    
+    // 初始化视频元数据
+    initializeVideoMetadata() {
+      // 1. 先为videoList中的每个视频初始化默认duration属性为0，避免显示undefined
+      this.videoList.forEach(video => {
+        if (video.duration === undefined) {
+          video.duration = 0;
+        }
+      });
+      
+      // 2. 等待DOM更新后，处理视频元素的元数据加载
+      setTimeout(() => {
+        const videoElements = document.querySelectorAll('.video-poster');
+        
+        // 创建一个映射，便于通过src快速找到对应的视频对象
+        const videoMap = new Map();
+        this.videoList.forEach(video => {
+          const videoUrl = this.getVideoUrl(video.file_path);
+          videoMap.set(videoUrl, video);
+        });
+        
+        videoElements.forEach(video => {
+          if (video.src) {
+            // 获取对应的视频对象
+            const videoObj = videoMap.get(video.src);
+            
+            if (videoObj) {
+              // 直接尝试从视频元素获取duration
+              if (video.duration > 0) {
+                videoObj.duration = video.duration;
+              }
+              
+              // 添加额外的loadeddata事件监听，这通常在loadedmetadata之后触发
+              const handleLoadedData = () => {
+                if (video.duration > 0) {
+                  videoObj.duration = video.duration;
+                  // 移除事件监听器避免重复调用
+                  video.removeEventListener('loadeddata', handleLoadedData);
+                }
+              };
+              
+              video.addEventListener('loadeddata', handleLoadedData);
+              
+              // 如果视频还未加载元数据，重新加载
+              if (video.readyState < 1) {
+                video.load();
+              }
+              // 即使readyState >= 1，也尝试重新加载以确保获取最新的元数据
+              else {
+                video.load();
+              }
+            }
+          }
+        });
+      }, 200); // 增加延迟时间，确保DOM完全渲染
     },
 
     // 打开上传对话框
@@ -287,10 +411,10 @@ export default {
     handleFileChange(file, fileList) {
       console.log('文件选择:', file);
       
-      // 文件大小验证 (100MB)
-      const isLt100M = file.size / 1024 / 1024 < 100;
-      if (!isLt100M) {
-        ElMessage.error('视频大小不能超过 100MB!');
+      // 文件大小验证 (2GB)
+      const isLt2G = file.size / 1024 / 1024 / 1024 < 2;
+      if (!isLt2G) {
+        ElMessage.error('视频大小不能超过 2GB!');
         this.fileList = [];
         return;
       }
@@ -369,6 +493,73 @@ export default {
         }
       } finally {
         this.uploading = false;
+      }
+    },
+
+    // 编辑视频标题
+    editVideoTitle(video) {
+      console.log('编辑视频标题:', video);
+      this.editingVideo = video;
+      this.editForm.title = video.title;
+      this.editDialogVisible = true;
+      
+      // 下次 DOM 更新后聚焦输入框
+      this.$nextTick(() => {
+        if (this.$refs.editFormRef) {
+          this.$refs.editFormRef.clearValidate();
+        }
+      });
+    },
+
+    // 提交编辑标题
+    async submitEditTitle() {
+      try {
+        // 表单验证
+        const valid = await this.$refs.editFormRef.validate();
+        if (!valid) {
+          return;
+        }
+        
+        if (!this.editingVideo) {
+          ElMessage.error('未找到要编辑的视频');
+          return;
+        }
+
+        this.editing = true;
+
+        const token = localStorage.getItem('token');
+        const response = await axios.put(
+          `http://localhost:5000/api/video/${this.editingVideo.id}/title`,
+          { title: this.editForm.title },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (response.data.code === 0) {
+          ElMessage.success('视频标题修改成功');
+          this.editDialogVisible = false;
+          
+          // 更新本地视频列表中的标题
+          const videoIndex = this.videoList.findIndex(v => v.id === this.editingVideo.id);
+          if (videoIndex !== -1) {
+            this.videoList[videoIndex].title = this.editForm.title;
+          }
+          
+          // 重置表单
+          this.editForm.title = '';
+          this.editingVideo = null;
+        } else {
+          ElMessage.error(response.data.msg || '修改标题失败');
+        }
+      } catch (error) {
+        console.error('修改视频标题失败:', error);
+        ElMessage.error('修改标题失败，请重试');
+      } finally {
+        this.editing = false;
       }
     },
 
@@ -459,48 +650,73 @@ export default {
       const videoElements = document.querySelectorAll('.video-poster');
       videoElements.forEach(video => {
         if (video.src === this.getVideoUrl(videoObj.file_path)) {
-          // 存储视频时长
+          // 存储视频时长 - 这是最重要的功能，确保无论如何都能获取时长
           if (video.duration > 0) {
             videoObj.duration = video.duration;
           }
           
-          // 尝试捕获一帧作为封面，无论是否已有默认封面
+          // 尝试捕获一帧作为封面，但要处理跨域安全限制
           if (video.videoWidth > 0 && video.videoHeight > 0) {
-            // 尝试将视频定位到第一帧或第1秒位置
-            video.currentTime = 1; // 尝试定位到第1秒，通常能捕获到有意义的帧
-            
-            // 使用setTimeout确保视频帧已经更新
-            setTimeout(() => {
-              const canvas = document.createElement('canvas');
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              const ctx = canvas.getContext('2d');
+            try {
+              // 尝试将视频定位到第一帧或第1秒位置
+              video.currentTime = 1; // 尝试定位到第1秒，通常能捕获到有意义的帧
               
-              // 绘制视频当前帧到canvas
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              
-              // 检查是否成功捕获了非黑色帧
-              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const data = imageData.data;
-              let isBlackFrame = true;
-              
-              // 采样检查是否全黑
-              for (let i = 0; i < data.length; i += 4 * 1000) { // 稀疏采样以提高性能
-                if (data[i] > 10 || data[i + 1] > 10 || data[i + 2] > 10) { // 不是纯黑
-                  isBlackFrame = false;
-                  break;
+              // 使用setTimeout确保视频帧已经更新
+              setTimeout(() => {
+                try {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = video.videoWidth;
+                  canvas.height = video.videoHeight;
+                  const ctx = canvas.getContext('2d');
+                  
+                  // 绘制视频当前帧到canvas
+                  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                  
+                  // 尝试检查是否为非黑色帧，同时处理可能的跨域错误
+                  let isBlackFrame = true;
+                  try {
+                    // 尝试获取像素数据 - 这可能会抛出跨域错误
+                    const imageData = ctx.getImageData(0, 0, 1, 1); // 只检查一个像素以减少性能影响
+                    const data = imageData.data;
+                    if (data[0] > 10 || data[1] > 10 || data[2] > 10) { // 不是纯黑
+                      isBlackFrame = false;
+                    }
+                  } catch (corsError) {
+                    console.warn('跨域限制阻止获取视频帧数据:', corsError);
+                    // 跨域情况下，我们仍然尝试生成缩略图，但不进行黑色帧检查
+                    isBlackFrame = false;
+                  }
+                  
+                  // 只有当捕获到有效帧或遇到跨域但仍希望尝试生成缩略图时
+                  if (!isBlackFrame) {
+                    try {
+                      // 存储缩略图数据URL
+                      videoObj.thumbnail = canvas.toDataURL('image/jpeg');
+                      // 更新poster属性
+                      video.poster = videoObj.thumbnail;
+                    } catch (dataURLError) {
+                      console.warn('跨域限制阻止生成数据URL:', dataURLError);
+                      // 如果无法生成dataURL，保持使用默认缩略图
+                      if (!videoObj.thumbnail) {
+                        videoObj.thumbnail = this.getVideoThumbnail(videoObj);
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.warn('视频封面生成失败:', error);
+                  // 出错时确保有默认缩略图
+                  if (!videoObj.thumbnail) {
+                    videoObj.thumbnail = this.getVideoThumbnail(videoObj);
+                  }
                 }
+              }, 100); // 短暂延迟确保视频帧已更新
+            } catch (error) {
+              console.warn('处理视频信息时出错:', error);
+              // 确保即使出错也有默认缩略图
+              if (!videoObj.thumbnail) {
+                videoObj.thumbnail = this.getVideoThumbnail(videoObj);
               }
-              
-              // 只有当捕获到有效帧时才更新封面
-              if (!isBlackFrame) {
-                // 存储缩略图数据URL
-                videoObj.thumbnail = canvas.toDataURL('image/jpeg');
-                
-                // 更新poster属性
-                video.poster = videoObj.thumbnail;
-              }
-            }, 100); // 短暂延迟确保视频帧已更新
+            }
           }
         }
       });
@@ -616,8 +832,9 @@ export default {
   background: linear-gradient(135deg, #3498db, #2ecc71);
   border: none;
   border-radius: 8px;
-  padding: 18px 35px;
-  
+
+  padding: 18px 18px;
+  font-style: normal;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
 }
@@ -811,12 +1028,59 @@ export default {
   left: 100%;
 }
 
+.edit-btn {
+  background: linear-gradient(135deg, #3498db, #2ecc71);
+  width: 35px;
+  height: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+  transition: all 0.3s ease;
+  align-self: flex-end;
+  justify-content: center;
+  font-size: 16px;
+  font-style: normal;
+  margin-right: 8px;
+}
+
+.edit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.edit-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+}
+
+.edit-btn:hover::before {
+  left: 100%;
+}
+
 .video-info {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
   padding: 20px;
+}
+
+.video-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .video-title {
