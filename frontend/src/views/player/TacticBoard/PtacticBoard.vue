@@ -629,6 +629,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  position: relative;
 }
 
 .left-actions {
@@ -641,30 +642,27 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .tactic-summary {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  min-height: 40px;
-  background-color: #f5f7ff;
-  border: 1px solid var(--border-color, #dcdfe6);
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(64, 158, 255, 0.12);
+  align-items: baseline;
 }
 
 .summary-label {
-  font-size: 14px;
-  color: #666;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-color, #333);
 }
 
 .tactic-name-display {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
   color: var(--primary-color, #409eff);
-  max-width: 260px;
+  max-width: 320px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -832,13 +830,15 @@
 }
 
 .player-name {
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: 600;
   line-height: 1.2;
   max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+  color: #ffffff;
 }
 
 .back-btn {
@@ -969,11 +969,15 @@ button i {
   }
 
   .control-items {
-    justify-content: flex-start;
+    position: static;
+    transform: none;
+    width: 100%;
+    justify-content: center;
   }
 
   .tactic-summary {
     width: 100%;
+    justify-content: center;
   }
 }
 </style>

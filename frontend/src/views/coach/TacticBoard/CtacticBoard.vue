@@ -12,9 +12,21 @@
           </button>
         </div>
         <div class="control-items">
-          <select class="styled-select" v-model="selectedTacticID" @change="setTactic">
-            <option v-for="tactic in tactics" :value="tactic.id">{{tactic.tactic_name}}</option> 
-          </select> 
+          <el-select
+            v-model="selectedTacticID"
+            class="tactic-select"
+            placeholder="请选择战术"
+            size="large"
+            filterable
+            @change="setTactic"
+          >
+            <el-option
+              v-for="tactic in tactics"
+              :key="tactic.id"
+              :label="tactic.tactic_name"
+              :value="tactic.id"
+            />
+          </el-select>
           
           <button class="primary-btn set-next-btn" type="button" @click="setnext">
             设为下次战术
@@ -39,22 +51,31 @@
           <h3 class="panel-title">战术设置</h3>
           <div class="form-group">
             <label class="form-label">战术风格</label>
-            <select class="styled-select" v-model="tactical_style" @change="1">
-              <option value="防守反击">防守反击</option>
-              <option value="高位压迫">高位压迫</option>
-              <option value="控球">控球</option>
-            </select>
+            <el-select
+              v-model="tactical_style"
+              placeholder="请选择战术风格"
+              class="full-width-select"
+            >
+              <el-option label="防守反击" value="防守反击" />
+              <el-option label="高位压迫" value="高位压迫" />
+              <el-option label="控球" value="控球" />
+            </el-select>
           </div>
           
           <div class="form-group">
             <label class="form-label">初始阵型</label>
-            <select class="styled-select" v-model="formation" @change="setFormation">
-              <option value="442">4-4-2</option>
-              <option value="433">4-3-3</option>
-              <option value="352">3-5-2</option>
-              <option value="4321">4-3-2-1</option>
-              <option value="532">5-3-2</option>
-            </select>
+            <el-select
+              v-model="formation"
+              placeholder="请选择阵型"
+              class="full-width-select"
+              @change="setFormation"
+            >
+              <el-option label="4-4-2" value="442" />
+              <el-option label="4-3-3" value="433" />
+              <el-option label="3-5-2" value="352" />
+              <el-option label="4-3-2-1" value="4321" />
+              <el-option label="5-3-2" value="532" />
+            </el-select>
           </div>
         </div>
 
@@ -65,11 +86,20 @@
             <div class="role-item" v-if="role !== 'id' && role !== 'tactic_id'">
             <label class="role-label">{{ roleTranslations[role] || role }}</label>
             <!-- 使用 roleTranslations[role] 显示中文，如果没有映射则显示原英文 -->
-            <select class="styled-select small" v-model="characters[role]">
-              <option v-for="(player, index) in players" :value="player.player_id" :key="index">
-                {{ player.name }} ({{ player.number }})
-              </option>
-            </select>
+            <el-select
+              v-model="characters[role]"
+              placeholder="选择球员"
+              class="role-select"
+              filterable
+              clearable
+            >
+              <el-option
+                v-for="(player, index) in players"
+                :key="player.player_id || index"
+                :label="`${player.name} (${player.number})`"
+                :value="player.player_id"
+              />
+            </el-select>
           </div>
           </template>
         </div>
@@ -134,18 +164,20 @@
         <h3 class="modal-title">编辑球员</h3>
         <div class="form-group">
           <label class="form-label">选择球员</label>
-          <select 
-            class="styled-select full-width"
-            v-model="selectedPlayerId" 
+          <el-select
+            v-model="selectedPlayerId"
+            placeholder="请选择球员"
+            class="full-width-select"
+            filterable
             @change="updatePlayerInfo"
           >
-            
-            <option  v-for="player in playerlist" :key="player.id" :value="player.id" >
-              {{ player.player_name }} ({{ player.player_number }})
-              
-              <span class="health" v-if="player.health==='injured'" >——————受伤</span>
-            </option>
-          </select>
+            <el-option
+              v-for="player in playerlist"
+              :key="player.id"
+              :label="`${player.player_name} (${player.player_number})${player.health === 'injured' ? ' — 受伤' : ''}`"
+              :value="player.id"
+            />
+          </el-select>
         </div>
         
         <div class="form-group">
@@ -845,6 +877,35 @@ async function closeNewTacticDialog() {
   width: 100%;
 }
 
+.tactic-select {
+  min-width: 220px;
+}
+
+.full-width-select,
+.role-select {
+  width: 100%;
+}
+
+:deep(.tactic-select .el-input__wrapper),
+:deep(.full-width-select .el-input__wrapper),
+:deep(.role-select .el-input__wrapper) {
+  border-radius: 10px;
+  min-height: 40px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+  border: 1px solid var(--border-color, #dcdfe6);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+:deep(.tactic-select .el-input__wrapper:hover),
+:deep(.full-width-select .el-input__wrapper:hover),
+:deep(.role-select .el-input__wrapper:hover),
+:deep(.tactic-select .el-input__wrapper.is-focus),
+:deep(.full-width-select .el-input__wrapper.is-focus),
+:deep(.role-select .el-input__wrapper.is-focus) {
+  border-color: var(--primary-color, #409eff);
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
 /* 按钮样式 */
 .primary-btn {
   background-color: var(--primary-color, #409eff);
@@ -1183,7 +1244,7 @@ button i {
 }
 
 /* 顶部的战术选择框更显眼一些（轻微阴影） */
-.top-controls .control-items .styled-select {
+:deep(.tactic-select .el-input__wrapper) {
   box-shadow: 0 2px 6px rgba(64, 158, 255, 0.15);
 }
 </style>
