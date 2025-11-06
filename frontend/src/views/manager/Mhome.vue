@@ -80,6 +80,7 @@
       <LineChart :data="trendData" />
     </div>
   </div>
+  <Announcement />
 </template>
 
 <script setup>
@@ -87,6 +88,7 @@
   import { useRouter } from "vue-router";
   import axios from "axios";
   import { ElMessage } from "element-plus";
+  import Announcement from '@/components/Announcement.vue'
   import LineChart from "@/components/FinanceLineChart.vue";
 
   const router = useRouter();

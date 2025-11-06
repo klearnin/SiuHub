@@ -209,10 +209,10 @@
         </div>
         <div class="modal-actions">
           <button class="primary-btn" @click="closeNewTacticDialog">
-            <i class="icon-check"></i>确认
+           确认
           </button>
           <button class="cancel-btn" @click="showNewTacticDialog = false">
-            <i class="icon-close"></i>取消
+           取消
           </button>
         </div>
       </div>
@@ -959,6 +959,9 @@ async function closeNewTacticDialog() {
   justify-content: center;
   transition: background-color 0.2s ease;
 }
+.blank{
+  width: 0%;
+}
 .save-btn{
   background-color: var(--success-color, #67c23a);
   color: #ffffff;
@@ -1027,7 +1030,7 @@ async function closeNewTacticDialog() {
   color: white;
 }
 .cancel-btn:hover {
-  background-color: #666;
+  background-color: #979292;
 }
 .cancel-btn {
   background-color: #f0f0f0;

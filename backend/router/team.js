@@ -12,5 +12,7 @@ router.get("/match-events", auth, teamController.getMatchEvents);         // 获
 router.get("/next", auth, teamController.getNextSchedule);                // 获取下一场比赛
 router.get("/honors", auth, teamController.getPublicTeamHonors);          // 获取球队荣誉
 router.get("/team-match-scores", auth, teamController.getTeamMatchScores); // 获取球队最近五场比赛的成绩与比分差
+router.get("/players-stats", auth, teamController.getPlayersStats);
+
 
 module.exports = router;

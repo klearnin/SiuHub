@@ -1,7 +1,9 @@
 const db = require("../database/index");
 const jwt = require("../util/jwt");
+const { verify } = require("../util/jwt");
 const { jwtSecret } = require("../config/config.default");
 const { nanoid } =require("nanoid");
+const { sendMail } = require('../util/mailer');
 const path = require("path");
 const fs = require("fs");
 
@@ -57,10 +59,43 @@ exports.login = async (req, res, next) => {
         )
     `);
 
-    res.status(200).json({
-      token,
-      user
-    });
+      const isFan = user.type === 'fan';
+
+      // 查询该球队的最新公告
+      const sqlNotice = isFan
+      // 球迷：只看 type='fan' 的公告（不限定 team_id）
+      ? `SELECT * FROM notices
+        WHERE type = 'fan' AND team_id = ${db.escape(user.team_id)}
+        ORDER BY publish_time DESC LIMIT 1`
+      // 其他身份：只看本队的 team 公告（限定 team_id 且 type='team'）
+      : `SELECT * FROM notices
+        WHERE type = 'team' AND team_id = ${db.escape(user.team_id)}
+        ORDER BY publish_time DESC LIMIT 1`;
+
+
+    const [latestNotice] = await db.startQuery(sqlNotice);
+
+    // const [latestNotice] = await db.startQuery(`
+    //   SELECT * FROM notices 
+    //   WHERE team_id = ${db.escape(user.team_id)}
+    //   ORDER BY publish_time DESC LIMIT 1
+    // `);
+
+    if (latestNotice && user.confirmed_announcement_id !== latestNotice.id) {
+      res.status(200).json({
+        token,
+        user,
+        showAnnouncement: true,
+        announcement: latestNotice
+      });
+    } else {
+      res.status(200).json({
+        token,
+        user,
+        showAnnouncement: false
+      });
+    }
+
 
   } catch (err) {
     next(err);
@@ -79,11 +114,31 @@ exports.register = async (req, res, next) => {
       teamName,
       teamAbbr,
       teamId,
+      emailCodeToken, // 👈 前端传来的验证码 token
+      emailCode       // 👈 前端传来的验证码值
     } = req.body;
 
     if (!name || !phone || !password || !userType) {
       return res.status(400).json({ message: "缺少注册信息" });
     }
+
+    // 邮箱验证码校验（coach、fan、player…都必须）
+    if (!email || !emailCodeToken || !emailCode) {
+      return res.status(400).json({ message: "缺少邮箱验证码参数" });
+    }
+
+    let decoded;
+    try {
+      decoded = await verify(emailCodeToken, jwtSecret);
+    } catch (err) {
+      return res.status(400).json({ message: "验证码已过期或无效" });
+    }
+
+    if (decoded.valiCode.toUpperCase() !== emailCode.toUpperCase()) {
+      return res.status(400).json({ message: "验证码错误" });
+    }
+
+
 
     const userId = nanoid();
 
@@ -362,6 +417,156 @@ exports.getAllTeams = async (req, res, next) => {
     res.status(200).json({
       teams
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 发送邮箱验证码
+exports.validateMail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "邮箱地址不能为空" });
+    }
+
+    const generateCode = () =>
+      Array.from({ length: 6 }, () =>
+        Math.random() < 0.5
+          ? String.fromCharCode(65 + Math.floor(Math.random() * 26))  // A-Z
+          : Math.floor(Math.random() * 10)                            // 0-9
+      ).join('');
+    
+    const valiCode = generateCode();
+    // const valiCode = nanoid(6); // 简洁验证码
+    const token = await jwt.sign(
+      { valiCode },
+      jwtSecret,
+      { expiresIn: 60 * 3 } // 三分钟
+    );
+
+    await sendMail(
+      email,
+      '【SiuHub】注册验证码',
+      `您的验证码是：${valiCode}（有效期3分钟，可忽略大小写）`
+    );
+
+    res.status(200).json({ token });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 忘记密码，需要发送验证码到邮箱
+exports.sendResetCode = async (req, res, next) => {
+  try {
+    const { phone, type, email } = req.body;
+    if (!phone || !type || !email) {
+      return res.status(400).json({ message: "请输入手机号、身份和邮箱" });
+    }
+
+    // 查找手机号+身份+邮箱是否存在于用户表中
+    const result = await db.startQuery(`
+      SELECT * FROM users 
+      WHERE phone = ${db.escape(phone)}
+        AND type = ${db.escape(type)}
+        AND email = ${db.escape(email)}
+      LIMIT 1
+    `);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "未找到对应的用户，请检查手机号、身份和邮箱是否匹配" });
+    }
+
+    // 生成验证码
+    const generateCode = () =>
+      Array.from({ length: 6 }, () =>
+        Math.random() < 0.5
+          ? String.fromCharCode(65 + Math.floor(Math.random() * 26))  // A-Z
+          : Math.floor(Math.random() * 10)                            // 0-9
+      ).join('');
+
+    const valiCode = generateCode();
+
+    // 把 phone、type、email 一起写进 token
+    const token = await jwt.sign(
+      { phone, type, email, valiCode },
+      jwtSecret,
+      { expiresIn: 60 * 3 }
+    );
+
+    await sendMail(
+      email,
+      '【SiuHub】找回密码验证码',
+      `您的验证码是：${valiCode}（有效期3分钟，可忽略大小写）`
+    );
+
+    res.status(200).json({ token, message: "验证码已发送，请查收邮箱" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// 检查验证码是否正确，并重置密码
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, code, newPassword } = req.body;
+    if (!token || !code || !newPassword) {
+      return res.status(400).json({ message: "参数不完整" });
+    }
+
+    const decoded = await verify(token, jwtSecret);
+
+    if (decoded.valiCode.toUpperCase() !== code.toUpperCase()) {
+      return res.status(400).json({ message: "验证码错误" });
+    }
+
+    const { phone, type, email } = decoded;
+
+    // 再次确认数据库中存在该用户
+    const result = await db.startQuery(`
+      SELECT id FROM users 
+      WHERE phone = ${db.escape(phone)}
+        AND type = ${db.escape(type)}
+        AND email = ${db.escape(email)}
+      LIMIT 1
+    `);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "用户不存在或信息不匹配" });
+    }
+
+    await db.startQuery(`
+      UPDATE users 
+      SET password = MD5(${db.escape(newPassword)})
+      WHERE phone = ${db.escape(phone)}
+        AND type = ${db.escape(type)}
+        AND email = ${db.escape(email)}
+    `);
+
+    res.status(200).json({ message: "密码重置成功" });
+  } catch (err) {
+    return res.status(400).json({ message: "验证码已失效或无效" });
+  }
+};
+
+exports.confirmAnnouncement = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { announcementId } = req.body;
+
+    if (!announcementId) {
+      return res.status(400).json({ message: "缺少公告ID" });
+    }
+
+    await db.startQuery(`
+      UPDATE users
+      SET confirmed_announcement_id = ?
+      WHERE id = ?
+    `, [announcementId, userId]);
+
+    res.status(200).json({ message: "已确认公告" });
   } catch (err) {
     next(err);
   }

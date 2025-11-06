@@ -20,6 +20,7 @@ import Pschedule from "../views/player/Schedule/Pschedule.vue";
 import PtacticBoard from "../views/player/TacticBoard/PtacticBoard.vue";
 //导入教练界面
 import Chome from "../views/coach/Chome.vue";
+//import CinfoChange from "../views/coach/CinfoChange.vue";
 import Cnotice from "../views/coach/Notice/Cnotice.vue";
 import Cschedule from "../views/coach/Schedule/Cschedule.vue";
 import Cnotice_del from "../views/coach/Notice/Cnotice_del.vue";
@@ -27,7 +28,7 @@ import Ctest from "../views/coach/Ctest.vue";
 import CtacticBoard from "../views/coach/TacticBoard/CtacticBoard.vue";
 import CtacticCanvas from "../views/coach/TacticCanvas/CtacticCanvas.vue";
 import ManageTeam from "../views/coach/ManageTeam/ManageTeam.vue";
-
+import Video from "../views/coach/video/Cvideo.vue";
 //导入经理界面
 import Mhome from "../views/manager/Mhome.vue";
 import Mnotice from "../views/manager/Notice/Mnotice.vue";
@@ -42,8 +43,7 @@ import Dnotice from "../views/medic/Notice/Dnotice.vue";
 import Dnotice_del from "../views/medic/Notice/Dnotice_del.vue";
 import Dinjury from "../views/medic/injury.vue";
 
-import { pa } from "element-plus/es/locales.mjs";
-import path from "path";
+
 
 const routes = [
   { path: "/", component: Home },
@@ -73,13 +73,13 @@ const routes = [
   { path: "/cmanageTeam", component: ManageTeam},
 
 
-
   { path: "/chome", component: Chome},
   { path: "/cnotice", component: Cnotice},
   { path: "/cschedule", component: Cschedule},
   { path: "/cnotice_del", component: Cnotice_del},
-  {path: "/ctest", component: Ctest},
-  {path: "/ctacticboard", component: CtacticBoard},
+  { path: "/ctest", component: Ctest},
+  { path: "/ctacticboard", component: CtacticBoard},
+//  { path: "/chome/cinfochange", component: CinfoChange},
 
     { path: "/", component: Home },
     { path: "/login", component: Login },
@@ -90,7 +90,7 @@ const routes = [
     {path: "/cnotice", component: Cnotice},
     {path: "/cschedule", component: Cschedule},
     {path: "/cnotice_del", component: Cnotice_del},
-    
+    {path: "/cvideo", component: Video},
 ];
 
 const router = createRouter({

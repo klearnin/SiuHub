@@ -28,10 +28,29 @@
         />
       </div>
 
+      <!-- 邮箱：右侧追加“发送验证码”按钮 -->
+      <div class="form-group" v-if="isRegister">
+        <el-input v-model.trim="form.email" placeholder="邮箱" clearable>
+          <template #append>
+            <el-button
+              :disabled="sendDisabled"
+              :loading="sendLoading"
+              @click="onSendEmailCode"
+              :type="sendDisabled ? 'default' : 'primary'"
+              >
+              {{ sendBtnText }}
+            </el-button>
+          </template>
+        </el-input>
+      </div>
+
+      <!-- 新增：验证码输入框（紧跟在邮箱项下方） -->
       <div class="form-group" v-if="isRegister">
         <el-input
-          v-model="form.email"
-          placeholder="邮箱"
+          v-model.trim="form.emailCode"
+          maxlength="6"
+          placeholder="请输入6位验证码（不区分大小写）"
+          show-word-limit
           clearable
         />
       </div>
@@ -126,31 +145,125 @@
         >
           {{ isRegister ? '注册' : '登录' }}
         </el-button>
-        <el-button
-          type="text"
-          class="toggle-btn"
-          @click="isRegister = !isRegister"
-        >
-          {{ isRegister ? '已有账号？去登录' : '没有账号？去注册' }}
-        </el-button>
+
+        <div class="aux-actions">
+          <el-button
+            v-if="!isRegister"
+            type="text"
+            class="toggle-btn toggle-btn--inline"
+            @click="openResetDialog"
+          >
+            忘记密码
+          </el-button>
+          <el-button
+            type="text"
+            class="toggle-btn toggle-btn--inline"
+            @click="isRegister = !isRegister"
+          >
+            {{ isRegister ? '已有账号？去登录' : '没有账号？去注册' }}
+          </el-button>
+        </div>
       </div>
     </el-card>
   </div>
+
+  <!-- 忘记密码弹窗 -->
+  <el-dialog
+    v-model="showResetDialog"
+    title="找回密码"
+    width="420px"
+    :close-on-click-modal="false"
+  >
+    <div class="form-group">
+      <el-input v-model.trim="resetForm.phone" placeholder="手机号" clearable />
+    </div>
+    <div class="form-group">
+      <el-select v-model="resetForm.userType" placeholder="选择身份" style="width: 100%">
+        <el-option label="球迷" value="fan" />
+        <el-option label="教练" value="coach" />
+        <el-option label="球员" value="player" />
+        <el-option label="经理" value="manager" />
+        <el-option label="队医" value="medic" />
+      </el-select>
+    </div>
+    <div class="form-group">
+      <el-input v-model.trim="resetForm.email" placeholder="邮箱" clearable>
+        <template #append>
+          <el-button
+            :disabled="resetSendDisabled"
+            :loading="resetSendLoading"
+            @click="onSendResetCode"
+            :type="resetSendDisabled ? 'default' : 'primary'"
+            >
+            {{ resetSendBtnText }}
+          </el-button>
+        </template>
+      </el-input>
+    </div>
+
+    <!-- 新增：验证码输入框 -->
+    <div class="form-group">
+      <el-input
+        v-model.trim="resetForm.code"
+        maxlength="6"
+        placeholder="请输入邮箱验证码（6位）"
+        show-word-limit
+        clearable
+      />
+    </div>
+
+    <!-- 新密码 + 确认密码 -->
+    <div class="form-group">
+      <el-input
+        v-model.trim="resetForm.newPwd"
+        type="password"
+        placeholder="请输入新密码（6~18位）"
+        show-password
+      />
+    </div>
+    <div class="form-group">
+      <el-input
+        v-model.trim="resetForm.confirmPwd"
+        type="password"
+        placeholder="请再次输入新密码"
+        show-password
+      />
+    </div>
+
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="showResetDialog = false">取 消</el-button>
+        <el-button
+          type="primary"
+          :loading="resetSubmitLoading"
+          @click="onDoResetPassword"
+        >
+          重置密码
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
+
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { ElMessage } from "element-plus";
 
 const router = useRouter();
+const sendLoading = ref(false);
+const cooldown = ref(0);
+let _timer = null;
 
 const isRegister = ref(false);
 const form = ref({
   name: "",
   phone: "",
   email: "",
+  emailCode: "",
+  emailCodeToken: "",
   password: "",
   userType: "",
   teamName: "",
@@ -218,12 +331,71 @@ const login = async () => {
       type: form.value.userType,
     });
     localStorage.setItem("token", res.data.token);
+
+  // ✅ 有新公告 → 存到 sessionStorage（让主界面组件去弹）
+  if (res.data.showAnnouncement && res.data.announcement) {
+    sessionStorage.setItem('PENDING_ANNOUNCEMENT', JSON.stringify(res.data.announcement))
+  }
+
     ElMessage.success("登录成功");
     redirectAfterLogin(res.data.user.type);
   } catch (err) {
     ElMessage.error(err.response?.data?.message || "登录失败");
   }
 };
+
+// 发送按钮可用与文案
+const sendDisabled = computed(() => {
+  if (sendLoading.value || cooldown.value > 0) return true;
+  const email = (form.value.email || '').trim();
+  return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+});
+
+const sendBtnText = computed(() =>
+  cooldown.value > 0 ? `重新发送(${cooldown.value}s)` : '获取验证码'
+);
+
+function _startCooldown(sec = 60) {
+  cooldown.value = sec;
+  _timer && clearInterval(_timer);
+  _timer = setInterval(() => {
+    cooldown.value -= 1;
+    if (cooldown.value <= 0) {
+      clearInterval(_timer);
+      _timer = null;
+    }
+  }, 1000);
+}
+onUnmounted(() => _timer && clearInterval(_timer));
+
+// 点击“发送验证码”
+async function onSendEmailCode() {
+  if (sendDisabled.value) return;
+  sendLoading.value = true;
+  try {
+    const { data } = await axios.post("http://localhost:5000/api/auth/validate-Mail", {
+      email: form.value.email,
+    });
+    // 后端返回 { token }（3分钟有效）
+    form.value.emailCodeToken = data?.token || '';
+    if (!form.value.emailCodeToken) throw new Error('未获取到验证码token');
+    ElMessage.success('验证码已发送，请在3分钟内完成验证');
+    _startCooldown(60);
+  } catch (err) {
+    const msg = err?.response?.data?.message || err?.message || '发送失败，请稍后重试';
+    ElMessage.error(msg);
+  } finally {
+    sendLoading.value = false;
+  }
+}
+
+// 用户改了邮箱 → 清空旧验证码与令牌，重置倒计时
+watch(() => form.value.email, () => {
+  form.value.emailCode = '';
+  form.value.emailCodeToken = '';
+  cooldown.value = 0;
+  if (_timer) { clearInterval(_timer); _timer = null; }
+});
 
 const register = async () => {
   const phoneRegex = /^1[3-9]\d{9}$/;
@@ -241,12 +413,22 @@ const register = async () => {
     ElMessage.error("密码长度需为 6~18 位");
     return;
   }
+  if (!form.value.emailCodeToken) {
+    ElMessage.error("请先获取邮箱验证码");
+    return;
+  }
+  if (!form.value.emailCode || form.value.emailCode.length !== 6) {
+    ElMessage.error("请输入6位邮箱验证码");
+    return;
+  }
 
   try {
     const formData = new FormData();
     formData.append("name", form.value.name);
     formData.append("phone", form.value.phone);
     formData.append("email", form.value.email);
+    formData.append("emailCode", form.value.emailCode);
+    formData.append("emailCodeToken", form.value.emailCodeToken);
     formData.append("password", form.value.password);
     formData.append("teamId", form.value.userType === "fan" ? form.value.teamId : form.value.inviteCode);
     formData.append("teamName", form.value.teamName);
@@ -291,6 +473,125 @@ const handleUserTypeChange = async () => {
     }
   }
 };
+
+// —— 忘记密码弹窗状态 —— //
+const showResetDialog = ref(false);
+const resetForm = ref({
+  phone: "",
+  userType: "",
+  email: "",
+  code: "",
+  newPwd: "",
+  confirmPwd: "",
+});
+const resetToken = ref("");
+const resetSendLoading = ref(false);
+const resetSubmitLoading = ref(false);
+
+// 倒计时控制
+const resetCooldown = ref(0);
+let _resetTimer = null;
+
+const resetSendDisabled = computed(() => {
+  if (resetSendLoading.value || resetCooldown.value > 0) return true;
+  const phoneOk = /^1[3-9]\d{9}$/.test(resetForm.value.phone);
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetForm.value.email);
+  return !(phoneOk && emailOk && resetForm.value.userType);
+});
+
+const resetSendBtnText = computed(() =>
+  resetCooldown.value > 0 ? `重新发送(${resetCooldown.value}s)` : "获取验证码"
+);
+
+function _startResetCooldown(sec = 60) {
+  resetCooldown.value = sec;
+  _resetTimer && clearInterval(_resetTimer);
+  _resetTimer = setInterval(() => {
+    resetCooldown.value -= 1;
+    if (resetCooldown.value <= 0) {
+      clearInterval(_resetTimer);
+      _resetTimer = null;
+    }
+  }, 1000);
+}
+onUnmounted(() => _resetTimer && clearInterval(_resetTimer));
+
+// 打开弹窗
+const openResetDialog = () => {
+  showResetDialog.value = true;
+  Object.assign(resetForm.value, {
+    phone: form.value.phone || "",
+    userType: form.value.userType || "",
+    email: form.value.email || "",
+    code: "",
+    newPwd: "",
+    confirmPwd: "",
+  });
+  resetToken.value = "";
+  resetCooldown.value = 0;
+};
+
+// 点击“获取验证码”
+async function onSendResetCode() {
+  if (resetSendDisabled.value) return;
+  resetSendLoading.value = true;
+  try {
+    const { data } = await axios.post("http://localhost:5000/api/auth/send-reset-code", {
+      phone: resetForm.value.phone,
+      type: resetForm.value.userType,
+      email: resetForm.value.email,
+    });
+    resetToken.value = data?.token || "";
+    if (!resetToken.value) throw new Error("未获取到重置 token");
+    ElMessage.success("验证码已发送，请在3分钟内完成验证");
+    _startResetCooldown(60);
+  } catch (err) {
+    const msg = err?.response?.data?.message || err?.message || "发送失败，请稍后重试";
+    ElMessage.error(msg);
+  } finally {
+    resetSendLoading.value = false;
+  }
+}
+
+// 点击“重置密码”
+async function onDoResetPassword() {
+  const { code, newPwd, confirmPwd } = resetForm.value;
+
+  if (!code || code.length !== 6) {
+    ElMessage.error("请输入6位邮箱验证码");
+    return;
+  }
+  if (newPwd.length < 6 || newPwd.length > 18) {
+    ElMessage.error("密码长度需为6~18位");
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    ElMessage.error("两次输入的新密码不一致");
+    return;
+  }
+  if (!resetToken.value) {
+    ElMessage.error("请先获取验证码");
+    return;
+  }
+
+  resetSubmitLoading.value = true;
+  try {
+    const payload = {
+      token: resetToken.value,
+      code: code.trim().toUpperCase(),
+      newPassword: newPwd,
+    };
+    await axios.post("http://localhost:5000/api/auth/reset-password", payload);
+    ElMessage.success("密码重置成功，请使用新密码登录");
+    showResetDialog.value = false;
+  } catch (err) {
+    const msg = err?.response?.data?.message || err?.message || "重置失败，请稍后重试";
+    ElMessage.error(msg);
+  } finally {
+    resetSubmitLoading.value = false;
+  }
+}
+
 </script>
 
 <style scoped>
@@ -360,4 +661,37 @@ h2 {
 .toggle-btn:hover {
   color: #409eff;
 }
+/* 第二行两个文本按钮左右分布 */
+.aux-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end; /* ✅ 改成靠右对齐 */
+  align-items: center;
+  gap: 110px; /* 可选：两个按钮之间留点空隙 */
+  width: 100%; /* 确保在整个卡片宽度内右对齐 */
+}
+
+/* 复用原有 .toggle-btn 样式，但去掉强制 100% 宽度以便并排 */
+.toggle-btn--inline {
+  width: auto !important;
+  display: inline-block;
+  margin-top: 0; /* 在行内统一高度 */
+}
+
+/* 让 input 右侧的按钮显示真实颜色 */
+.el-input-group__append .el-button {
+  color: #fff;
+  background-color: #409eff;
+  border-color: #409eff;
+  transition: background-color 0.3s;
+}
+.el-input-group__append .el-button.is-disabled {
+  color: #909399;
+  background-color: #f0f0f0;
+  border-color: #dcdfe6;
+}
+.el-input-group__append .el-button:hover:not(.is-disabled) {
+  background-color: #66b1ff;
+}
+
 </style>

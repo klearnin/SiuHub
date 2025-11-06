@@ -9,7 +9,11 @@ exports.addTeamHonor = async (req, res, next) => {
       if (!user.team_id || !title || !honor_date) {
         return res.status(400).json({ msg: "缺少必要信息" });
       }
-  
+      
+      const today = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split("T")[0];
+      if (honor_date > today) {
+        return res.status(400).json({ msg: "荣誉日期不能是未来时间" });
+      }
       await db.startQuery(`
         INSERT INTO team_honors (team_id, title, description, honor_date)
         VALUES (?, ?, ?, ?)`,
@@ -56,6 +60,11 @@ exports.addPersonalHonor = async (req, res, next) => {
 
     if (!user_id || !title || !honor_date) {
       return res.status(400).json({ msg: "缺少必要信息" });
+    }
+
+    const today = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split("T")[0];
+    if (honor_date > today) {
+      return res.status(400).json({ msg: "荣誉日期不能是未来时间" });
     }
 
     await db.startQuery(`
@@ -132,7 +141,12 @@ exports.updateTeamHonor = async (req, res, next) => {
       const { id } = req.params;
       const { title, description, honor_date } = req.body;
       const user = req.user;
-  
+      
+      const today = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split("T")[0];
+      if (honor_date > today) {
+        return res.status(400).json({ msg: "荣誉日期不能是未来时间" });
+      }
+
       const result = await db.startQuery(
         `UPDATE team_honors
          SET title = ?, description = ?, honor_date = ?
@@ -155,7 +169,12 @@ exports.updatePersonalHonor = async (req, res, next) => {
       if (!user_id) {
         return res.status(400).json({ code: 1, msg: "缺少 user_id 参数" });
       }
-  
+      
+      const today = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split("T")[0];
+      if (honor_date > today) {
+        return res.status(400).json({ msg: "荣誉日期不能是未来时间" });
+      }
+      
       const result = await db.startQuery(
         `UPDATE personal_honors
          SET title = ?, description = ?, honor_date = ?

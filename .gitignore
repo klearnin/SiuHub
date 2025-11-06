@@ -1,1 +1,3 @@
 node_modules
+# 忽略后端 public 目录中的 video 文件
+backend/public/video/

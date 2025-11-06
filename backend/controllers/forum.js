@@ -1,16 +1,34 @@
 const db = require("../database");
-
+const path = require('path');     // ✅ 缺它才会报 path is not defined
+const fs = require("fs");
+const crypto = require("crypto");
 
 // 创建帖子（已去除 title）
 exports.createPost = async (req, res, next) => {
   try {
-    const { content } = req.body; // 只接收 content
+    const { content } = req.body;
     const user_id = req.user.id;
 
+    let imagePaths = [];
+
+    // ✅ 将上传的 buffer 存入 public/forum-images 文件夹
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const ext = path.extname(file.originalname) || '.jpg';
+        const filename = crypto.randomUUID() + ext;
+        const savePath = path.join(__dirname, "../public/forum-images", filename);
+
+        // 写入本地
+        fs.writeFileSync(savePath, file.buffer);
+
+        imagePaths.push("/public/forum-images/" + filename);
+      }
+    }
+
     await db.startQuery(`
-      INSERT INTO forum_posts (user_id, content, created_at)
-      VALUES (?, ?, NOW())
-    `, [user_id, content]);
+      INSERT INTO forum_posts (user_id, content, images, created_at)
+      VALUES (?, ?, ?, NOW())
+    `, [user_id, content, JSON.stringify(imagePaths)]);
 
     res.json({ code: 0, msg: "发帖成功" });
   } catch (err) {
@@ -44,6 +62,8 @@ exports.getPosts = async (req, res, next) => {
 
     for (const post of posts) {
       post.liked = user_id ? likedSet.has(post.id) : false;
+
+      post.images = post.images ? JSON.parse(post.images) : [];
 
       const topComments = await db.startQuery(`
         SELECT c.*, u.name AS screen_name, u.avatar,

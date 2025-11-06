@@ -3,14 +3,12 @@
     <!-- 顶部导航栏 -->
     <div class="nav-bar">
       <router-link to="/forum" class="nav-item">论坛</router-link>
-    
-
       <router-link to="/cmanageTeam" class="nav-item">人员管理</router-link>
       <router-link to="/teamstats" class="nav-item">主队查看</router-link>
       <router-link to="/Cschedule" class="nav-item">球队日程</router-link>
       <router-link to="/ctacticcanvas" class="nav-item">战术画板</router-link>
-     
-      <!-- 修改后 -->
+      <router-link to="/cvideo" class="nav-item">视频管理</router-link>
+   
       <div 
         class="nav-item dropdown-wrapper"
         @mouseenter="showNoticeDropdown = true"
@@ -28,25 +26,24 @@
         </transition>
       </div>
 
-
-
-
       <router-link to="/ctacticboard" class="nav-item">球队战术</router-link>
     </div>
 
     <!-- 右上角头像 -->
     <div class="top-bar">
-  <div class="avatar-wrapper">
-    <img :src="avatarUrl" alt="头像" class="avatar" />
-    <div class="dropdown">
-      <ul>
-        <li @click="goToReview">审核人员</li>
-        <li @click="openInviteDialog">邀请码</li>
-        <li @click="logout">退出登录</li>
-      </ul>
+      <div class="avatar-wrapper">
+        <img :src="avatarUrl" alt="头像" class="avatar" />
+        <div class="dropdown">
+          <ul>
+            <li @click="goToReview">审核人员</li>
+            <li @click="openInviteDialog">邀请码</li>
+            <li @click="opentransferCoach">教练转让</li>
+            <li @click="logout">退出登录</li>
+          </ul>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+
     <!-- 弹窗：邀请码展示 -->
     <el-dialog v-model="inviteVisible" title="我的球队邀请码" width="30%">
       <div style="font-size: 18px; text-align: center; margin-bottom: 20px;">
@@ -57,38 +54,142 @@
         <el-button @click="updateInviteCode">更新</el-button>
       </div>
     </el-dialog>
-    
+
+    <!-- 教练转让弹窗 -->
+    <el-dialog v-model="transferVisible" title="教练转让" width="30%">
+      <div class="transfer-dialog">
+        <div class="search-section">
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索人员..."
+            prefix-icon="Search"
+            clearable
+            @input="filterUsers"
+          />
+        </div>
+        
+        <div class="user-list">
+          <div
+            v-for="user in filteredUsers"
+            :key="user.uid"
+            class="user-item"
+            :class="{ 'selected': selectedUser && selectedUser.uid === user.uid }"
+            @click="selectUser(user)"
+          >
+            <div class="user-info">
+              <div class="user-name">{{ user.player_name||user.name }}</div>
+              <div class="user-role">{{ getUserRole(user) }}</div>
+            </div>
+            <div class="user-action">
+              <el-button
+                type="primary"
+                size="small"
+                @click.stop="transferCoach(user.uid)"
+              >
+                转让
+              </el-button>
+            </div>
+          </div>
+          
+          <div v-if="filteredUsers.length === 0" class="empty-state">
+            暂无相关人员
+          </div>
+        </div>
+      </div>
+    </el-dialog>
+
     <div class="container">
-    <div class="item">
-      <img src="../../assets/1.jpg" alt="" />
+      <div class="item">
+        <img src="../../assets/1.jpg" alt="" />
+      </div>
+      <div class="item">
+        <img src="../../assets/2.jpg" alt="" />
+      </div>
+      <div class="item">
+        <img src="../../assets/3.jpg" alt="" />
+      </div>
+      <div class="item">
+        <img src="../../assets/4.jpg" alt="" />
+      </div>
+      <div class="item-5">
+        <img :src="avatarUrl" alt="" />
+      </div>
     </div>
-    <div class="item">
-      <img src="../../assets/2.jpg" alt="" />
-    </div> <div class="item">
-      <img src="../../assets/3.jpg" alt="" />
-    </div> <div class="item">
-      <img src="../../assets/4.jpg" alt="" />
-    </div> <div class="item-5">
-      <img :src=" avatarUrl" alt="" />
-    </div>
-</div>
   </div>
+  <Announcement />
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
+import Announcement from '@/components/Announcement.vue'
 
 const router = useRouter();
+
+// 响应式数据
 const avatarUrl = ref(null);
 const dropdownVisible = ref(false);
 const inviteVisible = ref(false);
+const transferVisible = ref(false);
 const inviteCode = ref("");
 const showNoticeDropdown = ref(false);
+const searchKeyword = ref('');
+const selectedUser = ref(null);
+const users = ref([]); // 修正：确保 users 是响应式数组
 
-onMounted(() => {
+
+function parseJwt(token) {
+  try {
+    const base64Payload = token.split('.')[1];
+    const payload = atob(base64Payload);
+    return JSON.parse(payload);
+  } catch (err) {
+    console.error("Token解析失败", err);
+    return {};
+  }
+}
+
+
+// 计算属性 - 过滤用户列表
+const filteredUsers = computed(() => {
+   const token = localStorage.getItem("token");
+   let userId=null;
+  if (token) {
+    const payload = parseJwt(token);
+     userId = payload.userId;
+  }
+ // 首先过滤掉当前用户
+ let filtered = users.value.filter(user => user.uid !== userId);
+  // 如果没有搜索关键词，返回过滤后的列表
+  if (!searchKeyword.value) {
+    return filtered;
+  }
+  
+  // 如果有搜索关键词，进一步过滤
+  const keyword = searchKeyword.value.toLowerCase();
+  return filtered.filter(user => {
+    const name = (user.player_name || user.name || '').toLowerCase();
+    const role = getUserRole(user).toLowerCase();
+    return name.includes(keyword) || role.includes(keyword);
+  });
+});
+
+// 获取用户角色
+const getUserRole = (user) => {
+  if (user.role) return user.role;
+  if (user.player_name) return '球员';
+  if (user.type === 'manager') return '经理';
+  if (user.type === 'medic') return '队医';
+  if(user.type ==='coach') return '教练';
+  if(user.type ==='fan') return '球迷';
+  return '未知角色';
+};
+
+// 合并的 onMounted
+onMounted(async () => {
+  // 检查权限
   const token = localStorage.getItem("token");
   if (token) {
     const payload = JSON.parse(atob(token.split(".")[1]));
@@ -97,14 +198,15 @@ onMounted(() => {
     if (userType !== "coach") {
       ElMessage.error("无权访问该页面");
       router.replace("/login");
+      return;
     }
   } else {
     ElMessage.error("请先登录");
     router.replace("/login");
+    return;
   }
-});
 
-onMounted(async () => {
+  // 获取头像
   try {
     const token = localStorage.getItem("token");
     const res = await axios.get("http://localhost:5000/api/user/my-avatar", {
@@ -115,13 +217,28 @@ onMounted(async () => {
   } catch (err) {
     console.error("获取头像失败", err);
   }
-  fetchUserList();
+
+  // 获取用户列表
+  await fetchUserList();
 });
 
+// 获取用户列表
+const fetchUserList = async () => {
+  try {
+    const response = await axios.get("http://localhost:5000/api/player/list", { 
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    users.value = response.data.userlist || []; // 修正：使用 users.value
+    console.log("获取用户列表成功:", users.value);
+  } catch (error) {
+    console.error('获取球员列表失败', error);
+    ElMessage.error('获取球员列表失败');
+  }
+};
 
-
-
-
+// 打开邀请码弹窗
 const openInviteDialog = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -133,25 +250,11 @@ const openInviteDialog = async () => {
     dropdownVisible.value = false;
   } catch (err) {
     console.error("获取邀请码失败", err);
+    ElMessage.error("获取邀请码失败");
   }
 };
-let users = ref([]);
-const fetchUserList = async()=>{
-      try {
-            const response = await axios.get("http://localhost:5000/api/player/list", { 
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              }
-            });
-            users = response.data.userlist;
-         
-           
-          } catch (error) {
-            console.error('获取球员列表失败', error);
-            ElMessage.error('获取球员列表失败');
-          } 
-    };
 
+// 复制邀请码
 const copyInviteCode = async () => {
   try {
     await navigator.clipboard.writeText(inviteCode.value);
@@ -161,6 +264,7 @@ const copyInviteCode = async () => {
   }
 };
 
+// 更新邀请码
 const updateInviteCode = async () => {
   try {
     const token = localStorage.getItem("token");
@@ -168,18 +272,107 @@ const updateInviteCode = async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
     inviteCode.value = res.data.inviteCode;
+    ElMessage.success("邀请码更新成功");
   } catch (err) {
     console.error("更新邀请码失败", err);
+    ElMessage.error("更新邀请码失败");
   }
 };
 
+// 退出登录
 const logout = () => {
   localStorage.removeItem("token");
   router.push("/login");
 };
 
+// 跳转到审核页面
 const goToReview = () => {
   router.push("/chome/review");
+};
+
+// 打开教练转让弹窗
+const opentransferCoach = async () => {
+  transferVisible.value = true;
+  selectedUser.value = null;
+  searchKeyword.value = '';
+  
+  // 如果用户列表为空，则获取用户列表
+  if (users.value.length === 0) {
+    await fetchUserList();
+  }
+};
+
+// 选择用户
+const selectUser = (user) => {
+  selectedUser.value = user;
+};
+
+// 过滤用户（计算属性会自动更新，这里保留函数但不做操作）
+const filterUsers = () => {
+  // 计算属性会自动更新，这里不需要额外操作
+};
+
+// 教练转让函数
+const transferCoach = async (userId) => {
+  if (!userId) {
+    ElMessage.warning('请选择要转让的用户');
+    return;
+  }
+  
+  try {
+    // 确认转让
+    await ElMessageBox.confirm(
+      '确定要将教练权限转让给该用户吗？此操作不可撤销。',
+      '确认转让',
+      {
+        confirmButtonText: '确定转让',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    
+    // 执行转让请求 - 修正URL和参数
+    const response = await axios.put(
+      `http://localhost:5000/api/player/transfer/ ${userId}`,
+      {}, // 空请求体，因为用户ID通过URL参数传递
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+    
+    if (response.data.code === 0) {
+      ElMessage.success('教练转让成功');
+      transferVisible.value = false;
+      logout();
+      // 转让成功后，可能需要重新登录或刷新页面
+      // 因为当前用户的身份已经从 coach 变为 fan
+      setTimeout(() => {
+        // 可以选择重新加载页面或跳转到登录页
+        window.location.reload();
+        // 或者：router.push('/login');
+      }, 1500);
+      
+    } else {
+      ElMessage.error(response.data.msg || '教练转让失败');
+    }
+  } catch (error) {
+    if (error === 'cancel') {
+      // 用户取消操作，不做任何处理
+      return;
+    }
+    
+    console.error('教练转让失败', error);
+    
+    // 更详细的错误处理
+    if (error.response) {
+      // 服务器返回错误状态码
+      ElMessage.error(error.response.data.msg || `转让失败: ${error.response.status}`);
+    } else {
+      ElMessage.error('教练转让失败，请稍后重试');
+    }
+  }
 };
 </script>
 
@@ -359,7 +552,6 @@ const goToReview = () => {
 
 .dropdown-trigger:hover {
   color: #00bcd4;
-  
 
 }
 
@@ -478,6 +670,90 @@ const goToReview = () => {
   visibility: visible;
 }
 
+/* 教练转让弹窗样式 - 新增部分 */
+.transfer-dialog {
+  padding: 10px 0;
+}
+
+.search-section {
+  margin-bottom: 20px;
+}
+
+.user-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.user-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-item:last-child {
+  border-bottom: none;
+}
+
+.user-item:hover {
+  background-color: #f5f7fa;
+}
+
+.user-item.selected {
+  background-color: #ecf5ff;
+  border-left: 3px solid #409eff;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #909399;
+}
+
+.user-action {
+  margin-left: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #909399;
+  font-size: 14px;
+}
+
+/* 滚动条样式 */
+.user-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
 </style>
 
 
