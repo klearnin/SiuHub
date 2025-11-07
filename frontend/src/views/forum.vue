@@ -17,6 +17,7 @@
                 :file-list="fileList"
                 :limit="maxImages"
                 :accept="accept"
+                :disabled="fileList.length >= maxImages"
                 @exceed="handleExceed"
                 @change="handleFileChange"
                 @remove="handleRemove"
@@ -26,7 +27,13 @@
                 :http-request="() => {}"
               >
                 <template #trigger>
-                  <el-icon v-show="fileList.length < maxImages" @click.stop><Plus /></el-icon>
+                  <div
+                    class="upload-trigger"
+                    :class="{ disabled: fileList.length >= maxImages }"
+                    @click="fileList.length >= maxImages && $event.stopPropagation()"
+                  >
+                    <el-icon><Plus /></el-icon>
+                  </div>
                 </template>
 
                 <!-- 自定义文件卡片：不渲染右上角小×；自己放预览和删除 -->
@@ -493,6 +500,29 @@
     height: var(--el-upload-list-picture-card-size);
   }
 
+  /* 确保上传触发器区域完全可点击 */
+  .upload-trigger {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
+  .upload-trigger .el-icon {
+    font-size: 24px;
+    color: #c0c4cc;
+    transition: color 0.3s ease;
+  }
+  .upload-trigger.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .upload-trigger.disabled .el-icon {
+    color: #dcdfe6;
+  }
+
   /* 兜底：把操作按钮层的点击开启 & 提高层级，防遮挡 */
   :deep(.el-upload-list__item) { position: relative; }
   :deep(.el-upload-list__item-actions) {
@@ -562,4 +592,3 @@
 
   
   </style>
-  

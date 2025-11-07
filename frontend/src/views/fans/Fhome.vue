@@ -23,72 +23,119 @@
     <div class="center">
       <Announcement />
 
-      <el-card class="home-card schedule-card" shadow="hover" :loading="loading">
-        <template #header>
-          <div class="card-header">
-            <div class="title">
-              <el-icon><Calendar /></el-icon>
-              <span>近五场比赛</span>
+      <!-- ✅ 新增：左右两栏容器 -->
+      <div class="content-grid">
+        <!-- 左栏：球队概况栏 + 近五场比赛卡片 -->
+        <div class="left-col">
+          <!-- 球队概况栏 -->
+          <div class="team-info-box">
+            <img class="team-logo" :src="formatLogo(teamInfo.logo_path)" alt="球队logo" />
+            <div class="team-info-right">
+              <div class="team-meta">
+                <h2 class="team-name">{{ teamInfo.name }}</h2>
+                <div class="team-abbr">{{ teamInfo.abbr }}</div>
+              </div>
             </div>
           </div>
-        </template>
 
-        <!-- 内部用 v-if/v-else 控制列表/空态，但卡片永远渲染 -->
-        <div v-if="fiveMatches.length" class="schedule-list">
-          <div
-            v-for="(m, idx) in fiveMatches"
-            :key="m.id || idx"
-            class="schedule-item"
-            :class="{ closest: m.__isClosest }"
-          >
-            <div class="when">
-              <div class="date">{{ formatDate(m._dt) }}</div>
-              <div class="time">{{ formatTime(m._dt) }}</div>
-            </div>
-
-            <div class="vs">
-              <div class="pair">
-                <!-- 左队徽 + 队名 -->
-                <div class="team-left">
-                  <img v-if="m.team1Logo" :src="m.team1Logo" alt="" class="logo" />
-                  <span class="team-name text-ellipsis">{{ m.team1 }}</span>
-                </div>                
-                <div class="mid">
-                  <template v-if="m.type === 'past_match' && m.result && m.result !== 'VS'">
-                    <div class="score-main">{{ formatMainScore(m.result) }}</div>
-                    <div
-                      v-if="formatPenaltyScore(m.result)"
-                      class="score-penalty"
-                    >
-                      （{{ formatPenaltyScore(m.result) }}）
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div class="score-main">vs</div>
-                  </template>
+          <el-card class="home-card schedule-card" shadow="hover" :loading="loading">
+            <template #header>
+              <div class="card-header">
+                <div class="title">
+                  <el-icon><Calendar /></el-icon>
+                  <span>近五场比赛</span>
                 </div>
-                <!-- 右队名 + 队徽 -->
-                <div class="team-right">
-                  <span class="team-name text-ellipsis">{{ m.team2 }}</span>
-                  <img v-if="m.team2Logo" :src="m.team2Logo" alt="" class="logo" />
-                </div>                
               </div>
-              <div class="meta">
-                <el-tag size="small" type="info">{{ m.location || '待定球场' }}</el-tag>
-                <el-tag
-                  size="small"
-                  :type="m.type === 'past_match' ? 'success' : (m.type === 'match' ? 'warning' : '')"
-                  class="ml8"
-                >
-                  {{ m.type === 'past_match' ? '已结束' : (m.type === 'match' ? '未开始' : m.type) }}
-                </el-tag>
+            </template>
+
+            <!-- 内部用 v-if/v-else 控制列表/空态，但卡片永远渲染 -->
+            <div v-if="fiveMatches.length" class="schedule-list">
+              <div
+                v-for="(m, idx) in fiveMatches"
+                :key="m.id || idx"
+                class="schedule-item"
+                :class="{ closest: m.__isClosest }"
+              >
+                <div class="when">
+                  <div class="date">{{ formatDate(m._dt) }}</div>
+                  <div class="time">{{ formatTime(m._dt) }}</div>
+                </div>
+
+                <div class="vs">
+                  <div class="pair">
+                    <!-- 左队徽 + 队名 -->
+                    <div class="team-left">
+                      <img v-if="m.team1Logo" :src="m.team1Logo" alt="" class="logo" />
+                      <span class="team-name text-ellipsis">{{ m.team1 }}</span>
+                    </div>
+                    <div class="mid">
+                      <template v-if="m.type === 'past_match' && m.result && m.result !== 'VS'">
+                        <div class="score-main">{{ formatMainScore(m.result) }}</div>
+                        <div
+                          v-if="formatPenaltyScore(m.result)"
+                          class="score-penalty"
+                        >
+                          （{{ formatPenaltyScore(m.result) }}）
+                        </div>
+                      </template>
+                      <template v-else>
+                        <div class="score-main">vs</div>
+                      </template>
+                    </div>
+                    <!-- 右队名 + 队徽 -->
+                    <div class="team-right">
+                      <span class="team-name text-ellipsis">{{ m.team2 }}</span>
+                      <img v-if="m.team2Logo" :src="m.team2Logo" alt="" class="logo" />
+                    </div>
+                  </div>
+                  <div class="meta">
+                    <el-tag size="small" type="info">{{ m.location || '待定球场' }}</el-tag>
+                    <el-tag
+                      size="small"
+                      :type="m.type === 'past_match' ? 'success' : (m.type === 'match' ? 'warning' : '')"
+                      class="ml8"
+                    >
+                      {{ m.type === 'past_match' ? '已结束' : (m.type === 'match' ? '未开始' : m.type) }}
+                    </el-tag>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+
+            <el-empty v-else description="暂无赛程数据" />
+          </el-card>
         </div>
 
-        <el-empty v-else description="暂无赛程数据" />
-      </el-card>
+        <!-- 右栏：球员列表 -->
+        <div class="right-col">
+          <el-card class="home-card players-side" shadow="hover">
+            <template #header>
+              <div class="card-header">
+                <div class="title">球员列表</div>
+              </div>
+            </template>
+
+            <!-- 分组显示 -->
+            <div class="players-group" v-for="g in groupedPlayers" :key="g.key">
+              <div class="group-header">{{ g.title }}</div>
+              <div class="players-card-grid">
+                <div v-for="p in g.list" :key="p.id" class="player-card">
+                  <div class="pc-header">
+                    <el-avatar :src="p.avatar" :size="48" shape="circle">{{ p.name?.slice(0,1) }}</el-avatar>
+                    <div class="pc-meta">
+                      <div class="pc-name" :title="p.name">{{ p.name }}</div>
+                      <div class="pc-tags">
+                        <span v-if="p.position" class="pc-tag">{{ p.position }}</span>
+                        <span v-if="p.number!==null && p.number!==undefined" class="pc-tag">#{{ p.number }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -335,6 +382,7 @@
       teamInfo.value = await fetchTeamInfoApi();
       const raw = await fetchMatchesApi();
       buildSchedules(raw);
+      await fetchPlayers();
     } catch (e) {
       console.error(
         "[Fhome] load error:",
@@ -369,6 +417,54 @@
     localStorage.removeItem("token");
     router.push("/login");
   };
+
+  // ====== 新增：球员列表 ======
+  // 状态
+  const players = ref([]);
+
+  // 兼容 logo 路径为相对地址
+  const formatLogo = (p) => p ? (p.startsWith("http") ? p : `${BASE}${p}`) : null;
+
+  // 拉取球员统计（与 teamstat.vue 同源接口）
+  async function fetchPlayers() {
+    try {
+      const res = await axios.get("http://localhost:5000/api/team/players-stats", { headers });
+      players.value = (res.data?.data || []).map(p => ({
+        ...p,
+        avatar: formatLogo(p.avatar),
+        total_goals: Number(p.total_goals) || 0,
+        penalty_goals: Number(p.penalty_goals) || 0,
+        total_assists: Number(p.total_assists) || 0,
+      }));
+    } catch (e) {
+      ElMessage.error("加载球员统计失败");
+    }
+  }
+
+  // 位置归类
+  const roleBucket = (pos) => {
+    if (pos === '守门员' || pos === '门将' || pos === 'GK') return 'GK';
+    if (['左后卫','右后卫','中后卫','中卫','DEF'].includes(pos)) return 'DEF';
+    if (['后腰','中前卫','前腰','左前卫','右前卫','中场','MID'].includes(pos)) return 'MID';
+    if (['中锋','影锋','左边锋','右边锋','前锋','FWD'].includes(pos)) return 'FWD';
+    return 'OTH';
+  };
+  const groupMeta = [
+    { key: 'GK',  title: '门将' },
+    { key: 'DEF', title: '后卫' },
+    { key: 'MID', title: '中场' },
+    { key: 'FWD', title: '前锋' },
+    { key: 'OTH', title: '其他' },
+  ];
+
+  // 计算：分组（默认视图，按号码排序）
+  const groupedPlayers = computed(()=>{
+    const sorter = (a,b)=> (a.number ?? 999) - (b.number ?? 999);
+    const buckets = { GK:[], DEF:[], MID:[], FWD:[], OTH:[] };
+    for (const p of players.value) (buckets[roleBucket(p.position)] || buckets.OTH).push(p);
+    for (const k of Object.keys(buckets)) buckets[k] = buckets[k].slice().sort(sorter);
+    return groupMeta.filter(g=>buckets[g.key]?.length).map(g=>({ key:g.key, title:g.title, list:buckets[g.key] }));
+  });
 </script>
   
   <style scoped>
@@ -505,6 +601,73 @@
     border-radius: 16px;
   }
 
+  .players-side {
+    border-radius: 16px;
+  }
+
+  .team-info-box {
+    display: flex;
+    gap: 20px;
+    background: #fff;
+    padding: 16px 20px;
+    border-radius: 16px;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+    align-items: center;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.06);
+    transition: box-shadow .15s ease, transform .15s ease;
+  }
+
+  .team-info-box:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  }
+
+  .team-logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccc;
+    background-color: #fff;
+  }
+
+  .team-info-right {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+    padding-right: 200px;
+  }
+
+  .team-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .team-name {
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .team-abbr {
+    margin-top: 2px;
+    font-size: 15px;
+    color: #8a93a6;
+  }
+
+  .team-meta h2 {
+    margin: 0;
+    line-height: 1.2;
+    font-size: 20px;
+    font-weight: 700;
+    word-break: break-word;
+  }
+
   .card-header .title {
     display: flex; align-items: center; gap: 8px;
     font-weight: 600; font-size: 16px;
@@ -557,7 +720,7 @@
   .ml8 { margin-left: 8px; }
 
   .center {
-    max-width: 980px;
+    max-width: 1200px;
     margin: 24px auto 40px; /* 居中 */
     padding: 0 16px;
   }
@@ -648,5 +811,45 @@
     max-width: 100%;
   }
 
+  /* 两栏布局 */
+  .content-grid{
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* 左宽右窄 */
+    gap: 16px;
+    align-items: start;
+  }
+  .left-col, .right-col { min-width: 0; }
+
+  /* 右侧：球员卡片（精简版，风格与 teamstat 保持一致） */
+  .players-toolbar{ display:flex; align-items:center; }
+  .ml8{ margin-left:8px; }
+  .group-header{
+    font-size:14px; font-weight:700; color:#374151;
+    margin:10px 2px 8px; display:inline-flex; align-items:center; gap:8px;
+  }
+  .group-header::before{
+    content:''; width:6px; height:6px; border-radius:50%; background:#60a5fa;
+  }
+  .players-card-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
+    gap:12px;
+  }
+  .player-card{
+    background:#fff; border:1px solid #e6e8eb; border-radius:16px; padding:12px;
+    display:flex; flex-direction:column; gap:10px;
+    transition: box-shadow .15s ease, transform .15s ease;
+  }
+  .player-card:hover{ transform: translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.06); }
+  .pc-header{ display:grid; grid-template-columns:48px 1fr; gap:10px; align-items:center; }
+  .pc-meta{ min-width:0; }
+  .pc-name{ font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pc-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+  .pc-tag{ font-size:12px; padding:2px 8px; border-radius:999px; background:#f3f4f6; color:#4b5563; border:1px solid #e5e7eb; }
+  .pc-stats{ border-top:1px dashed #e5e7eb; padding-top:8px; }
+  .pc-stats-head, .pc-stats-body{ display:grid; grid-template-columns:1fr 1fr; }
+  .pc-stats-head{ font-size:12px; color:#6b7280; margin-bottom:4px; }
+  .pc-stats-body{ font-size:16px; font-weight:700; color:#111827; }
+  .pc-stats-body small{ font-size:11px; font-weight:500; color:#6b7280; margin-left:2px; }
+  .flat-header{ font-size:12px; color:#6b7280; margin:6px 2px 10px; }
+
   </style>
-  
