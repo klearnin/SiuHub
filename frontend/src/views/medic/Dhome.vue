@@ -48,6 +48,10 @@
           <div class="team-meta">
             <h2 class="team-name">{{ teamInfo.name }}</h2>
             <div class="team-abbr">{{ teamInfo.abbr }}</div>
+            <div class="injury-count">
+              <span class="injury-count-label">当前伤病人数：</span>
+              <span class="injury-count-number">{{ injuredPlayers.length }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -129,7 +133,7 @@
           <el-card class="home-card players-side" shadow="hover">
             <template #header>
               <div class="card-header">
-                <div class="title">球员列表</div>
+                <div class="title">伤病球员列表</div>
               </div>
             </template>
 
@@ -141,7 +145,7 @@
                   <div class="ipc-meta">
                     <div class="ipc-name" :title="p.name">{{ p.name }}</div>
                     <div class="ipc-tags">
-                      <span v-if="p.position" class="ipc-tag">{{ p.position }}</span>
+                      <span class="ipc-tag injury-status">受伤</span>
                       <span v-if="p.number!==null && p.number!==undefined" class="ipc-tag">#{{ p.number }}</span>
                     </div>
                   </div>
@@ -445,7 +449,6 @@
               ...player,
               name: player.player_name, // 统一字段名
               avatar: formatLogo(player.avatar),
-              position: player.position || '未知', // 如果有位置信息
               number: player.number || null, // 如果有号码信息
               injury_description: currentInjury?.description || '暂无描述',
               expected_recovery: currentInjury ? `${currentInjury.recovery_days}天` : '未知',
@@ -459,7 +462,6 @@
               ...player,
               name: player.player_name,
               avatar: formatLogo(player.avatar),
-              position: player.position || '未知',
               number: player.number || null,
               injury_description: '暂无描述',
               expected_recovery: '未知',
@@ -812,6 +814,29 @@
   word-break: break-word;
 }
 
+.injury-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.injury-count-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.injury-count-number {
+  font-size: 16px;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+}
+
 /* ======= 两栏布局 ======= */
 .content-grid{
   display: grid;
@@ -1043,6 +1068,13 @@
   color: #4b5563;
   border: 1px solid #e5e7eb;
   font-weight: 500;
+}
+
+.ipc-tag.injury-status {
+  background: #dc2626;
+  color: white;
+  border: 1px solid #dc2626;
+  font-weight: 600;
 }
 
 .ipc-injury-info {
