@@ -77,6 +77,8 @@
               <div class="cell logo">
                 <el-avatar v-if="row.selfLogo" :src="row.selfLogo" shape="circle" :size="36" />
                 <el-avatar v-else shape="circle" :size="36">我队</el-avatar>
+                <!-- 显示本队名称（模板中 ref 自动解包） -->
+                <span class="self-team-name">{{ row.selfName || teamInfo.name }}</span>
               </div>
 
               <!-- 比分/VS（居中 + 点球置于下一行） -->
@@ -209,19 +211,24 @@
       </div>
     </div>
   </div>
-  <el-dialog v-model="showDetail" width="90%">
-    <template #header>
-      <div class="dialog-header">
-        <span>比赛详情</span>
-        <span v-if="selectedMatch" class="dialog-sub">地点：{{ selectedMatch.field }}</span>
+  <!-- 使用独立覆盖层显示比赛详情，打开时锁定 body 滚动，内部可滚动 -->
+  <div v-if="showDetail" class="match-detail-overlay">
+    <div class="match-detail-panel">
+      <div class="detail-header">
+        <div>
+          <span class="detail-title">比赛详情</span>
+        </div>
+        <el-button type="text" @click="showDetail = false">关闭</el-button>
       </div>
-    </template>
-    <MatchDetailCard :match-id="matchId" :key="matchId" @close="showDetail = false" />
-  </el-dialog>
+      <div class="detail-body">
+        <MatchDetailCard :match-id="matchId" :key="matchId" @close="showDetail = false" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed , nextTick } from 'vue'
+import { ref, onMounted, computed , nextTick , watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
@@ -404,6 +411,8 @@ const fetchSchedules = async () => {
           field: m.location,
           isFuture,
           opponent,
+          // 添加 selfName 字段用于模板显示本队名称
+          selfName: teamInfo.value.name || '',
           opponentLogo: opponentLogoRaw ? `http://localhost:5000${opponentLogoRaw}` : null,
           selfLogo: selfLogoRaw ? `http://localhost:5000${selfLogoRaw}` : formatLogo(teamInfo.value.logo_path),
           resultMain,
@@ -664,6 +673,13 @@ onMounted(async () => {
   fetchStats()
   fetchRecentMatchStatus()
 })
+// 新增：当详情弹层打开时锁定页面滚动，关闭时恢复
+watch(showDetail, (v) => {
+  document.body.style.overflow = v ? 'hidden' : ''
+})
+onUnmounted(() => {
+  document.body.style.overflow = ''
+})
 </script>
 
 <style scoped>
@@ -857,7 +873,8 @@ onMounted(async () => {
 .schedule-list { display: flex; flex-direction: column; gap: 8px; }
 .schedule-item {
   display: grid;
-  grid-template-columns: 1.5fr 0.7fr 0.8fr 1.6fr; /* 时间场地 | 本队 | 结果 | 对手 */
+  /* 调整列宽，给两队名称更多空间，避免过早省略 */
+  grid-template-columns: 1.4fr 1.0fr 0.8fr 1.8fr; /* 时间场地 | 本队 | 结果 | 对手 */
   align-items: center;
   padding: 12px 16px;
   background: #fff;
@@ -869,6 +886,25 @@ onMounted(async () => {
 .schedule-item.highlight { outline: 2px solid #409eff44; box-shadow: 0 0 0 3px #409eff22 inset; }
 .schedule-item:hover { box-shadow: 0 6px 18px rgba(0,0,0,.06); transform: translateY(-1px); }
 
+/* 把本队（第二列：logo 单元）整体向右移动一点，保持 avatar + 名称 相对位置不变 */
+.schedule-item > .logo:nth-child(2) {
+  padding-left: 15px; /* 右移量，可按需调整为 10~20px */
+}
+
+.schedule-item > .logo:nth-child(4) {
+  padding-left: 15px; /* 右移量，可按需调整为 10~20px */
+}
+/* 增大对手头像与队名之间的空隙（覆盖 .cell 的 gap:10px） */
+.schedule-item .opponent {
+  justify-content: flex-start;
+  gap: 18px; /* 从 10px 增大到 18px，使 avatar 与名字间距更明显 */
+}
+
+/* 若需要更精确控制 avatar 本身的外边距（可选） */
+.schedule-item .opponent :deep(.el-avatar) {
+  /* 确保 avatar 与名字间没有额外负 margin，通常不必改动 */
+  margin-right: 0;
+}
 .cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
 
 /* 时间与场地 */
@@ -904,7 +940,16 @@ onMounted(async () => {
 
 .opponent { justify-content: flex-start; }
 .opponent-name {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #374151;
+  /* 与本队名统一样式：允许最多两行、换行显示并省略溢出 */
+  font-weight:600;
+  color:#111827;
+  font-size:14px;
+  line-height:1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 .dialog-header { display: flex; align-items: baseline; gap: 12px; }
 .dialog-sub { font-size: 13px; color: #6b7280; }
@@ -1256,5 +1301,53 @@ onMounted(async () => {
   height: 50%;
   
   
+}
+.self-team-name{
+  margin-left:8px;
+  font-weight:600;
+  color:#111827;
+  font-size:14px;
+  line-height:1.2;
+  /* 允许换行，最多两行，超出显示省略，保持与对手名格式一致 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* 比赛详情覆盖层：全屏固定，内部可滚动，外部页面锁定 */
+.match-detail-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.match-detail-panel{
+  width: 95%;
+  max-width: 1100px;
+  height: 90%;
+  background: #fff;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 内部滚动由 detail-body 控制 */
+}
+.detail-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eef2f6;
+}
+.detail-body{
+  flex:1;
+  overflow:auto;
+  padding: 16px;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

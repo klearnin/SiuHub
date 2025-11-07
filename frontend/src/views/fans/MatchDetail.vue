@@ -5,7 +5,8 @@
         <img v-if="teamLogo" :src="teamLogo" alt="主队队徽" class="team-logo-small" />
         <span class="team">{{ team1 }}</span>
         <span class="match_center">
-          <span>{{ matchTime }}</span>
+          <span class="match-time">{{ matchTime }}</span>
+          <span class="match-location" v-if="location">地点：{{ location }}</span>
           <span class="score">{{ score.team1.goal }} - {{ score.team2.goal }}</span>
           <span v-if="score.hasPenalty" class="score-penalty">
             点球：{{ score.team1.penalty }} - {{ score.team2.penalty }}
@@ -90,6 +91,7 @@ export default {
       teamLogo: '',
       team2Logo: '',
       matchTime: '',
+      location: '',          // 新增：地点
       score: {
         team1: { goal: 0, penalty: 0 },
         team2: { goal: 0, penalty: 0 },
@@ -127,6 +129,7 @@ export default {
             this.team1 = match.team1;
             this.team2 = match.team2;
             this.matchTime = match.match_time;
+            this.location = match.location || match.field || match.venue || ''  // 取可用的地点字段
             this.events = events;
 
             this.score = {
@@ -217,6 +220,13 @@ export default {
   justify-content: space-between;
   align-items: center;
   width: 100px;
+}
+
+.match-location {
+  color: #9aa0a6; /* 更浅的颜色 */
+  font-size: 12px; /* 更小的字体 */
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 .score {

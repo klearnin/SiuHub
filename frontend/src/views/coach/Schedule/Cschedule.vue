@@ -67,7 +67,8 @@
                 <img v-if="teamLogo" :src="teamLogo" alt="主队队徽" class="team-logo-small" />
                   <span class="team">{{ teamname  }}</span>
                 <span class="match_center">
-                  <span class="">{{ matchTime }}</span>
+                  <span class="match-time">{{ matchTime }}</span>
+                  <span class="match-location" v-if="matchLocation">地点：{{ matchLocation }}</span>
                   <span class="score">{{ Object.values(scoredata.score)[0].goal }} - {{ Object.values(scoredata.score)[1].goal }}</span>
                     <span v-if="scoredata.has_penalty_shootout" class="score-penalty">
                       点球：{{ Object.values(scoredata.score)[0].penalty }} - {{ Object.values(scoredata.score)[1].penalty }}
@@ -1340,4 +1341,18 @@ export default {
   left: -6px;
 }
 
+.match-location {
+  color: #9aa0a6; /* 更浅的颜色 */
+  font-size: 12px; /* 更小字体 */
+  margin-top: 4px;
+  font-weight: 500;
+  display: block;
+}
+
+/* 如需与其它样式统一，可调整 match-time 的样式 */
+.match-time {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
 </style>
