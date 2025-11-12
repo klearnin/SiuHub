@@ -3,6 +3,9 @@ import Home from "../views/Home.vue";
 import Login from '../views/Login.vue';
 import Review from '../views/coach/Review.vue'
 
+//导入Element Plus消息提示组件
+import { ElMessage } from 'element-plus';
+
 //导入论坛界面
 import Forum from "../views/forum.vue";
 import ForumDetail from "../views/forumDetail.vue";
@@ -18,6 +21,7 @@ import Phome from "../views/player/Phome.vue";
 import Pnotice from "../views/player/Pnotice.vue";
 import Pschedule from "../views/player/Schedule/Pschedule.vue";
 import PtacticBoard from "../views/player/TacticBoard/PtacticBoard.vue";
+
 //导入教练界面
 import Chome from "../views/coach/Chome.vue";
 //import CinfoChange from "../views/coach/CinfoChange.vue";
@@ -43,27 +47,57 @@ import Dnotice from "../views/medic/Notice/Dnotice.vue";
 import Dnotice_del from "../views/medic/Notice/Dnotice_del.vue";
 import Dinjury from "../views/medic/injury.vue";
 
-
+//导入AI分析界面
+import TacticAnalysis from "../views/ai/TacticAnalysis.vue";
+import PlayerHealthAnalysis from "../views/ai/PlayerHealthAnalysis.vue";
+import AiQaPage from "../views/ai/AiQaPage.vue";
 
 const routes = [
+  // 公共路由
   { path: "/", component: Home },
   { path: '/login', component: Login },
+  
+  // 论坛相关路由
   { path: '/forum', component: Forum },
   { path: '/forum/:id', component: ForumDetail },
+  
+  // 球迷相关路由
   { path: '/fhome', component: Fhome },
   { path: '/fnotice', component: Fnotice },
   { path: '/teamstats', component: Stats },
   { path: '/matchDetail/:id', component: MatchDetail },
+  
+  // 经理相关路由
   { path: '/mhome', component: Mhome },
   { path: '/mnotice', component: Mnotice },
-  { path: '/mnotice_del', component: Mnotice_del }, 
+  { path: '/mnotice_del', component: Mnotice_del },
   { path: '/matchToday', component: Mmatch },
   { path: '/mfinance', component: Mfinance },
   { path: '/mhonor', component: Mhonor },
+  
+  // 队医相关路由
   { path: '/dhome', component: Dhome },
   { path: '/dnotice', component: Dnotice },
-  { path: '/dnotice_del', component: Dnotice_del }, 
+  { path: '/dnotice_del', component: Dnotice_del },
   { path: '/injury', component: Dinjury },
+  // 队医教练AI分析路由
+  { path: '/medic/ai-health', name: 'PlayerHealthAnalysis', component: PlayerHealthAnalysis, meta: { requireAuth: true, roles: ['medic', 'coach'] } },
+  
+  // 球员相关路由
+  { path: "/phome", component: Phome },
+  { path: "/pnotice", component: Pnotice },
+  { path: "/ptacticboard", component: PtacticBoard },
+  { path: "/pschedule", component: Pschedule },
+  
+  // 教练相关路由
+  { path: "/chome", component: Chome },
+  { path: "/cnotice", component: Cnotice },
+  { path: "/cschedule", component: Cschedule },
+  { path: "/cnotice_del", component: Cnotice_del },
+  { path: "/ctest", component: Ctest },
+  { path: "/ctacticboard", component: CtacticBoard },
+  { path: "/ctacticcanvas", component: CtacticCanvas },
+  { path: "/cmanageTeam", component: ManageTeam },
   { path: '/chome/review', component: Review },
   { path: "/phome", component: Phome},
   { path: "/pnotice", component: Pnotice},
@@ -73,14 +107,17 @@ const routes = [
   { path: "/cmanageTeam", component: ManageTeam},
 
 
+
   { path: "/chome", component: Chome},
   { path: "/cnotice", component: Cnotice},
   { path: "/cschedule", component: Cschedule},
   { path: "/cnotice_del", component: Cnotice_del},
-  { path: "/ctest", component: Ctest},
-  { path: "/ctacticboard", component: CtacticBoard},
-//  { path: "/chome/cinfochange", component: CinfoChange},
-
+  {path: "/ctest", component: Ctest},
+  {path: "/ctacticboard", component: CtacticBoard},
+  // 教练AI分析路由
+  { path: '/coach/ai-tactic', name: 'TacticAnalysis', component: TacticAnalysis, meta: { requireAuth: true, roles: ['coach'] } },
+  // 独立的AI问答页面，所有用户均可访问
+  { path: '/ai/qa', name: 'AiQaPage', component: AiQaPage, meta: { requireAuth: true } },
     { path: "/", component: Home },
     { path: "/login", component: Login },
     {path: "/phome", component: Phome},
@@ -90,14 +127,13 @@ const routes = [
     {path: "/cnotice", component: Cnotice},
     {path: "/cschedule", component: Cschedule},
     {path: "/cnotice_del", component: Cnotice_del},
-    {path: "/cvideo", component: Video},
+    
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
 });
-
 
 // 解析 JWT token
 function parseJwt(token) {
@@ -129,7 +165,7 @@ router.beforeEach((to, from, next) => {
     console.log(`🛡️ 当前用户 ID: ${userId}`);
     console.log(`🛡️ 当前用户身份: ${userRole}`);
 
-    if (to.meta.role && userRole !== to.meta.role) {
+    if (to.meta.roles && !to.meta.roles.includes(userRole)) {
       // 跳转目标需要特定身份，但用户身份不符
       ElMessage.error("无权访问该页面");
       return next("/login");

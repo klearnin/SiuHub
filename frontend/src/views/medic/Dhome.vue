@@ -24,6 +24,21 @@
   
         <!-- 伤病管理 -->
         <router-link to="/injury" class="nav-item">伤病管理</router-link>
+        <div 
+          class="nav-item dropdown-wrapper"
+          @mouseenter="showAiDropdown = true"
+          @mouseleave="showAiDropdown = false"
+        >
+          <div class="dropdown-trigger">
+            AI入口
+          </div>
+          <transition name="fade-slide">
+            <div v-if="showAiDropdown" class="dropdown-menu">
+              <router-link to="/medic/ai-health" class="dropdown-item">AI球员分析</router-link>
+              <router-link to="/ai/qa" class="dropdown-item">AI问答中心</router-link>
+            </div>
+          </transition>
+        </div>
       </div>
   
       <!-- 右上角头像 -->
@@ -189,6 +204,7 @@
   const avatarUrl = ref(null);
   const dropdownVisible = ref(false);
   const showNoticeDropdown = ref(false);
+  const showAiDropdown = ref(false);
 
   // ===== 调试与请求头 =====
   const token = localStorage.getItem("token");
@@ -492,7 +508,7 @@
     }
     try {
       const payload = JSON.parse(atob(t.split(".")[1]));
-      if (payload.type !== "medic") {
+      if (payload.type !== "medic" && userType !== "coach") {
         ElMessage.error("无权访问该页面");
         return router.replace("/login");
       }

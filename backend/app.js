@@ -6,6 +6,7 @@ const path = require('path');
 const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
 const fs = require("fs");
+const openaiService = require('./services/openaiService');
 const listEndpoints = require('express-list-endpoints');
 
 // ① 确保静态资源目录存在（新增 videos）
@@ -15,6 +16,17 @@ folders.forEach((folder) => {
     fs.mkdirSync(folder, { recursive: true });
   }
 });
+
+// 初始化AI分析表
+async function initializeApp() {
+  try {
+    // 创建AI分析结果表
+    await openaiService.initAiAnalysisTable();
+    console.log('✅ AI分析表初始化成功');
+  } catch (error) {
+    console.error('⚠️ AI分析表初始化失败:', error);
+  }
+}
 
 // ② 请求体解析（调大上限，保留你原来的解析顺序与风格）
 app.use(express.json({ limit: '2500mb' }));                 // 原先是默认，按你需求调大
@@ -71,8 +83,12 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`SiuHub 后端服务已启动，端口号为 ${PORT}`);
+  
+  // 初始化应用
+  await initializeApp();
+  
   printRoutes(app);
 });
 

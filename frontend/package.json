@@ -19,6 +19,7 @@
     "echarts": "^5.6.0",
     "element-plus": "^2.9.8",
     "interactjs": "^1.10.27",
+    "marked": "^16.4.0",
     "paper": "^0.12.18",
     "pinia": "^3.0.1",
     "screenfull": "^6.0.2",
