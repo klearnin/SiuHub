@@ -225,7 +225,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 
 
@@ -675,6 +675,22 @@ async function deleteTactic() {
     ElMessage.warning('请选择要删除的战术');
     return;
   }
+
+  try {
+    await ElMessageBox.confirm(
+      '删除后将无法恢复该战术，是否继续？',
+      '确认删除',
+      {
+        confirmButtonText: '是',
+        cancelButtonText: '否',
+        type: 'warning'
+      }
+    );
+  } catch (error) {
+    // 用户取消，不执行删除
+    return;
+  }
+
   try {
     await axios.delete(`http://localhost:5000/api/tactics/${selectedTacticID.value}`, {
       headers: {
@@ -1104,13 +1120,15 @@ button i {
 }
 
 .player-name {
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: 600;
   line-height: 1.2;
   max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+  color: #ffffff;
 }
 
 /* 角色分配 */
