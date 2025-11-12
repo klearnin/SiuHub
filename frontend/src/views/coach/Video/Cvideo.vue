@@ -1073,6 +1073,7 @@ export default {
   justify-content: flex-start;
   align-items: flex-start;
   padding: 20px;
+  position: relative;
 }
 
 .video-actions {
@@ -1081,6 +1082,7 @@ export default {
   margin-bottom: 12px;
   width: 100%;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .video-title {
@@ -1094,7 +1096,11 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.4;
-  height: 45px;
+  min-height: 45px;
+  max-height: 45px;
+  word-break: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .video-meta {
@@ -1151,6 +1157,7 @@ export default {
 /* 上传组件样式调整 */
 .upload-demo {
   border: 2px dashed #dcdfe6;
+  width: 450px;
   border-radius: 12px;
   padding: 25px;
   text-align: center;

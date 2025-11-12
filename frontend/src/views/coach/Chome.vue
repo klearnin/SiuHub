@@ -97,8 +97,157 @@
         </div>
       </div>
     </el-dialog>
+    
+    <!-- 信息展示面板 -->
+    <div class="info-panel">
+      <!-- 球队人员概况 -->
+      <div class="info-card team-overview">
+        <div class="card-header">
+          <h3>球队人员概况</h3>
+          <router-link to="/CmanageTeam" class="view-more">查看详情</router-link>
+        </div>
+        <div class="card-content">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">{{ playerCount }}</div>
+              <div class="stat-label">球员</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ managerCount }}</div>
+              <div class="stat-label">经理</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ doctorCount }}</div>
+              <div class="stat-label">队医</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ coachCount }}</div>
+              <div class="stat-label">教练</div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
 
-    <div class="container">
+      <!-- 近五场比赛情况 -->
+      <div class="info-card recent-matches">
+        <div class="card-header">
+          <h3>近五场比赛</h3>
+          <router-link to="/Cschedule" class="view-more">查看详情</router-link>
+        </div>
+        <div class="card-content">
+          <div v-if="recentMatches.length > 0" class="matches-list">
+            <div v-for="match in recentMatches" :key="match.id" class="match-item">
+              <div class="match-teams">
+                <span class="team-name">{{ match.homeTeam }}</span>
+                <span class="vs">VS</span>
+                <span class="team-name">{{ match.awayTeam }}</span>
+              </div>
+              <div class="match-info">
+                <span class="match-score">{{ match.score }}</span>
+                <span class="match-date">{{ match.date }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-else class="empty-state">
+            <p>暂无比赛记录</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 下场比赛信息 -->
+      <div class="info-card next-match">
+        <div class="card-header">
+          <h3>下场比赛</h3>
+          <router-link to="/Cschedule" class="view-more">查看详情</router-link>
+        </div>
+        <div class="card-content">
+          <div v-if="nextMatch" class="next-match-details">
+            <div class="match-teams">
+              <div class="team-info">
+                <img v-if="teamLogo" :src="teamLogo" alt="主队队徽" class="team-logo" />
+                <div v-else class="team-logo-placeholder">主队队徽</div>
+                <span class="team-name">{{ teamname || '我的球队' }}</span>
+              </div>
+              <span class="vs">VS</span>
+              <div class="team-info">
+                <img v-if="nextMatch && nextMatch.team2logo" :src="nextMatch.team2logo" alt="客队队徽" class="team-logo" />
+                <div v-else class="team-logo-placeholder">对手队徽</div>
+                <span class="team-name">{{ nextMatch && nextMatch.team2 ? nextMatch.team2 : '对手未设定' }}</span>
+              </div>
+            </div>
+            <div class="match-details">
+              <div class="detail-item">
+                <span class="label">时间:</span>
+                <span class="value">{{ nextMatch && nextMatch.match_time ? nextMatch.match_time : '时间未设定' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">地点:</span>
+                <span class="value">{{ nextMatch && nextMatch.location ? nextMatch.location : '地点未设定' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">日期:</span>
+                <span class="value">{{ nextMatch && nextMatch.date ? nextMatch.date : '日期未设定' }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-else class="empty-state">
+            <p>暂无即将开始的比赛</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 球队荣誉 -->
+      <div class="info-card team-honors">
+        <div class="card-header">
+          <h3>球队荣誉</h3>
+          <router-link to="/honor" class="view-more">查看详情</router-link>
+        </div>
+        <div class="card-content">
+          <div v-if="teamHonors.length > 0" class="honors-list">
+            <div v-for="honor in teamHonors" :key="honor.id" class="honor-item">
+              <div class="honor-title">{{ honor.title }}</div>
+              <div class="honor-date">{{ honor.date }}</div>
+            </div>
+          </div>
+          <div v-else class="empty-state">
+            <p>暂无荣誉记录</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 球队公告 -->
+      <div class="info-card team-notices">
+        <div class="card-header">
+          <h3>最新公告</h3>
+          <router-link to="/cnotice_del" class="view-more">查看详情</router-link>
+        </div>
+        <div class="card-content">
+          <div v-if="teamNotices.length > 0" class="notices-list">
+            <div v-for="notice in teamNotices" :key="notice.id" class="notice-item">
+              <div class="notice-header">
+                <div class="notice-title">{{ notice.title }}</div>
+                <el-tag
+                  :type="notice.type === 'team' ? 'success' : 'info'"
+                  size="small"
+                  class="type-tag"
+                >
+                  {{ notice.type === 'team' ? '球队公告' : '球迷公告' }}
+                </el-tag>
+              </div>
+              <div class="notice-content">{{ notice.preview }}</div>
+              <div class="notice-date">{{ notice.date }}</div>
+            </div>
+          </div>
+          <div v-else class="empty-state">
+            <p>暂无公告</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 旋转大风车 -->
+    <!--<div class="container">
       <div class="item">
         <img src="../../assets/1.jpg" alt="" />
       </div>
@@ -114,7 +263,7 @@
       <div class="item-5">
         <img :src="avatarUrl" alt="" />
       </div>
-    </div>
+    </div>-->
   </div>
 </template>
 
@@ -136,6 +285,15 @@ const showNoticeDropdown = ref(false);
 const searchKeyword = ref('');
 const selectedUser = ref(null);
 const users = ref([]); // 修正：确保 users 是响应式数组
+
+// 信息模块数据
+const recentMatches = ref([]);
+const nextMatch = ref(null);
+const teamHonors = ref([]);
+const teamNotices = ref([]);
+const teamname = ref('');
+const teamLogo = ref(null);
+const teamlist = ref([]);
 
 
 function parseJwt(token) {
@@ -174,6 +332,28 @@ const filteredUsers = computed(() => {
   });
 });
 
+// 信息模块计算属性
+const playerCount = computed(() => {
+  return users.value.filter(user => user.type === 'player').length;
+});
+
+const managerCount = computed(() => {
+  return users.value.filter(user => user.type === 'manager').length;
+});
+
+const doctorCount = computed(() => {
+  return users.value.filter(user => user.type === 'medic').length;
+});
+
+const coachCount = computed(() => {
+  return users.value.filter(user => user.type === 'coach').length;
+});
+
+const recentUsers = computed(() => {
+  // 返回最近添加的5个用户
+  return users.value.slice(0, 5);
+});
+
 // 获取用户角色
 const getUserRole = (user) => {
   if (user.role) return user.role;
@@ -183,6 +363,16 @@ const getUserRole = (user) => {
   if(user.type ==='coach') return '教练';
   if(user.type ==='fan') return '球迷';
   return '未知角色';
+};
+
+// 获取头像URL
+const getAvatarUrl = (user) => {
+  // 如果有真实头像URL，返回真实URL
+  if (user.avatar) {
+    return `http://localhost:5000${user.avatar}`;
+  }
+  // 否则返回默认头像
+  return 'https://via.placeholder.com/40x40?text=' + (user.player_name || user.name || 'U').charAt(0);
 };
 
 // 合并的 onMounted
@@ -218,6 +408,13 @@ onMounted(async () => {
 
   // 获取用户列表
   await fetchUserList();
+  
+  // 获取球队信息和下场比赛数据
+  await fetchTeamInfo();
+  await fetchNextMatch();
+  
+  // 获取公告数据
+  await fetchNotices();
 });
 
 // 获取用户列表
@@ -371,6 +568,134 @@ const transferCoach = async (userId) => {
       ElMessage.error('教练转让失败，请稍后重试');
     }
   }
+};
+
+// 获取球队信息
+const fetchTeamInfo = async () => {
+  try {
+    const res = await axios.get("http://localhost:5000/api/schedule/team", { 
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    
+    // 检查响应数据是否存在
+    if (res.data && res.data.teamname && res.data.teamname.length > 0) {
+      teamname.value = res.data.teamname[0].name;
+      
+      // 获取主队队徽
+      if (res.data.teamlist && res.data.teamlist.length > 0) {
+        const myTeam = res.data.teamlist.find(team => team.name === teamname.value);
+        if (myTeam && myTeam.logo_path) {
+          teamLogo.value = `http://localhost:5000${myTeam.logo_path}`;
+        }
+      }
+      
+      teamlist.value = res.data.teamlist || [];
+    }
+  } catch (error) {
+    console.error('获取球队信息失败:', error);
+    ElMessage.error('获取球队信息失败');
+  }
+};
+
+// 获取下场比赛信息
+const fetchNextMatch = async () => {
+  try {
+    // 获取当前月份和下个月的日程
+    const currentDate = new Date();
+    const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    const nextMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    const nextMonth = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}`;
+    
+    // 获取两个月的日程数据
+    const [currentRes, nextRes] = await Promise.all([
+      axios.get("http://localhost:5000/api/schedule/list", { 
+        params: { month: currentMonth },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      }),
+      axios.get("http://localhost:5000/api/schedule/list", { 
+        params: { month: nextMonth },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+    ]);
+    
+    const allSchedules = [...(currentRes.data || []), ...(nextRes.data || [])];
+    
+    // 处理日程数据，添加队徽信息
+    const processedSchedules = allSchedules.map(schedule => {
+      if (schedule.type === 'match' && schedule.team2) {
+        // 确保teamlist已经加载
+        if (teamlist.value && teamlist.value.length > 0) {
+          const team = teamlist.value.find(t => t.name === schedule.team2);
+          if (team && team.logo_path) {
+            schedule.team2logo = `http://localhost:5000${team.logo_path}`;
+          }
+        }
+      }
+      return schedule;
+    });
+    
+    // 找到最近的未来比赛
+    const today = new Date().toISOString().split('T')[0];
+    const futureMatches = processedSchedules.filter(schedule => 
+      schedule.type === 'match' && schedule.date >= today
+    );
+    
+    if (futureMatches.length > 0) {
+      // 按日期排序，取最早的一场比赛
+      futureMatches.sort((a, b) => new Date(a.date) - new Date(b.date));
+      nextMatch.value = futureMatches[0];
+    } else {
+      nextMatch.value = null;
+    }
+    
+  } catch (error) {
+    console.error('获取下场比赛信息失败:', error);
+    ElMessage.error('获取下场比赛信息失败');
+  }
+};
+
+// 获取公告数据
+const fetchNotices = async () => {
+  try {
+    const res = await axios.get("http://localhost:5000/api/notice/list", {
+      params: {
+        page: 1,
+        size: 3, // 只获取最新的3条公告
+      },
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+
+    if (res.data.code === 0 && res.data.data && res.data.data.notices) {
+      // 处理公告数据，格式化日期和内容预览
+      teamNotices.value = res.data.data.notices.map(notice => ({
+        id: notice.id,
+        title: notice.title,
+        content: notice.content,
+        preview: getContentPreview(notice.content),
+        date: formatNoticeDate(notice.publish_time),
+        type: notice.type
+      }));
+    } else {
+      teamNotices.value = [];
+    }
+  } catch (error) {
+    console.error('获取公告失败:', error);
+    ElMessage.error('获取公告失败');
+    teamNotices.value = [];
+  }
+};
+
+// 格式化公告日期
+const formatNoticeDate = (datetime) => {
+  if (!datetime) return '无日期';
+  const date = new Date(datetime);
+  return isNaN(date) ? '无效日期' : date.toLocaleDateString('zh-CN');
+};
+
+// 获取内容预览
+const getContentPreview = (content) => {
+  if (!content) return '';
+  return content.length > 30 ? content.slice(0, 30) + '...' : content;
 };
 </script>
 
@@ -751,6 +1076,670 @@ const transferCoach = async (userId) => {
 
 .user-list::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* 信息面板样式 - 优化版 */
+.info-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+/* 基础卡片样式 */
+.info-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  height: 450px;
+}
+
+.info-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 差异化卡片尺寸 */
+.team-overview {
+  grid-column: 1 / 2;
+  grid-row: 1;
+  height: 380px;
+}
+
+.next-match {
+  grid-column: 1 / 2;
+  grid-row: 2;
+}
+
+.recent-matches {
+  grid-column: 2 / 4;
+  grid-row: 1;
+  height: 380px;
+}
+
+.team-honors {
+  grid-column: 2 / 3;
+  grid-row: 2;
+}
+
+.team-notices {
+  grid-column: 3 / 4;
+  grid-row: 2;
+}
+
+/* 差异化头部颜色主题 */
+.team-overview .card-header {
+  background: linear-gradient(135deg, #2E8B57, #66CDAA);
+  border-bottom: 3px solid #228B22;
+}
+
+.recent-matches .card-header {
+  background: linear-gradient(135deg, #4169E1, #87CEEB);
+  border-bottom: 3px solid #1E90FF;
+}
+
+.next-match .card-header {
+  background: linear-gradient(135deg, #0f5580, #1b96d4);
+  border-bottom: 3px solid #0e5071;
+}
+
+.team-honors .card-header {
+  background: linear-gradient(135deg, #DAA520, #F0E68C);
+  border-bottom: 3px solid #B8860B;
+}
+
+.team-notices .card-header {
+  background: linear-gradient(135deg, #9370DB, #D8BFD8);
+  border-bottom: 3px solid #6A5ACD;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+}
+
+.card-header:hover::before {
+  transform: rotate(45deg) translateX(100%);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.view-more {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+}
+
+.view-more:hover {
+  color: white;
+  background: rgba(255,255,255,0.2);
+  transform: translateX(4px);
+}
+
+.card-content {
+  height: 80%;
+  padding: 28px;
+}
+
+/* 球队人员概况样式 - 优化版 */
+.stats-grid {
+  height: 80%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px 12px;
+  background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: left 0.5s ease;
+}
+
+.stat-item:hover {
+  background: linear-gradient(145deg, #e9ecef, #dee2e6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.stat-item:hover::before {
+  left: 100%;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #2E8B57;
+  margin-bottom: 6px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #495057;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.recent-users h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #495057;
+  font-weight: 600;
+}
+
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.user-item:hover {
+  background: #f8f9fa;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e9ecef;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 2px;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* 比赛信息样式 - 优化版 */
+.matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.match-item {
+  padding: 16px;
+  background: linear-gradient(145deg, #f0f8ff, #e6f3ff);
+  border-radius: 12px;
+  border-left: 6px solid #1E90FF;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(30, 144, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.match-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.match-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(30, 144, 255, 0.2);
+  border-left-color: #4169E1;
+}
+
+.match-item:hover::before {
+  transform: translateX(100%);
+}
+
+.match-teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.team-name {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.vs {
+  color: #7f8c8d;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 8px;
+}
+
+.match-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(30, 144, 255, 0.2);
+}
+
+.match-score {
+  font-weight: 800;
+  color: #1E90FF;
+  font-size: 16px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.match-date {
+  font-size: 13px;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+/* 下场比赛样式 - 优化版 */
+.next-match-details {
+  text-align: center;
+  position: relative;
+}
+
+.match-teams {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: linear-gradient(145deg, #f0f8ff, #e6f3ff);
+  border-radius: 12px;
+  border: 2px solid rgba(30, 144, 255, 0.3);
+}
+
+.team-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+}
+
+.team-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1E90FF;
+  box-shadow: 0 3px 10px rgba(30, 144, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.team-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4);
+}
+
+.team-logo-placeholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 10px;
+  border: 2px dashed #ccc;
+}
+
+.team-name {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.vs {
+  font-size: 20px;
+  font-weight: 900;
+  color: #1E90FF;
+  text-shadow: 0 2px 4px rgba(30, 144, 255, 0.3);
+  padding: 0 12px;
+}
+
+.match-details {
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  border: 1px solid rgba(30, 144, 255, 0.2);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: white;
+  border-radius: 8px;
+  border-left: 3px solid #1E90FF;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.detail-item:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(30, 144, 255, 0.2);
+  border-left-color: #0066CC;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 13px;
+}
+
+.value {
+  color: #1E90FF;
+  font-weight: 600;
+  font-size: 13px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* 荣誉和公告样式 - 优化版 */
+.honors-list,
+.notices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.honor-item {
+  padding: 16px;
+  background: linear-gradient(145deg, #fffaf0, #ffe8cc);
+  border-radius: 12px;
+  border-left: 6px solid #DAA520;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(218, 165, 32, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.notice-item {
+  padding: 16px;
+  background: linear-gradient(145deg, #f8f0ff, #e8d4ff);
+  border-radius: 12px;
+  border-left: 6px solid #9370DB;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(147, 112, 219, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.honor-item::before,
+.notice-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform: skewX(-15deg);
+  transition: right 0.6s ease;
+}
+
+.honor-item:hover,
+.notice-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.honor-item:hover::before,
+.notice-item:hover::before {
+  right: 150%;
+}
+
+.honor-item:hover {
+  border-left-color: #B8860B;
+  box-shadow: 0 4px 20px rgba(218, 165, 32, 0.2);
+}
+
+.notice-item:hover {
+  border-left-color: #6A5ACD;
+  box-shadow: 0 4px 20px rgba(147, 112, 219, 0.2);
+}
+
+.honor-title,
+.notice-title {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.notice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.notice-title {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.type-tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.notice-content {
+  font-size: 13px;
+  color: #5a6c7d;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.honor-date,
+.notice-date {
+  font-size: 12px;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .info-panel {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+  }
+  
+  .team-overview {
+    grid-column: 1 / 2;
+    grid-row: 1;
+  }
+  
+  .next-match {
+    grid-column: 1 / 2;
+    grid-row: 2;
+  }
+  
+  .recent-matches {
+    grid-column: 2 / 3;
+    grid-row: 1;
+  }
+  
+  .team-honors {
+    grid-column: 2 / 3;
+    grid-row: 2;
+  }
+  
+  .team-notices {
+    grid-column: 1 / 3;
+    grid-row: 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .info-panel {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    padding: 16px;
+    gap: 16px;
+    max-width: 100%;
+  }
+  
+  .team-overview,
+  .next-match,
+  .recent-matches,
+  .team-honors,
+  .team-notices {
+    grid-column: 1 / 2;
+    grid-row: auto;
+    min-height: auto;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .card-header {
+    padding: 16px 20px;
+  }
+  
+  .card-header h3 {
+    font-size: 18px;
+  }
+  
+  .card-content {
+    padding: 20px;
+  }
+  
+  .match-teams {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .team-info {
+    min-width: auto;
+  }
+  
+  .team-logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .team-logo-placeholder {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .vs {
+    font-size: 20px;
+    padding: 8px 0;
+  }
 }
 </style>
 
