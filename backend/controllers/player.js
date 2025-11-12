@@ -208,4 +208,86 @@ exports.transferCoach = async (req, res, next) => {
   }
 };
 
+// 获取当前登录球员的统计数据
+exports.getPlayerStats = async (req, res, next) => {
+  try {
+    const currentUser = req.user;
+
+    // 验证用户类型
+    if (currentUser.type !== 'player') {
+      return res.status(403).json({ code: 1, msg: '只有球员可以查看个人统计数据' });
+    }
+
+    // 获取球员基本信息
+    const [player] = await db.startQuery(
+      `SELECT * FROM players WHERE user_id = ?`,
+      [currentUser.id]
+    );
+
+    if (!player) {
+      return res.status(404).json({ code: 1, msg: '未找到该球员信息' });
+    }
+
+    // 获取球员比赛统计数据
+    // 出场次数：统计该球员参与的比赛数量
+    const [appearancesResult] = await db.startQuery(`
+      SELECT COUNT(DISTINCT m.id) as appearances
+      FROM match_event_log e
+      JOIN match_schedule m ON e.match_id = m.id
+      JOIN schedule s ON m.schedule_id = s.id
+      LEFT JOIN match_goals g ON g.event_id = e.id AND (g.scorer_id = ? OR g.assist_id = ?)
+      LEFT JOIN match_substitutions sub ON sub.event_id = e.id AND (sub.sub_in_id = ? OR sub.sub_out_id = ?)
+      LEFT JOIN match_cards c ON c.event_id = e.id AND c.player_id = ?
+      LEFT JOIN match_penalties p ON p.event_id = e.id AND p.player_id = ?
+      WHERE s.team_id = ? 
+        AND (e.event_type = 'goal' OR e.event_type = 'substitution' OR e.event_type = 'card' OR e.event_type = 'penalty')
+        AND (g.event_id IS NOT NULL OR sub.event_id IS NOT NULL OR c.event_id IS NOT NULL OR p.event_id IS NOT NULL)
+    `, [currentUser.id, currentUser.id, currentUser.id, currentUser.id, currentUser.id, currentUser.id, currentUser.team_id]);
+
+    // 进球数：统计该球员的进球
+    const [goalsResult] = await db.startQuery(`
+      SELECT COUNT(*) as goals
+      FROM match_goals g
+      JOIN match_event_log e ON g.event_id = e.id
+      WHERE g.scorer_id = ?
+    `, [currentUser.id]);
+
+    // 助攻数：统计该球员的助攻
+    const [assistsResult] = await db.startQuery(`
+      SELECT COUNT(*) as assists
+      FROM match_goals g
+      JOIN match_event_log e ON g.event_id = e.id
+      WHERE g.assist_id = ?
+    `, [currentUser.id]);
+
+    // 构建返回数据
+    const stats = {
+      // 基本信息
+      height: player.height || 0,
+      weight: player.weight || 0,
+      age: player.age || 0,
+      dominant_foot: player.dominant_foot || '右脚',
+      position: player.position || '守门员',
+      
+      // 比赛数据
+      appearances: appearancesResult?.appearances || 0,
+      goals: goalsResult?.goals || 0,
+      assists: assistsResult?.assists || 0,
+      rating: player.rating || 0,
+      
+      // 技术统计
+      speed: player.speed || 0,
+      shooting: player.shooting || 0,
+      passing: player.passing || 0,
+      dribbling: player.dribbling || 0,
+      defending: player.defending || 0,
+      stamina: player.stamina || 0
+    };
+
+    res.json({ code: 0, msg: '获取球员统计数据成功', stats });
+  } catch (err) {
+    console.error('获取球员统计数据错误:', err);
+    res.status(500).json({ code: 500, msg: '服务器内部错误' });
+  }
+};
 
