@@ -18,6 +18,8 @@
     "express": "^5.1.0",
     "motion-v": "^1.0.0",
     "nanoid": "^3.3.4",
+    "openai": "^6.3.0",
+    "picocolors": "^1.1.1",
     "vuedraggable": "^4.1.0"
   }
 }

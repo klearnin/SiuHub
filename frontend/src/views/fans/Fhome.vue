@@ -6,6 +6,7 @@
         <router-link to="/teamstats" class="nav-item">主队查看</router-link>
        
         <router-link to="/fnotice" class="nav-item">查看公告</router-link>
+        <router-link to="/ai/qa" class="nav-item">AI问答中心</router-link>
       </div>
   
       <!-- 右上角头像 -->

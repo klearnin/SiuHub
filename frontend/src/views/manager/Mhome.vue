@@ -23,6 +23,7 @@
 
       
       <router-link to="/mhonor" class="nav-item">球队荣誉</router-link>
+      <router-link to="/ai/qa" class="nav-item">AI问答中心</router-link>
     </div>
 
     <!-- 右上角头像 -->
@@ -591,4 +592,4 @@
   transform: translateY(0);
   visibility: visible;
 }
-</style>  
+</style>

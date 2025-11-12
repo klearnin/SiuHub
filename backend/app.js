@@ -5,6 +5,7 @@ const path = require('path');
 const router = require('./router'); // 总路由
 const errorHandler = require('./middleware/error-handler');
 const fs = require("fs");
+const openaiService = require('./services/openaiService');
 
 const folders = ["public/avatars", "public/team-logos"];
 
@@ -13,6 +14,17 @@ folders.forEach((folder) => {
     fs.mkdirSync(folder, { recursive: true });
   }
 });
+
+// 初始化AI分析表
+async function initializeApp() {
+  try {
+    // 创建AI分析结果表
+    await openaiService.initAiAnalysisTable();
+    console.log('✅ AI分析表初始化成功');
+  } catch (error) {
+    console.error('⚠️ AI分析表初始化失败:', error);
+  }
+}
 
 
 // ✅ JSON 解析中间件
@@ -54,8 +66,12 @@ app.use(errorHandler());
 
 // ✅ 启动服务
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`SiuHub 后端服务已启动，端口号为 ${PORT}`);
+  
+  // 初始化应用
+  await initializeApp();
+  
   printRoutes(app);
 });
 

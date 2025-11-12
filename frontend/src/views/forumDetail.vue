@@ -13,7 +13,7 @@
               <div class="nickname">{{ post.screen_name }}</div>
               <div class="timestamp">{{ formatDate(post.created_at) }}</div>
             </div>
-            <el-button type="text" class="like-btn" @click="likePost">
+            <el-button link class="like-btn" @click="likePost">
               <img
                 :src="post.liked ? '/picture/full.png' : '/picture/empty.png'"
                 alt="like"
@@ -51,7 +51,7 @@
                 <div class="nickname">{{ comment.screen_name }}</div>
                 <div class="timestamp">{{ formatDate(comment.created_at) }}</div>
               </div>
-              <el-button type="text" class="like-btn" @click="likeComment(comment.id)">
+              <el-button link class="like-btn" @click="likeComment(comment.id)">
                 <img
                   :src="comment.liked ? '/picture/full.png' : '/picture/empty.png'"
                   alt="like"

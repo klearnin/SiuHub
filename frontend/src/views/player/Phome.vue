@@ -8,6 +8,7 @@
       <router-link to="/Pschedule" class="nav-button">球队日程</router-link>
       <router-link to="/Pnotice" class="nav-button">球队公告</router-link>
       <router-link to="/ptacticboard" class="nav-button">球队战术</router-link>
+      <router-link to="/ai/qa" class="nav-button">AI问答中心</router-link>
     </div>
 
     <div class="top-bar">

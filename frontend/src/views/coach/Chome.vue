@@ -32,6 +32,22 @@
 
 
       <router-link to="/ctacticboard" class="nav-item">球队战术</router-link>
+      <div 
+        class="nav-item dropdown-wrapper"
+        @mouseenter="showAiDropdown = true"
+        @mouseleave="showAiDropdown = false"
+      >
+        <div class="dropdown-trigger">
+          AI入口
+        </div>
+        <transition name="fade-slide">
+          <div v-if="showAiDropdown" class="dropdown-menu">
+            <router-link to="/coach/ai-tactic" class="dropdown-item">AI战术分析</router-link>
+            <router-link to="/medic/ai-health" class="dropdown-item">AI球员分析</router-link>
+            <router-link to="/ai/qa" class="dropdown-item">AI问答中心</router-link>
+          </div>
+        </transition>
+      </div>
     </div>
 
     <!-- 右上角头像 -->
@@ -87,6 +103,7 @@ const dropdownVisible = ref(false);
 const inviteVisible = ref(false);
 const inviteCode = ref("");
 const showNoticeDropdown = ref(false);
+const showAiDropdown = ref(false);
 
 onMounted(() => {
   const token = localStorage.getItem("token");
