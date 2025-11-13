@@ -105,6 +105,7 @@ const routes = [
   { path: "/pschedule", component: Pschedule},
   { path: "/ctacticcanvas", component: CtacticCanvas},
   { path: "/cmanageTeam", component: ManageTeam},
+  { path: "/cvideo", component: Video},
 
 
 
