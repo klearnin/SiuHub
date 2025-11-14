@@ -13,7 +13,7 @@ router.delete("/:type/:id", honorController.deleteHonor);              // 删除
 
 
 router.post("/personal", honorController.addPersonalHonor);       // 添加个人荣誉
-router.get("/personal", honorController.getPersonalHonors);             // 获取某球员个人荣誉（通过 query.user_id）
+router.get("/personal", auth, honorController.getPersonalHonors);             // 获取某球员个人荣誉（通过 query.user_id）
 router.put("/personal/:id", honorController.updatePersonalHonor); // 更新个人荣誉
 
 

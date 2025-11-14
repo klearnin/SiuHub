@@ -24,24 +24,77 @@
     <!-- 信息展示面板 -->
     <div class="info-panel">
       <!-- 近五场比赛情况 -->
+       <!-- 近五场比赛情况 -->
       <div class="info-card recent-matches">
         <div class="card-header">
-          <h3>近五场比赛</h3>
-          <router-link to="/Pschedule" class="view-more">查看详情</router-link>
+          <h3>近期比赛</h3>
         </div>
         <div class="card-content">
           <div v-if="recentMatches.length > 0" class="matches-list">
-            <div v-for="match in recentMatches" :key="match.id" class="match-item">
-              <div class="match-teams">
-                <span class="team-name">{{ match.homeTeam }}</span>
-                <span class="vs">VS</span>
-                <span class="team-name">{{ match.awayTeam }}</span>
+          <div class="match-schedule">
+          <div class="section-title with-actions">
+            <span>赛程</span>
+            <!-- 右上角翻页按钮（按需显示） -->
+            <div class="pager-actions">
+              <el-button
+                v-if="canPrevWindow"
+                size="small"
+                text
+                @click="prevWindow"
+              >前三场比赛</el-button>
+
+              <el-button
+                v-if="canNextWindow"
+                size="small"
+                text
+                @click="nextWindow"
+              >后三场比赛</el-button>
+            </div>
+          </div>
+
+          <div class="schedule-list">
+            <div
+              v-for="(row, idx) in windowedSchedules"
+              :key="row.id || idx"
+              class="schedule-item"
+              :class="{
+                alt: idx % 2 === 1,
+                highlight: row.id === anchorMatchId
+              }"
+              @click="handleRowClick(row)"
+            >
+              <!-- 时间 + 场地 -->
+              <div class="cell time-field">
+                <div class="date">{{ row.date }}</div>
+                <div class="field">{{ row.field }}</div>
               </div>
-              <div class="match-info">
-                <span class="match-score">{{ match.score }}</span>
-                <span class="match-date">{{ match.date }}</span>
+
+              <!-- 本队队徽 -->
+              <div class="cell logo">
+                <el-avatar v-if="row.selfLogo" :src="row.selfLogo" shape="circle" :size="36" />
+                <el-avatar v-else shape="circle" :size="36">我队</el-avatar>
+                <!-- 显示本队名称（模板中 ref 自动解包） -->
+                <span class="self-team-name">{{ row.selfName || teamInfo.name }}</span>
+              </div>
+
+              <!-- 比分/VS（居中 + 点球置于下一行） -->
+              <div class="cell result">
+                <div class="result-wrap" :class="{ future: row.isFuture }">
+                  <div v-if="!row.isFuture" class="main">{{ row.resultMain }}</div>
+                  <div v-if="row.penaltyText" class="penalty">{{ row.penaltyText }}</div>
+                  <div v-if="row.isFuture" class="vs">VS</div>
+                </div>
+              </div>
+
+              <!-- 对手队徽 + 名称 -->
+              <div class="cell logo opponent">
+                <el-avatar v-if="row.opponentLogo" :src="row.opponentLogo" shape="circle" :size="36" />
+                <el-avatar v-else shape="circle" :size="36">对手</el-avatar>
+                <span class="opponent-name">{{ row.opponent }}</span>
               </div>
             </div>
+          </div>
+        </div>
           </div>
           <div v-else class="empty-state">
             <p>暂无比赛记录</p>
@@ -53,7 +106,6 @@
       <div class="info-card next-match">
         <div class="card-header">
           <h3>下场比赛</h3>
-          <router-link to="/Pschedule" class="view-more">查看详情</router-link>
         </div>
         <div class="card-content">
           <div v-if="nextMatch" class="next-match-details">
@@ -95,7 +147,6 @@
       <div class="info-card personal-honors">
         <div class="card-header">
           <h3>个人荣誉</h3>
-          <router-link to="/honor" class="view-more">查看详情</router-link>
         </div>
         <div class="card-content">
           <div v-if="personalHonors.length > 0" class="honors-list">
@@ -114,7 +165,6 @@
       <div class="info-card player-stats">
         <div class="card-header">
           <h3>球员数据</h3>
-          <router-link to="/playerstats" class="view-more">查看详情</router-link>
         </div>
         <div class="card-content">
           <div v-if="playerStats" class="player-stats-layout">
@@ -226,7 +276,6 @@
        <div class="info-card team-notices">
         <div class="card-header">
           <h3>最新公告</h3>
-          <router-link to="/cnotice_del" class="view-more">查看详情</router-link>
         </div>
         <div class="card-content">
           <div v-if="teamNotices.length > 0" class="notices-list">
@@ -271,6 +320,139 @@ const teamNotices = ref([]);
 const teamname = ref('');
 const teamLogo = ref(null);
 const teamlist = ref([]);
+
+
+const formatDateTime = (datetimeStr) => {
+  const [datePart, timePart] = datetimeStr.split(' ')
+  const [y, m, d] = datePart.split('-')
+  const [hh = '12', mm = '00', ss = '00'] = timePart.split(':')
+
+  const date = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), Number(ss))
+
+  if (isNaN(date.getTime())) {
+    console.warn('❌ 无效时间:', datetimeStr)
+    return '无效时间'
+  }
+
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+const teamInfo = ref({})
+
+const fetchTeamInfo1 = async () => {
+  try {
+    const res = await axios.get('http://localhost:5000/api/team/info', {headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }})
+    teamInfo.value = res.data.data || {}
+  } catch (err) {
+    ElMessage.error('加载球队信息失败')
+  }
+}
+
+const allSchedules = ref([])
+
+const anchorIndex = ref(0)
+const anchorMatchId = ref(null)
+const windowStart = ref(0)
+const startIdx = ref(0)   // 当前窗口起点（含）
+const endIdx   = ref(-1)  // 当前窗口终点（含）
+const pageSize = 3
+
+const windowedSchedules = computed(() =>
+  allSchedules.value.slice(startIdx.value, endIdx.value + 1) // 闭区间
+)
+
+const canPrevWindow = computed(() => startIdx.value > 0)
+const canNextWindow = computed(() => endIdx.value < allSchedules.value.length - 1)
+
+function initWindowByAnchor(aIdx) {
+  const n = allSchedules.value.length
+  if (n === 0) { startIdx.value = 0; endIdx.value = -1; return }
+  const s = Math.max(0, aIdx - 1)
+  const e = Math.min(n - 1, aIdx + 1)
+  startIdx.value = s
+  endIdx.value = e
+  anchorMatchId.value = allSchedules.value[aIdx]?.id ?? null
+}
+
+function prevWindow() {
+  if (!canPrevWindow.value) return
+  const newEnd = startIdx.value - 1
+  const newStart = Math.max(0, newEnd - 2) // 往前拿最多 5 条，不足就不足
+  startIdx.value = newStart
+  endIdx.value = newEnd
+}
+
+function nextWindow() {
+  if (!canNextWindow.value) return
+  const newStart = endIdx.value + 1
+  const newEnd = Math.min(allSchedules.value.length - 1, newStart + 2)
+  startIdx.value = newStart
+  endIdx.value = newEnd
+}
+
+const fetchSchedules = async () => {
+  try {
+    const res = await axios.get('http://localhost:5000/api/team/matches', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }})
+    const allMatches = res.data.data || []
+
+    const filtered = allMatches.filter(
+      m => m.team1 === teamInfo.value.name || m.team2 === teamInfo.value.name
+    )
+
+
+    allSchedules.value = filtered
+      .sort((a, b) => new Date(a.datetime) - new Date(b.datetime))
+      .map(m => {
+        const isTeam1Self = m.team1 === teamInfo.value.name
+        const opponent = isTeam1Self ? m.team2 : m.team1
+        const opponentLogoRaw = isTeam1Self ? m.team2_logo : m.team1_logo
+        const selfLogoRaw     = isTeam1Self ? m.team1_logo : m.team2_logo
+
+        let resultMain = 'VS'
+        let penaltyText = null
+        const isFuture = m.type !== 'past_match'            // 非 past_match 都视为未来
+
+        if (!isFuture && m.score) {
+          const self = m.score[teamInfo.value.value?.name || teamInfo.value.name] || { goal: 0, penalty: 0 }
+          const opp  = m.score[opponent] || { goal: 0, penalty: 0 }
+          resultMain = `${self.goal} - ${opp.goal}`
+          if ((self.penalty ?? 0) > 0 || (opp.penalty ?? 0) > 0) {
+            penaltyText = `点球：${self.penalty ?? 0} - ${opp.penalty ?? 0}`
+          }
+        }
+
+        return {
+          id: m.match_id,
+          date: formatDateTime(m.datetime),
+          field: m.location,
+          isFuture,
+          opponent,
+          // 添加 selfName 字段用于模板显示本队名称
+          selfName: teamInfo.value.name || '',
+          opponentLogo: opponentLogoRaw ? `http://localhost:5000${opponentLogoRaw}` : null,
+          selfLogo: selfLogoRaw ? `http://localhost:5000${selfLogoRaw}` : formatLogo(teamInfo.value.logo_path),
+          resultMain,
+          penaltyText
+        }
+      })
+
+    // 选最近一场未来比赛为锚点；没有未来比赛就用最后一场
+    const now = new Date()
+    let aIdx = allSchedules.value.findIndex(x => x.isFuture && new Date(x.date) >= now)
+    if (aIdx === -1) aIdx = Math.max(0, allSchedules.value.length - 1)
+    initWindowByAnchor(aIdx)
+  } catch (err) {
+    console.error('加载球队赛程失败:', err);
+    ElMessage.error('加载球队赛程失败')
+  }
+}
+
+
 
 // 获取球队信息
 const fetchTeamInfo = async () => {
@@ -399,20 +581,11 @@ const fetchRecentMatches = async () => {
 // 获取个人荣誉数据
 const fetchPersonalHonors = async () => {
   try {
-    const res = await axios.get("http://localhost:5000/api/honor/player", { 
+    const res = await axios.get("http://localhost:5000/api/honor/personal", { 
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
+     personalHonors.value = res.data.data || [];
     
-    if (res.data && res.data.honors) {
-      // 格式化荣誉数据
-      personalHonors.value = res.data.honors.map(honor => ({
-        id: honor.id,
-        title: honor.title,
-        date: formatHonorDate(honor.date)
-      }));
-    } else {
-      personalHonors.value = [];
-    }
   } catch (error) {
     console.error('获取个人荣誉失败:', error);
     ElMessage.error('获取个人荣誉失败');
@@ -531,7 +704,9 @@ onMounted(async () => {
       fetchRecentMatches(),
       fetchPersonalHonors(),
       fetchPlayerStats(),
-      fetchNotices()
+      fetchNotices(),
+      fetchTeamInfo1(),
+      fetchSchedules(),
     ]);
 
   } catch (err) {
@@ -550,6 +725,110 @@ const logout = () => {
 </script>
 
 <style scoped>
+.schedule-list { display: flex; flex-direction: column; gap: 8px; }
+.schedule-item {
+  display: grid;
+  /* 调整列宽，给两队名称更多空间，避免过早省略 */
+  grid-template-columns: 1.4fr 1.0fr 0.8fr 1.8fr; /* 时间场地 | 本队 | 结果 | 对手 */
+  align-items: center;
+  padding: 12px 16px;
+  background: #fff;
+  border-radius: 10px;
+  transition: box-shadow .18s ease, transform .12s ease;
+  cursor: pointer;
+}
+.schedule-item.alt { background: #f6f7fb; }
+.schedule-item.highlight { outline: 2px solid #409eff44; box-shadow: 0 0 0 3px #409eff22 inset; }
+.schedule-item:hover { box-shadow: 0 6px 18px rgba(0,0,0,.06); transform: translateY(-1px); }
+
+/* 把本队（第二列：logo 单元）整体向右移动一点，保持 avatar + 名称 相对位置不变 */
+.schedule-item > .logo:nth-child(2) {
+  padding-left: 15px; /* 右移量，可按需调整为 10~20px */
+}
+
+.schedule-item > .logo:nth-child(4) {
+  padding-left: 15px; /* 右移量，可按需调整为 10~20px */
+}
+/* 增大对手头像与队名之间的空隙（覆盖 .cell 的 gap:10px） */
+.schedule-item .opponent {
+  justify-content: flex-start;
+  gap: 18px; /* 从 10px 增大到 18px，使 avatar 与名字间距更明显 */
+}
+
+/* 若需要更精确控制 avatar 本身的外边距（可选） */
+.schedule-item .opponent :deep(.el-avatar) {
+  /* 确保 avatar 与名字间没有额外负 margin，通常不必改动 */
+  margin-right: 0;
+}
+.cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+/* 时间与场地 */
+.time-field { flex-direction: column; align-items: flex-start; gap: 4px; }
+.date  { font-weight: 600; color: #111827; }
+.field { font-size: 12px; color: #6b7280; }
+
+.logo :deep(.el-avatar) { box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.result { justify-content: center; }
+.result { justify-self: center; }                  /* grid 的居中关键 */
+.result .result-wrap { text-align: center; }
+.result .main { font-weight: 700; letter-spacing: .5px; }
+.result .penalty { font-size: 12px; color: #6b7280; margin-top: 2px; line-height: 1.1; }
+.result .vs {
+  display: inline-block;
+  min-width: 56px; padding: 4px 10px; border-radius: 999px;
+  background: #fff7ed; color: #b45309; border: 1px dashed #f59e0b; font-weight: 600;
+}
+.result-badge {
+  min-width: 72px;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #1f2937;
+  font-weight: 600;
+}
+.result-badge.future {        /* 未来比赛 VS 的样式 */
+  background: #fff7ed;
+  color: #b45309;
+  border: 1px dashed #f59e0b;
+}
+
+.opponent { justify-content: flex-start; }
+.opponent-name {
+  /* 与本队名统一样式：允许最多两行、换行显示并省略溢出 */
+  font-weight:600;
+  color:#111827;
+  font-size:14px;
+  line-height:1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.match-schedule {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #0154a0;
+  margin-bottom: 10px;
+}
+.section-title.with-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pager-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .player-page {
   position: relative;
   min-height: 100vh;

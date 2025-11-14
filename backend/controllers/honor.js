@@ -120,7 +120,8 @@ exports.getTeamHonors = async (req, res, next) => {
 // 获取某球员所有个人荣誉
 exports.getPersonalHonors = async (req, res, next) => {
   try {
-    const { user_id } = req.query;
+    const currentUser = req.user;
+    const  user_id  = currentUser.id;
 
     if (!user_id) return res.status(400).json({ msg: "缺少用户ID" });
 
