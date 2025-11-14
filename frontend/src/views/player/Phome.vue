@@ -217,52 +217,11 @@
             </div>
 
             <!-- 右侧：技术统计 -->
+            <!-- 右侧：技术统计（改成雷达图） -->
             <div class="player-right-section">
-              <!-- 技术统计 -->
-              <div class="skills-section">
+              <div class="skills-radar-card">
                 <h4>技术统计</h4>
-                <div class="skill-item">
-                  <span class="skill-label">速度：{{ playerStats.speed || 0 }}</span>
-                  <div class="skill-bar">
-                    <div class="skill-progress" :style="{ width: (playerStats.speed || 0) + '%' }"></div>
-                    <span class="skill-value">{{ playerStats.speed || 0 }}</span>
-                  </div>
-                </div>
-                <div class="skill-item">
-                  <span class="skill-label">射门：{{ playerStats.shooting || 0 }}</span>
-                  <div class="skill-bar">
-                    <div class="skill-progress" :style="{ width: (playerStats.shooting || 0) + '%' }"></div>
-                    <span class="skill-value">{{ playerStats.shooting || 0 }}</span>
-                  </div>
-                </div>
-                <div class="skill-item">
-                  <span class="skill-label">传球：{{ playerStats.passing || 0 }}</span>
-                  <div class="skill-bar">
-                    <div class="skill-progress" :style="{ width: (playerStats.passing || 0) + '%' }"></div>
-                    <span class="skill-value">{{ playerStats.passing || 0 }}</span>
-                  </div>
-                </div>
-                <div class="skill-item">
-                  <span class="skill-label">盘带：{{ playerStats.dribbling || 0 }}</span>
-                  <div class="skill-bar">
-                    <div class="skill-progress" :style="{ width: (playerStats.dribbling || 0) + '%' }"></div>
-                    <span class="skill-value">{{ playerStats.dribbling || 0 }}</span>
-                  </div>
-                </div>
-                <div class="skill-item">
-                  <span class="skill-label">防守：{{ playerStats.defending || 0 }}</span>
-                  <div class="skill-bar">
-                    <div class="skill-progress" :style="{ width: (playerStats.defending || 0) + '%' }"></div>
-                    <span class="skill-value">{{ playerStats.defending || 0 }}</span>
-                  </div>
-                </div>
-                <div class="skill-item">
-                  <span class="skill-label">体能：{{ playerStats.stamina || 0 }}</span>
-                  <div class="skill-bar">
-                    <div class="skill-progress" :style="{ width: (playerStats.stamina || 0) + '%' }"></div>
-                    <span class="skill-value">{{ playerStats.stamina || 0 }}</span>
-                  </div>
-                </div>
+              <div id="skillsRadar" class="radar-chart"></div>
               </div>
             </div>
           </div>
@@ -301,10 +260,88 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { ElMessage } from "element-plus";
+import * as echarts from "echarts";
+
+
+let radarChart = null;
+
+const initRadarChart = () => {
+  const dom = document.getElementById("skillsRadar");
+  if (!dom) return;
+
+  if (!radarChart) {
+    radarChart = echarts.init(dom);
+  }
+
+  const stats = playerStats.value || {};
+
+  const option = {
+    tooltip: {
+      trigger: "item"
+    },
+    radar: {
+      shape: "polygon", // 六边形
+      indicator: [
+        { name: "速度", max: 100 },
+        { name: "射门", max: 100 },
+        { name: "传球", max: 100 },
+        { name: "盘带", max: 100 },
+        { name: "防守", max: 100 },
+        { name: "体能", max: 100 }
+      ],
+      splitNumber: 5,
+      axisName: {
+        color: "#2c3e50",
+        fontSize: 14
+      },
+      splitLine: {
+        lineStyle: { color: "rgba(0,0,0,0.15)" }
+      },
+      splitArea: {
+        areaStyle: { color: ["rgba(60,179,113, 0.06)"] }
+      },
+      axisLine: {
+        lineStyle: { color: "rgba(0,0,0,0.2)" }
+      }
+    },
+    series: [
+      {
+        type: "radar",
+        data: [
+          {
+            value: [
+              stats.speed || 0,
+              stats.shooting || 0,
+              stats.passing || 0,
+              stats.dribbling || 0,
+              stats.defending || 0,
+              stats.stamina || 0
+            ],
+            name: "球员能力",
+            areaStyle: {
+              color: "rgba(46, 139, 87, 0.45)"
+            },
+            lineStyle: {
+              color: "#2E8B57",
+              width: 2
+            },
+            symbol: "circle",
+            symbolSize: 6,
+            itemStyle: {
+              color: "#2E8B57"
+            }
+          }
+        ]
+      }
+    ]
+  };
+
+  radarChart.setOption(option);
+};
 
 
 const avatarUrl = ref(null);
@@ -708,11 +745,16 @@ onMounted(async () => {
       fetchTeamInfo1(),
       fetchSchedules(),
     ]);
-
+  //initRadarChart();
+  setTimeout(initRadarChart, 50);
   } catch (err) {
     console.error("页面初始化失败", err);
   }
 });
+
+watch(() => playerStats.value, () => {
+  initRadarChart();
+}, { deep: true });
 
 const toggleDropdown = () => {
   dropdownVisible.value = !dropdownVisible.value;
@@ -974,7 +1016,7 @@ const logout = () => {
 
 .info-panel {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(12, 1fr);
   grid-template-rows: auto auto;
   gap: 30px;
   margin-top: 20px;
@@ -982,27 +1024,27 @@ const logout = () => {
 
 /* 差异化卡片布局 */
 .recent-matches {
-  grid-column: 1 / 3;
+  grid-column: 1 / 9;
   grid-row: 1;
 }
 
 .next-match {
-  grid-column: 3 / 4;
+  grid-column: 9 / 13;
   grid-row: 1;
 }
 
 .personal-honors {
-  grid-column: 1 / 2;
+  grid-column: 1 / 4;
   grid-row: 2;
 }
 
 .player-stats {
-  grid-column: 2 / 3;
+  grid-column: 7 / 13;
   grid-row: 2;
 }
 
 .team-notices {
-  grid-column: 3 / 4;
+  grid-column:  4/ 7;
   grid-row: 2;
 }
 
@@ -1188,6 +1230,9 @@ const logout = () => {
 
 /* 下场比赛样式 - 优化版 */
 .next-match-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   text-align: center;
   position: relative;
 }
@@ -1197,7 +1242,6 @@ const logout = () => {
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-bottom: 16px;
   padding: 16px;
   background: linear-gradient(145deg, #f0f8ff, #e6f3ff);
   border-radius: 12px;
@@ -1258,7 +1302,6 @@ const logout = () => {
 }
 
 .match-details {
-  margin-top: 16px;
   padding: 16px;
   background: linear-gradient(145deg, #f8f9fa, #e9ecef);
   border-radius: 12px;
@@ -1339,11 +1382,13 @@ const logout = () => {
   gap: 15px;
   height: 100%;
   min-height: 280px;
+  align-items: stretch;
 }
 
 .player-left-section {
   flex: 1;
   display: flex;
+  height: 100%;
   flex-direction: column;
   gap: 12px;
   min-width: 180px;
@@ -1408,8 +1453,8 @@ const logout = () => {
 .basic-stats {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding:12 px;
+  gap: 8px;
+  padding:0 12px;
   background: linear-gradient(145deg, #f8f9fa, #e9ecef);
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.5);
@@ -1429,19 +1474,19 @@ const logout = () => {
 }
 
 .basic-stat-label {
-  font-size: 11px;
+  font-size: 14px;
   color: #666;
   font-weight: 500;
 }
 
 .basic-stat-value {
-  font-size: 11px;
+  font-size: 14px;
   color: #2c3e50;
   font-weight: 600;
 }
 
 .match-stats-section {
-  padding: 12px;
+  padding: 9px;
   background: linear-gradient(145deg, #f8f9fa, #e9ecef);
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.5);
@@ -1450,7 +1495,7 @@ const logout = () => {
 
 .match-stats-section h4 {
   margin: 0 0 10px 0;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: #2c3e50;
   text-align: center;
@@ -1479,106 +1524,50 @@ const logout = () => {
 }
 
 .match-stat-value {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: #2E8B57;
   margin-bottom: 2px;
 }
 
 .match-stat-label {
-  font-size: 10px;
+  font-size: 12px;
   color: #666;
   font-weight: 500;
 }
 
 .player-right-section {
   flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
   min-width: 200px;
 }
-
-.skills-section {
+.skills-radar-card {
   flex: 1;
-  width: 85%;
-  height: 80px;
-  padding: 10px;
-  background: linear-gradient(145deg, #f8f9fa, #e9ecef);
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.5);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
-}
-
-.skills-section h4 {
-  margin: 0 0 10px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #2c3e50;
-  text-align: center;
-  padding-bottom: 5px;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-
-.skill-item {
-  
-  margin-bottom: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.skill-label {
-  font-size: 11px;
-  color: #666;
-  font-weight: 500;
-  display: flex;
-  justify-content: space-between;
-}
-
-.skill-bar {
-  position: relative;
-  height: 5px;
-  background: #eee;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.skill-progress {
+  width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #2E8B57, #3CB371);
-  border-radius: 3px;
-  transition: width 0.5s ease;
-  position: relative;
+  background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  display: flex;            /* ⭐让内部居中 */
+  flex-direction: column;
+  justify-content: center;  /* 上下居中 */
+  align-items: center;      /* 左右居中 */
 }
 
-.skill-progress::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  animation: shimmer 2s infinite;
+.radar-chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;  /* ⭐水平居中 */
+  align-items: center;      /* ⭐垂直居中 */
 }
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.skill-value {
-  font-size: 11px;
-  font-weight: 700;
-  color: #2E8B57;
-  background: rgba(46, 139, 87, 0.1);
-  padding: 2px 6px;
-  border-radius: 8px;
-  min-width: 20px;
-  text-align: center;
-  border: 1px solid rgba(46, 139, 87, 0.3);
-}
 
 /* 公告列表样式 - 优化版 */
 .notices-list {
