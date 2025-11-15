@@ -243,6 +243,10 @@
               </div>
             </div>
             <div class="match-details">
+            <div class="detail-item">
+                <span class="label">日期:</span>
+                <span class="value">{{ nextMatch && nextMatch.date ? nextMatch.date : '日期未设定' }}</span>
+              </div>
               <div class="detail-item">
                 <span class="label">时间:</span>
                 <span class="value">{{ nextMatch && nextMatch.match_time ? nextMatch.match_time : '时间未设定' }}</span>
@@ -251,10 +255,7 @@
                 <span class="label">地点:</span>
                 <span class="value">{{ nextMatch && nextMatch.location ? nextMatch.location : '地点未设定' }}</span>
               </div>
-              <div class="detail-item">
-                <span class="label">日期:</span>
-                <span class="value">{{ nextMatch && nextMatch.date ? nextMatch.date : '日期未设定' }}</span>
-              </div>
+              
             </div>
           </div>
           <div v-else class="empty-state">
@@ -1006,6 +1007,20 @@ const getContentPreview = (content) => {
   word-break: break-word;
 }
 
+.self-team-name{
+  margin-left:8px;
+  font-weight:600;
+  color:#111827;
+  font-size:14px;
+  line-height:1.2;
+  /* 允许换行，最多两行，超出显示省略，保持与对手名格式一致 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
 .match-schedule {
   background: white;
   padding: 16px;
@@ -1038,7 +1053,7 @@ const getContentPreview = (content) => {
 .nav-bar {
   display: flex;
   align-items: center;
-  gap: 70px; /* 间距从30px加大到50px */
+  gap: 50px; /* 间距从30px加大到50px */
   padding: 10px 40px;
   background: linear-gradient(to right, #0154A0 0%, #0e5292 70%, #eaeced 100%);
   position: relative;

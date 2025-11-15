@@ -150,7 +150,7 @@
         </div>
         <div class="card-content">
           <div v-if="personalHonors.length > 0" class="honors-list">
-            <div v-for="honor in personalHonors" :key="honor.id" class="honor-item">
+            <div v-for="honor in personalHonors.slice(0, 5)" :key="honor.id" class="honor-item">
               <div class="honor-title">{{ honor.title }}</div>
               <div class="honor-date">{{ honor.date }}</div>
             </div>
@@ -209,8 +209,8 @@
                     <div class="match-stat-label">助攻数</div>
                   </div>
                   <div class="match-stat-item">
-                    <div class="match-stat-value">{{ playerStats.rating || '0.0' }}</div>
-                    <div class="match-stat-label">评分</div>
+                    <div class="match-stat-value">{{( playerStats.rating || '0.0') + '★'}}</div>
+                    <div class="match-stat-label">评级</div>
                   </div>
                 </div>
               </div>
@@ -842,6 +842,20 @@ const logout = () => {
   color:#111827;
   font-size:14px;
   line-height:1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+ 
+.self-team-name{
+  margin-left:8px;
+  font-weight:600;
+  color:#111827;
+  font-size:14px;
+  line-height:1.2;
+  /* 允许换行，最多两行，超出显示省略，保持与对手名格式一致 */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1575,7 +1589,6 @@ const logout = () => {
   flex-direction: column;
   gap: 12px;
 }
-
 .notice-item {
   padding: 16px;
   background: linear-gradient(145deg, #f8f0ff, #e8d4ff);
@@ -1591,64 +1604,72 @@ const logout = () => {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
+  right: -50%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-  transition: left 0.6s ease;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform: skewX(-15deg);
+  transition: right 0.6s ease;
 }
 
 .notice-item:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(147, 112, 219, 0.25);
-  border-left-color: #8A2BE2;
-  background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
+.honor-item:hover::before,
 .notice-item:hover::before {
-  left: 100%;
+  right: 150%;
+}
+
+
+.notice-item:hover {
+  border-left-color: #6A5ACD;
+  box-shadow: 0 4px 20px rgba(147, 112, 219, 0.2);
+}
+.notice-title {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.notice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
 }
 
 .notice-title {
-  font-weight: 700;
-  color: #4B0082;
-  font-size: 15px;
-  margin-bottom: 8px;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  line-height: 1.3;
+  flex: 1;
+  margin-bottom: 0;
 }
 
-.notice-preview {
-  font-size: 13px;
-  color: #6A5ACD;
-  margin-bottom: 10px;
-  line-height: 1.4;
-  opacity: 0.9;
-}
-
-.notice-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.type-tag {
+  flex-shrink: 0;
   font-size: 11px;
-  color: #9370DB;
-  border-top: 1px solid rgba(147, 112, 219, 0.3);
-  padding-top: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
+.notice-content {
+  font-size: 13px;
+  color: #5a6c7d;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.honor-date,
 .notice-date {
-  font-weight: 600;
-  color: #6A5ACD;
-}
-
-.notice-category {
-  background: linear-gradient(145deg, #9370DB, #8A2BE2);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  font-size: 12px;
+  color: #7f8c8d;
+  font-weight: 500;
 }
 
 /* 空状态样式 */
