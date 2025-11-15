@@ -2,10 +2,12 @@
   <div class="ai-qa-page">
     <div class="top-bar">
       <el-button @click="goBack" class="back-button" type="primary">返回首页</el-button>
-      <h2 class="page-title">全能型球队管家</h2>
     </div>
 
     <div class="qa-container">
+      <div class="analysis-title-wrapper">
+        <h2 class="analysis-title">全能型球队管家</h2>
+      </div>
       <!-- 问答历史区域 -->
       <div class="qa-history" ref="qaHistoryRef">
         <div v-if="qaMessages.length === 0" class="empty-qa-history">
@@ -38,12 +40,19 @@
           :rows="3"
           :disabled="isAsking"
           @keyup.enter.ctrl="askQuestion"
+          class="question-input"
         />
         <div class="qa-actions">
-          <el-button type="primary" @click="askQuestion" :loading="isAsking" :disabled="!currentQuestion.trim() || isAsking">
+          <el-button
+            class="primary-action-button"
+            type="primary"
+            @click="askQuestion"
+            :loading="isAsking"
+            :disabled="!currentQuestion.trim() || isAsking"
+          >
             {{ isAsking ? '思考中...' : '发送' }}
           </el-button>
-          <el-button @click="clearMessages">清空对话</el-button>
+          <el-button class="ghost-button" @click="clearMessages">清空对话</el-button>
         </div>
       </div>
     </div>
@@ -276,48 +285,86 @@ function goBack() {
 </script>
 
 <style scoped>
+
 .ai-qa-page {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background: #f5f7fa;
   padding: 20px;
 }
 
 .top-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-  background-color: white;
-  padding: 15px 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
-.page-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 0;
+.back-button {
+  margin-right: 20px;
+}
+
+.back-button,
+.primary-action-button {
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 0 30px;
+  height: 46px;
+  line-height: 46px;
+  border: none;
+  background: linear-gradient(135deg, #a0a7bc, #2563eb);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(30, 64, 175, 0.25);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.back-button:hover,
+.primary-action-button:hover {
+  background: linear-gradient(135deg, #1a358f, #1d4ed8);
+  box-shadow: 0 10px 22px rgba(30, 64, 175, 0.35);
+  transform: translateY(-1px);
+}
+
+.back-button:focus-visible,
+.primary-action-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
 }
 
 .qa-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  max-width: 1400px;
+  margin: 10px auto 0;
+  background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+  border-radius: 16px;
+  box-shadow: 0 15px 45px rgba(15, 23, 42, 0.15);
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 180px);
+  min-height: calc(100vh - 140px);
+}
+
+.analysis-title-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.analysis-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e3a8a;
+  text-shadow: 0 6px 20px rgba(30, 58, 138, 0.2);
+  letter-spacing: 1px;
 }
 
 .qa-history {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 20px;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 6px;
+  margin-bottom: 30px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 24px;
+  border: 1px solid rgba(30, 64, 175, 0.12);
 }
 
 .empty-qa-history {
@@ -325,8 +372,10 @@ function goBack() {
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: #909399;
-  font-size: 16px;
+  color: #364152;
+  font-size: 18px;
+  text-align: center;
+  font-weight: 600;
 }
 
 .message {
@@ -336,14 +385,14 @@ function goBack() {
 }
 
 .message.user {
-  background-color: #e6f7ff;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05));
   margin-left: 20px;
   margin-right: auto;
   max-width: 80%;
 }
 
 .message.ai {
-  background-color: #f0f9ff;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(14, 165, 233, 0.05));
   margin-right: 20px;
   margin-left: auto;
   max-width: 80%;
@@ -395,8 +444,13 @@ function goBack() {
 }
 
 .qa-input {
-  border-top: 1px solid #e0e0e0;
-  padding-top: 20px;
+  border-top: 1px solid rgba(30, 64, 175, 0.1);
+  padding-top: 30px;
+}
+
+.question-input :deep(textarea::placeholder) {
+  font-weight: 600;
+  color: rgba(52, 75, 113, 0.65);
 }
 
 .qa-actions {
@@ -404,6 +458,29 @@ function goBack() {
   justify-content: flex-end;
   margin-top: 10px;
   gap: 10px;
+}
+
+.primary-action-button {
+  padding: 0 34px;
+}
+
+.ghost-button {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0 30px;
+  height: 46px;
+  line-height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(30, 64, 175, 0.3);
+  color: #1e3a8a;
+  background: rgba(255, 255, 255, 0.9);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.ghost-button:hover {
+  color: #1a358f;
+  border-color: rgba(30, 64, 175, 0.6);
+  background: rgba(30, 64, 175, 0.05);
 }
 
 /* 响应式设计 */
