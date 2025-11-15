@@ -865,6 +865,9 @@
 /* ======= 卡片通用样式 ======= */
 .schedule-card, .players-side {
   border-radius: 16px;
+  height: 540px;
+  overflow-y: auto;
+
 }
 
 .card-header .title {

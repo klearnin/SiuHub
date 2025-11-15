@@ -600,10 +600,14 @@
   .schedule-card {
     /* 让它位于中部主列，和 mhome 风格一致的留白与圆角 */
     border-radius: 16px;
+    height: 540px;
+    overflow-y: auto;
   }
 
   .players-side {
     border-radius: 16px;
+    height: 694px;
+    overflow-y: auto;
   }
 
   .team-info-box {
