@@ -124,16 +124,16 @@
             </div>
             <div class="match-details">
               <div class="detail-item">
+                <span class="label">日期:</span>
+                <span class="value">{{ nextMatch && nextMatch.date ? nextMatch.date : '日期未设定' }}</span>
+              </div>
+              <div class="detail-item">
                 <span class="label">时间:</span>
                 <span class="value">{{ nextMatch && nextMatch.match_time ? nextMatch.match_time : '时间未设定' }}</span>
               </div>
               <div class="detail-item">
                 <span class="label">地点:</span>
                 <span class="value">{{ nextMatch && nextMatch.location ? nextMatch.location : '地点未设定' }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">日期:</span>
-                <span class="value">{{ nextMatch && nextMatch.date ? nextMatch.date : '日期未设定' }}</span>
               </div>
             </div>
           </div>
@@ -257,6 +257,7 @@
     </div>
    
   </div>
+  <Announcement />
 </template>
 
 <script setup>
@@ -265,6 +266,7 @@ import { useRouter } from "vue-router";
 import axios from "axios";
 import { ElMessage } from "element-plus";
 import * as echarts from "echarts";
+import Announcement from '@/components/Announcement.vue'
 
 
 let radarChart = null;

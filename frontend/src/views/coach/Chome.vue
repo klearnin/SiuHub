@@ -1053,7 +1053,7 @@ const getContentPreview = (content) => {
 .nav-bar {
   display: flex;
   align-items: center;
-  gap: 50px; /* 间距从30px加大到50px */
+  gap: 65px; /* 间距从30px加大到50px */
   padding: 10px 40px;
   background: linear-gradient(to right, #0154A0 0%, #0e5292 70%, #eaeced 100%);
   position: relative;
