@@ -2,7 +2,6 @@
   <div class="ai-analysis-page">
     <div class="top-bar">
       <el-button @click="goBack" class="back-button" type="primary">返回首页</el-button>
-      <h2 class="page-title">AI球员分析</h2>
     </div>
 
     <div class="main-content">
@@ -75,7 +74,13 @@
         </div>
 
         <div class="action-buttons">
-          <el-button type="primary" @click="requestAnalysis" :loading="isAnalyzing" :disabled="!selectedPlayerId || isAnalyzing">
+          <el-button
+            class="primary-action-button"
+            type="primary"
+            @click="requestAnalysis"
+            :loading="isAnalyzing"
+            :disabled="!selectedPlayerId || isAnalyzing"
+          >
             {{ isAnalyzing ? '分析中...' : '请求AI分析' }}
           </el-button>
         </div>
@@ -83,6 +88,9 @@
 
       <!-- 右侧面板：分析结果展示 -->
       <div class="right-panel">
+        <div class="analysis-title-wrapper">
+          <h2 class="analysis-title">AI球员分析</h2>
+        </div>
         <!-- 分析中加载状态 -->
         <div class="loading-container" v-if="isAnalyzing">
           <div class="loading-spinner">
@@ -114,7 +122,6 @@
 
           <!-- 空状态 -->
           <div class="empty-state" v-else>
-            <img src="../../assets/health-icon.png" alt="健康分析" class="empty-icon" />
             <p>请选择一个球员并点击"请求AI分析"按钮</p>
           </div>
         </template>
@@ -334,32 +341,76 @@ function goBack() {
   margin-right: 20px;
 }
 
-.page-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+.back-button,
+.primary-action-button {
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 0 30px;
+  height: 46px;
+  line-height: 46px;
+  border: none;
+  background: linear-gradient(135deg, #1c3faa, #2563eb);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(30, 64, 175, 0.25);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.back-button:hover,
+.primary-action-button:hover {
+  background: linear-gradient(135deg, #1a358f, #1d4ed8);
+  box-shadow: 0 10px 22px rgba(30, 64, 175, 0.35);
+  transform: translateY(-1px);
+}
+
+.back-button:focus-visible,
+.primary-action-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
 }
 
 .main-content {
   display: flex;
   gap: 20px;
+  align-items: stretch;
+  background: linear-gradient(135deg, rgba(24, 144, 255, 0.12), rgba(129, 212, 250, 0.12));
+  padding: 20px;
+  border-radius: 16px;
+  box-sizing: border-box;
 }
 
 .left-panel {
   width: 400px;
-  background: #fff;
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbff 100%);
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  align-self: stretch;
 }
 
 .right-panel {
   flex: 1;
-  background: #fff;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  min-height: auto;
+}
+
+.analysis-title-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.analysis-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1e3a8a;
+  text-shadow: 0 4px 10px rgba(30, 58, 138, 0.15);
 }
 
 .panel-section {
@@ -414,6 +465,10 @@ function goBack() {
   display: flex;
   gap: 10px;
   margin-top: 30px;
+}
+
+.primary-action-button {
+  padding: 0 34px;
 }
 
 .analysis-result {
@@ -486,13 +541,14 @@ function goBack() {
   justify-content: center;
   height: 100%;
   color: #999;
+  text-align: center;
 }
 
-.empty-icon {
-  width: 120px;
-  height: 120px;
-  margin-bottom: 20px;
-  opacity: 0.5;
+.empty-state p {
+  font-size: 20px;
+  font-weight: 600;
+  color: #364152;
+  letter-spacing: 0.5px;
 }
 .loading-center {
   display: flex;
@@ -514,9 +570,9 @@ function goBack() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
   width: 100%;
-  min-height: 600px;
+  min-height: 0;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 8px;
 }
