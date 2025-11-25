@@ -7,11 +7,17 @@
     align-center
   >
     <template #header>
+      
       <div style="display:flex;gap:8px;align-items:center;">
         <el-icon><Notification /></el-icon>
         <span>最新公告</span>
+
+
+
       </div>
     </template>
+
+
 
     <div v-if="data">
       <h3 style="font-weight:700;margin:8px 0;">{{ data.title || '公告' }}</h3>

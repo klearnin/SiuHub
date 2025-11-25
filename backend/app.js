@@ -38,6 +38,8 @@ app.use(cors()); // 仍然放在最前
 
 // 你的 auth 路由（保持不变）
 const authRoutes = require("./router/auth");
+
+
 app.use("/api/auth", authRoutes);
 
 // 自定义跨域中间件（保留，但补充 PATCH/OPTIONS，并允许常用请求头）

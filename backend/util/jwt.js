@@ -8,5 +8,6 @@ exports.sign=promisify(jwt.sign)
 // 验证jwt
 exports.verify=promisify(jwt.verify)
 
+
 // jwt解码
 exports.decode=promisify(jwt.decode)
