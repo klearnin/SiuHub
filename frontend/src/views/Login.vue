@@ -11,6 +11,7 @@
         />
       </div>
 
+
       <div class="form-group">
         <el-input
           v-model="form.phone"
@@ -19,6 +20,7 @@
         />
       </div>
 
+      
       <div class="form-group">
         <el-input
           v-model="form.password"

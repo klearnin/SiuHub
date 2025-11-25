@@ -11,13 +11,15 @@
       <button @click=back()>返回</button>
     </div>
 
-    <!-- 日历网格 -->
+
+
+
     <div class="calendar-grid">
       <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
       <div class="day-cell" v-for="day in calendarDays" :key="day.date" @click="openEventPrompt(day.date)">
         <div class="day-number">{{ day.day }}</div>
         <ul class="events" v-for="(schedule, index) in schedules" :key="index">
-          <li v-if="schedule.date === day.date"><div class="schedule match" v-if="schedule.type==='match'">比赛 �?/div></li>
+          <li v-if="schedule.date === day.date"><div class="schedule match" v-if="schedule.type==='match'">比赛 �?/div></li>
           <li v-if="schedule.date === day.date"><div class="schedule training" v-if="schedule.type==='training'">训练🎯</div></li>
           <li v-if="schedule.date === day.date"><div class="schedule else" v-if="schedule.type==='else'">其他📅</div></li>
         </ul>
@@ -27,22 +29,22 @@
     <!-- 弹窗 -->
     <div v-if="showPopup" class="popup-overlay">
       <div class="popup">
-        <!-- 选项卡按�?-->
-        <!-- 模板部分保持原结构不�?-->
+        <!-- 选项卡按�?-->
+        <!-- 模板部分保持原结构不�?-->
         <div class="tab-buttons">
           <button class="tab-button" :class="{ active: activeTab === 'match' }" @click="switchTab('match')">比赛</button>
           <button class="tab-button" :class="{ active: activeTab === 'training' }" @click="switchTab('training')">训练</button>
           <button class="tab-button" :class="{ active: activeTab === 'else' }" @click="switchTab('else')">其他</button>
         </div>
 
-        <!-- 选项卡内�?-->
+        <!-- 选项卡内�?-->
         <div class="tab-content-wrapper">
           <!-- 比赛内容 -->
           <div class="tab-content" :class="{ active: activeTab === 'match' }">
             <p class="match-info">
-              <span class="team">{{ teamname || '未设�? }}</span>
-              <span class="vs">{{ matchTime || '时间未设�? }} / {{ matchLocation || '地点未设�? }}</span>
-              <span class="team">{{ team2 || '对手未设�? }}</span>
+              <span class="team">{{ teamname || '未设�? }}</span>
+              <span class="vs">{{ matchTime || '时间未设�? }} / {{ matchLocation || '地点未设�? }}</span>
+              <span class="team">{{ team2 || '对手未设�? }}</span>
             </p>
             
             <div class="team-logos-container">
@@ -62,12 +64,12 @@
           <div class="tab-content" :class="{ active: activeTab === 'training' }">
             <div class="schedule-info training-info">
               <div class="info-row">
-                <strong>时间�?/strong>
-                <span>{{ trainingTime || '未设�? }}</span>
+                <strong>时间�?/strong>
+                <span>{{ trainingTime || '未设�? }}</span>
               </div>
               <div class="info-row">
-                <strong>训练内容�?/strong>
-                <span>{{ teamTraining || '未设�? }}</span>
+                <strong>训练内容�?/strong>
+                <span>{{ teamTraining || '未设�? }}</span>
               </div>
             </div>
            
@@ -76,12 +78,12 @@
           <div class="tab-content" :class="{ active: activeTab === 'else' }">
             <div class="schedule-info other-info">
               <div class="info-row">
-                <strong>时间�?/strong>
-                <span>{{ elseTime || '未设�? }}</span>
+                <strong>时间�?/strong>
+                <span>{{ elseTime || '未设�? }}</span>
               </div>
               <div class="info-row">
-                <strong>事件�?/strong>
-                <span>{{ elseEvent || '未设�? }}</span>
+                <strong>事件�?/strong>
+                <span>{{ elseEvent || '未设�? }}</span>
               </div>
             </div>
             
@@ -103,7 +105,7 @@
 <script>
 
 import axios from 'axios';
-import { ElMessage } from 'element-plus'; // �?加了ElMessage
+import { ElMessage } from 'element-plus'; // �?加了ElMessage
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -119,12 +121,12 @@ export default {
       selectedMonth: new Date().getMonth() + 1,
       calendarDays: [],
       selectedID: null,
-      dayNames: ['�?, '一', '�?, '�?, '�?, '�?, '�?],
-      months: ['一�?, '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一�?, '十二�?],
+      dayNames: ['�?, '一', '�?, '�?, '�?, '�?, '�?],
+      months: ['一�?, '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一�?, '十二�?],
       showPopup: false,
       selectedDate: null,
       
-      //窗口滑动的相关数�?
+      //窗口滑动的相关数�?
       activeTab: 'match',
        // 比赛设置相关数据
       team1: '我的球队',
@@ -150,7 +152,7 @@ export default {
 
       showOpponentSelector: false,
 
-      schedules: [], // 日程�?
+      schedules: [], // 日程�?
       matchId:null,
       trainingId: null,
       elseId:null,
@@ -185,7 +187,7 @@ export default {
       if (token) {
         const payload = JSON.parse(atob(token.split(".")[1]));
         if (payload.type !== "player") {
-          ElMessage.error("无权访问该页�?);
+          ElMessage.error("无权访问该页�?);
           router.replace("/login");
         }
       } else {
@@ -216,7 +218,7 @@ export default {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         
-        // 检查响应数据是否存�?
+        // 检查响应数据是否存�?
         if (res.data && res.data.teamname && res.data.teamname.length > 0) {
           this.teamname = res.data.teamname[0].name;
           
@@ -230,7 +232,7 @@ export default {
           
           this.teamlist = res.data.teamlist || [];
           
-          // 为日程添加队徽信�?
+          // 为日程添加队徽信�?
           this.processSchedulesWithLogos();
         }
       } catch (error) {
@@ -239,7 +241,7 @@ export default {
       }
     },
 
-    // 处理日程数据，添加队徽信�?
+    // 处理日程数据，添加队徽信�?
     processSchedulesWithLogos() {
       if (!this.teamlist || this.teamlist.length === 0 || !this.schedules) return;
       
@@ -284,12 +286,12 @@ export default {
 
       const days = [];
 
-      // 添加空白�?
+      // 添加空白�?
       for (let i = 0; i < startWeekDay; i++) {
         days.push({ day: '', date: '' });
       }
 
-      // 添加日期�?
+      // 添加日期�?
       for (let i = 1; i <= lastDate; i++) {
         const dateStr = `${year}-${String(this.selectedMonth).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         days.push({ day: i, date: dateStr });
@@ -299,7 +301,7 @@ export default {
       await this.fetchSchedules();
     },
     
-    // 打开事件输入�?
+    // 打开事件输入�?
     openEventPrompt(date) {
         if (!date) return;
         this.selectedDate = date;
@@ -320,7 +322,7 @@ export default {
             if (schedule.team2logo) {
               this.team2Logo = schedule.team2logo;
             } else {
-              // 如果schedule没有队徽，尝试从teamlist中获�?
+              // 如果schedule没有队徽，尝试从teamlist中获�?
               const team = this.teamlist.find(t => t.name === schedule.team2);
               if (team && team.logo_path) {
                 this.team2Logo = `http://localhost:5000${team.logo_path}`;
@@ -377,7 +379,7 @@ export default {
 
     // 编辑日程信息
     edit(title, key) {
-      this.editorTitle = `请输�?{title}`;
+      this.editorTitle = `请输�?{title}`;
       this.editKey = key;
       this.showEditor = true;
     },
@@ -426,7 +428,7 @@ export default {
             ElMessage.success(`比赛日程保存成功！`);
           } 
         } catch (error) {
-          ElMessage.error(`保存失败�?{response.data.msg}`);
+          ElMessage.error(`保存失败�?{response.data.msg}`);
         }
       await this.fetchSchedules(); 
       this.closePopup();
@@ -451,7 +453,7 @@ export default {
             ElMessage.success(`比赛日程修改成功！`);
           } 
         } catch (error) {
-          ElMessage.error(`修改失败�?{response.data.msg}`);
+          ElMessage.error(`修改失败�?{response.data.msg}`);
         }
       await this.fetchSchedules(); 
       this.closePopup();
@@ -523,7 +525,7 @@ export default {
         if (res.data.code === 0) {
           ElMessage.success(`训练日程保存成功！`);
         } else {
-          this.$message.error('保存失败�? + res.data.message);
+          this.$message.error('保存失败�? + res.data.message);
         }
       } catch (err) {
         console.error('保存失败', err);
@@ -547,7 +549,7 @@ export default {
         if (res.data.message === '其他日程更新成功') {
           this.$message.success('其他日程修改成功');
         } else {
-          this.$message.error('修改失败�? + res.data.message);
+          this.$message.error('修改失败�? + res.data.message);
         }
       } catch (err) {
         console.error('修改失败', err);
@@ -797,7 +799,7 @@ export default {
   box-shadow: 0 5px 10px rgba(134, 142, 150, 0.4);
 }
 
-/* 选项卡样�?*/
+/* 选项卡样�?*/
 .tab-buttons {
   display: flex;
   margin-bottom: 20px;
@@ -823,7 +825,7 @@ export default {
   margin: 0 5px;
 }
 
-/* 动态颜色方�?*/
+/* 动态颜色方�?*/
 .tab-button:nth-child(1).active {
   background: linear-gradient(135deg, #4dabf7, #0c2b5d);
   color: white;
@@ -839,7 +841,7 @@ export default {
   color: white;
 }
 
-/* 激活状�?*/
+/* 激活状�?*/
 .tab-button.active {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
@@ -849,7 +851,7 @@ export default {
   background-color: #dee2e6;
 }
 
-/* 选项卡内容容�?*/
+/* 选项卡内容容�?*/
 .tab-content-wrapper {
   position: relative;
   min-height: 300px;
@@ -1018,7 +1020,7 @@ export default {
   text-align: center;
 }
 
-/* 训练和其他事件信息样�?*/
+/* 训练和其他事件信息样�?*/
 .schedule-info {
   width: 100%;
   padding: 20px;
