@@ -7,9 +7,6 @@ module.exports = ()=>{
         res.status(500).json({
             code: 1,
             msg: err.message
-
-
-            
         })
     }
 }

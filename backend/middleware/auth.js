@@ -9,8 +9,11 @@ module.exports = async (req, res, next) => {
     if (!token) return res.status(401).end();
 
     const decoded = await verify(token, jwtSecret);
+    
     const sql = `SELECT * FROM users WHERE id = ${db.escape(decoded.userId)} LIMIT 1`;
+
     const userRes = await db.startQuery(sql);
+
     if (!userRes[0]) return res.status(401).end("无效用户");
 
     delete userRes[0].password;
